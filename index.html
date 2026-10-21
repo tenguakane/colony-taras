@@ -8699,7 +8699,7 @@ const NAV_MAIN = ["profile", "stats", "daymatrix", "charts"];
 
 /* ===================== Запоминание места: адрес страницы и настройки вида ===================== */
 const UI_KEY = "chatstats.ui.v1";
-let routeApplying = false;
+let routeApplying = false, routeLastTab = "";
 const currentTab = () => document.querySelector("nav button.active[data-tab]")?.dataset.tab || "participants";
 function routeParam(t){
   if (t === "profile") return person.value;
@@ -8712,7 +8712,8 @@ function uiState(){ return {mode, month:$("month").value, year:$("year").value, 
 function updateRoute(){
   if (routeApplying) return;
   const t = currentTab(), p = routeParam(t), h = `#${t}${p ? "/" + encodeURIComponent(p) : ""}`;
-  if (location.hash !== h) history.replaceState(null, "", h);
+  if (location.hash !== h) { if (routeLastTab && routeLastTab !== t) history.pushState(null, "", h); else history.replaceState(null, "", h); }
+  routeLastTab = t;
   try { localStorage.setItem(UI_KEY, JSON.stringify({...uiState(), hash:h})); } catch (e) {}
 }
 function applyRoute(hash){
@@ -8727,6 +8728,7 @@ function applyRoute(hash){
   else if (tab === "compare" && /^(chat|month|year)(~|$)/.test(p)) { const [md, x, y] = p.split("~"), pr = {chat:["chA", "chB"], month:["mA", "mB"], year:["yA", "yB"]}[md]; CMP.mode = md; if (x && y) { CMP[pr[0]] = x; CMP[pr[1]] = y; } }
   btn.click();
   routeApplying = false;
+  routeLastTab = tab;
   updateRoute();
   return true;
 }
@@ -11598,7 +11600,7 @@ function liveApply(){
 <script>
 /* Версия сайта и проверка обновлений на GitHub */
 (function(){
-  const APP_VERSION = "2026.10.21-3", APP_BUILT = "2026-10-21";
+  const APP_VERSION = "2026.10.21-4", APP_BUILT = "2026-10-21";
   const LOADED = Date.now(), KEY = "chatstats.ghcommit.v1";
   const $ = id => document.getElementById(id);
   const isGh = /\.github\.io$/i.test(location.hostname);
