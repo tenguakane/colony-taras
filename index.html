@@ -10257,6 +10257,7 @@ function liveApply(){
   const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
   const TIERS = {none:"#4a5060", bronze:"#e3a36b", silver:"#c0c6d4", gold:"#ffd166", diamond:"#67e8f9"};
   const TIER_NAMES = {bronze:"Бронза (I–III)", silver:"Серебро (IV–VI)", gold:"Золото (VII–IX)", diamond:"Максимум (X)"};
+  const openTier = (a, l) => { const t = a.tiers || [20, 50, 100]; return l >= t[2] ? "diamond" : l >= t[1] ? "gold" : l >= t[0] ? "silver" : l >= 1 ? "bronze" : "none"; };
   const tierOfLevel = l => l <= 0 ? "none" : l <= 3 ? "bronze" : l <= 6 ? "silver" : l <= 9 ? "gold" : "diamond";
   const ICONS = {
     chat:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M13 7l-3 4h4l-3 4"/>',
@@ -10280,13 +10281,13 @@ function liveApply(){
       val:d => d.video, show:v => fmt(Math.round(v)), unit:v => wf(v, ["видеосообщение", "видеосообщения", "видеосообщений"]), note:() => "за всё время"},
     {id:"voice", name:"Болтун", icon:"mic", desc:"Записать определённое количество голосовых сообщений", th:[50,150,300,600,1000,1500,2200,3000,4000,5000],
       val:d => d.voice, show:v => fmt(Math.round(v)), unit:v => wf(v, ["голосовое", "голосовых", "голосовых"]), note:() => "за всё время"},
-    {id:"veteran", name:"Ветеран", icon:"shield", desc:"Пробыть в чате определённое количество лет", th:[1,2,3,4,5,6,7,8,9,10],
+    {id:"veteran", name:"Ветеран", icon:"shield", desc:"Пробыть в чате определённое количество лет — сколько лет, столько и уровней", open:true, step:1, tiers:[4,7,10], norm:10,
       val:d => d.years, show:v => String(Math.floor(v)), unit:v => wf(Math.floor(v), ["год", "года", "лет"]), note:d => d.since ? `в чате с ${formatMetricDate(d.since)}` : "", fmtTh:t => `${t} ${wf(t, ["год", "года", "лет"])}`},
     {id:"wins", name:"Серия побед", icon:"trophy", desc:"Занять первое место определённое количество дней подряд", th:[3,10,25,50,100,175,250,325,400,500],
       val:d => d.winStreak, show:v => fmt(Math.round(v)), unit:v => wf(v, ["день", "дня", "дней"]) + " на 1-м месте подряд", note:d => d.winStreak ? (d.winStart === d.winEnd ? formatMetricDate(d.winStart) : `${formatMetricDate(d.winStart)} — ${formatMetricDate(d.winEnd)}`) : "первых мест не было"},
     {id:"streak", name:"Непрерывный", icon:"flame", desc:"Общаться определённое количество дней подряд", th:[10,30,75,150,300,500,800,1200,1600,2000],
       val:d => d.maxStreak, show:v => fmt(Math.round(v)), unit:v => wf(v, ["день", "дня", "дней"]) + " подряд", note:d => d.maxStreak ? (d.streakStart === d.streakEnd ? formatMetricDate(d.streakStart) : `${formatMetricDate(d.streakStart)} — ${formatMetricDate(d.streakEnd)}`) : ""},
-    {id:"colonist", name:"Колонист", icon:"home", desc:"Написать определённое количество сообщений в целом — сколько тысяч сообщений, такой и уровень", open:true, step:1000,
+    {id:"colonist", name:"Колонист", icon:"home", desc:"Написать определённое количество сообщений в целом — сколько тысяч сообщений, такой и уровень", open:true, step:1000, norm:50,
       val:d => d.msgs, show:v => fmt(Math.round(v)), unit:v => wf(v, ["сообщение", "сообщения", "сообщений"]) + " всего", note:() => "+1 ур. за каждую 1 000"},
     {id:"selfie", name:"Модель", icon:"camera", desc:"Сделать определённое количество селфи", th:[1,5,15,30,60,100,175,250,350,500],
       val:d => d.selfie, show:v => fmt(Math.round(v)), unit:v => wf(v, ["селфи", "селфи", "селфи"]), note:() => "по базе селфи"},
@@ -10340,7 +10341,7 @@ function liveApply(){
       else { level = a.th.filter(t => v >= t).length; prevTh = level ? a.th[level - 1] : 0; nextTh = level < a.th.length ? a.th[level] : null; }
       const maxed = !a.open && level >= a.th.length;
       const pr = maxed ? 1 : Math.max(0, Math.min(1, (v - prevTh) / ((nextTh - prevTh) || 1)));
-      const tier = a.open ? (level >= 100 ? "diamond" : level >= 50 ? "gold" : level >= 20 ? "silver" : level >= 1 ? "bronze" : "none") : tierOfLevel(level);
+      const tier = a.open ? openTier(a, level) : tierOfLevel(level);
       return {a, v, level, prevTh, nextTh, maxed, pr, tier};
     });
     const score = items.reduce((s2, x) => s2 + Math.min(10, x.level), 0);
@@ -10359,7 +10360,7 @@ function liveApply(){
       MET.forEach(m => { const v = Number(g(x, m)) || 0; if (v) u[m].set(d, (u[m].get(d) || 0) + v); });
     });
     const A = id => ACH.find(a => a.id === id);
-    const add = (pk, a, level, date) => { if (date >= sinceIso && date <= today && level >= 1) out.push({pk, id:a.id, name:a.name, icon:a.icon, level, label:a.open ? String(level) : ROMAN[level], date, tier:a.open ? (level >= 100 ? "diamond" : level >= 50 ? "gold" : level >= 20 ? "silver" : "bronze") : tierOfLevel(level)}); };
+    const add = (pk, a, level, date) => { if (date >= sinceIso && date <= today && level >= 1) out.push({pk, id:a.id, name:a.name, icon:a.icon, level, label:a.open ? String(level) : ROMAN[level], date, tier:a.open ? openTier(a, level) : tierOfLevel(level)}); };
     const cum = (pk, a, map, step) => {
       let tot = 0, lvl = 0;
       [...map.keys()].sort().forEach(d => {
@@ -10385,7 +10386,7 @@ function liveApply(){
       runs(pk, A("wins"), real.filter(d => u.msgs.get(d) >= (B.dayMax.get(d) || Infinity)));
       // ветеран
       const joined = MEMBERSHIP_STARTS.find(([, id]) => String(id) === pk)?.[0], first = real[0], since = joined && /^\d{4}-\d{2}-\d{2}$/.test(joined) ? joined : first;
-      if (since) A("veteran").th.forEach((n, i) => add(pk, A("veteran"), i + 1, `${+since.slice(0, 4) + n}${since.slice(4)}`));
+      if (since) { const ny = Math.min(80, Math.floor((dayIdx(today) - dayIdx(since)) / 365.25) + 1); for (let n = 1; n <= ny; n++) add(pk, A("veteran"), n, `${+since.slice(0, 4) + n}${since.slice(4)}`); }
     });
     // селфи
     const sel = A("selfie"), sm = new Map();
@@ -11746,7 +11747,7 @@ function liveApply(){
 <script>
 /* Версия сайта и проверка обновлений на GitHub */
 (function(){
-  const APP_VERSION = "2026.10.21-10", APP_BUILT = "2026-10-21";
+  const APP_VERSION = "2026.10.21-11", APP_BUILT = "2026-10-21";
   const LOADED = Date.now(), KEY = "chatstats.ghcommit.v1";
   const $ = id => document.getElementById(id);
   const isGh = /\.github\.io$/i.test(location.hostname);
@@ -12022,7 +12023,7 @@ function liveApply(){
     try {
       const A = window.__achApi, full = A.full(pk), rk = A.rank(full.score);
       const gained = per.year ? A.recent(per.from).filter(e => e.pk === pk && e.date <= per.to) : [];
-      const top = full.items.filter(x => x.level > 0).sort((a, b) => b.level / (b.a.open ? 50 : 10) - a.level / (a.a.open ? 50 : 10) || b.level - a.level);
+      const top = full.items.filter(x => x.level > 0).sort((a, b) => b.level / (b.a.norm || 10) - a.level / (a.a.norm || 10) || b.level - a.level);
       ach = {score:full.score, rank:rk, gained, top, got:full.got};
     } catch (e) {}
     return {pk, name:NAMES[pk] || pk, per, T, activeDays:days.size, months, years:[...years.entries()].sort(), wd, best, longest, place, count:totals.length, share:sum ? T.m / sum * 100 : 0, avg, totals, wins, sel, since, ach};
