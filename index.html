@@ -658,7 +658,7 @@ svg.dimming [data-n]:not(.hl){opacity:.1!important;transition:opacity .15s}
 svg [data-n].hl{transition:opacity .15s}
 
 .nav-hidden{display:none!important}
-.group-tabs{display:inline-flex;margin:0 0 14px}
+.group-tabs{display:flex;flex-wrap:wrap;width:fit-content;max-width:100%;height:auto!important;margin:0 0 14px}.group-tabs button{min-height:38px;border-bottom:1px solid var(--line)}
 .group-tabs button{padding:9px 18px;font-size:15px}
 
 .race-ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 4px 2px}
@@ -1116,18 +1116,17 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <nav role="tablist">
     <button data-tab="hub">Хаб</button>
     <button data-tab="profile">Профиль</button>
-    <button data-tab="compare">Сравнение</button>
     <button class="active" data-tab="stats">Статистика</button>
-    <button data-tab="daymatrix">По дням</button>
+    <button data-tab="compare">Сравнение</button>
+    <button data-tab="daymatrix">Матрица</button>
     <button data-tab="charts">Графики</button>
-    <button data-tab="records">Рекорды</button>
-    <button data-tab="months" data-group="tops">Топы</button>
-    <button data-tab="forecast">Прогноз</button>
-    <button data-tab="selfie">Селфи</button>
     <button data-tab="marathons" data-group="other">Другое</button>
     <button data-tab="settings">Настройки</button>
+    <button data-tab="records" class="nav-hidden">Рекорды</button>
     <button data-tab="months" class="nav-hidden">Топ месяцев</button>
     <button data-tab="days" class="nav-hidden">Топ дней</button>
+    <button data-tab="forecast" class="nav-hidden">Прогноз</button>
+    <button data-tab="selfie" class="nav-hidden">Селфи</button>
     <button data-tab="marathons" class="nav-hidden">Марафоны</button>
     <button data-tab="time" class="nav-hidden">Время</button>
     <button data-tab="yearreview" class="nav-hidden">Итоги года</button>
@@ -1249,7 +1248,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
       <label class="checkline"><input type="checkbox" id="hide-left-daymatrix">Убрать вышедших</label>
       <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="dm-copy" type="button">Копировать как изображение</button><span class="hint" id="dm-copy-status"></span></div>
     </div>
-    <div class="chart-settings-panel" id="dm-colors-panel" aria-hidden="true"><div class="chart-settings-heading"><h2>Цвета таблицы «По дням»</h2><button class="mini" id="dm-colors-close" type="button">Свернуть</button></div><div id="dm-colors-content" class="chart-settings-content"></div></div>
+    <div class="chart-settings-panel" id="dm-colors-panel" aria-hidden="true"><div class="chart-settings-heading"><h2>Цвета матрицы активности</h2><button class="mini" id="dm-colors-close" type="button">Свернуть</button></div><div id="dm-colors-content" class="chart-settings-content"></div></div>
     <p class="status" id="dm-status"></p>
     <div class="wrap"><table id="dm-table" class="dm-table"><thead id="dm-head"></thead><tbody id="dm-body"></tbody></table></div>
   </section>
@@ -1337,7 +1336,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-achievements">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="active">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="active">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label for="ach-person">Участник</label><select id="ach-person"></select></div>
       <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="ach-copy" type="button">Копировать как картинку</button><button class="mini" id="ach-download" type="button">⬇ Скачать PNG</button><span class="hint" id="ach-msg" role="status" aria-live="polite"></span></div>
@@ -1347,7 +1346,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-chronicle">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="active">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="active">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label for="ch-person">Участник</label><select id="ch-person"></select></div>
       <div class="field"><label for="ch-year">Год</label><select id="ch-year"></select></div>
@@ -1359,7 +1358,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-birthdays">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="active">Дни рождения</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="active">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <label class="checkline"><input type="checkbox" id="hide-left-birthdays">Убрать вышедших</label>
       <div class="table-export-actions filters-export-actions"><button class="mini" id="bd-ics" type="button">⬇ Календарь (.ics)</button><button class="mini" id="bd-open-settings" type="button">⚙ Изменить данные</button><span class="hint" id="bd-msg" role="status" aria-live="polite"></span></div>
@@ -1369,7 +1368,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-usermap">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="usermap" class="active">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="active">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <label class="checkline"><input type="checkbox" id="hide-left-usermap">Убрать вышедших</label>
       <label class="checkline" title="Участники, у которых указана только страна, ставятся в её столицу. В рейтинг ближайших не попадают."><input type="checkbox" id="um-approx">Без города — по столице страны</label>
@@ -1382,7 +1381,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-vk">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="active">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="active">VK</button></div>
     <div class="filters">
       <div class="field"><label for="vk-person">Участник</label><select id="vk-person"><option value="">Все</option></select></div>
       <div class="field"><label for="vk-year">Год</label><select id="vk-year"><option value="">Все годы</option></select></div>
@@ -1395,7 +1394,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-marathons">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="active">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="active">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label for="mr-select">Марафон</label><select id="mr-select" style="min-width:260px"></select></div>
       <div class="field"><label for="mr-metric">Показатель</label><select id="mr-metric"><option value="msgs">Сообщения</option><option value="stick">Стикеры</option><option value="voice">Голосовые</option><option value="video">Видеосообщения</option></select></div>
@@ -1421,6 +1420,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-records">
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="active">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Рекорды</label>
         <div class="seg" id="record-entity">
@@ -1444,7 +1444,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-months">
-    <div class="seg group-tabs" data-group-seg="tops"><button type="button" data-gtab="months" class="active">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="active">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Сортировка</label>
         <div class="seg" id="m-sort"><button data-s="msgs" class="active">По сообщениям</button><button data-s="date">По дате</button></div>
@@ -1464,7 +1464,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-days">
-    <div class="seg group-tabs" data-group-seg="tops"><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="active">Топ дней</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="active">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Сортировка</label>
         <div class="seg" id="d-sort"><button data-s="msgs" class="active">По сообщениям</button><button data-s="date">По дате</button></div>
@@ -1486,7 +1486,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-time">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="active">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="active">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters"><label class="checkline"><input type="checkbox" id="hide-left-time">Убрать вышедших</label></div>
     <div class="table-export-row">
       <h2 id="time-title">Время участия в чате</h2>
@@ -1507,6 +1507,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     </table></div>
   </section>
   <section class="tab" id="tab-forecast">
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="active">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Период</label>
         <div class="seg" id="fc-period"><button data-p="month" class="active">До конца месяца</button><button data-p="year">До конца года</button></div>
@@ -1530,6 +1531,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div id="fc-out"></div>
   </section>
   <section class="tab" id="tab-selfie">
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="active">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>База селфи</label><div class="pbtn"><button class="mini" id="s-import" type="button">Импорт из Excel</button><button class="mini" id="s-export" type="button">Экспорт в Excel</button><button class="mini" id="s-undo" type="button" disabled>Отменить изменение</button><button class="mini" id="s-builtin" type="button" title="Вернуть базу селфи, встроенную в сайт">Встроенная база</button></div><input type="file" id="s-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></div>
       <div class="field"><label for="s-range">Период</label><select id="s-range"></select></div>
@@ -1568,7 +1570,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="wrap"><table id="s-years-table"><thead><tr><th>Год</th><th>Селфи</th><th>Селфи-пятниц</th><th>В среднем за пятницу</th><th>Рекорд пятницы</th><th>Участников</th><th style="text-align:left">Больше всех</th></tr></thead><tbody id="s-years-body"></tbody></table></div>
   </section>
   <section class="tab" id="tab-yearreview">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="active">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="active">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label for="yr-year">Год</label><select id="yr-year" style="min-width:120px"></select></div>
       <div class="field"><label for="yr-cmp">Сравнить с</label><select id="yr-cmp" style="min-width:160px"></select></div>
@@ -7907,7 +7909,7 @@ $("theme-grid").addEventListener("click", e => {
 applySiteTheme(siteThemeId);
 renderThemeGrid();
 
-/* ===================== Палитры вкладки «По дням» ===================== */
+/* ===================== Палитры вкладки «Матрица» ===================== */
 const DM_PALETTES = [["Пары «лучший день / заливка»", [
   ["Классика", ["#ff9e64","#7aa2f7"]], ["Лёд", ["#7dcfff","#5a8fc2"]], ["Изумруд", ["#9ece6a","#2f8f4e"]], ["Золото", ["#ffd166","#c2861b"]],
   ["Огонь", ["#ff4d6d","#d9531e"]], ["Аметист", ["#c792ea","#7c4dcc"]], ["Неон", ["#00f5d4","#f15bb5"]], ["Закат", ["#ffd56b","#c06c84"]],
@@ -8057,7 +8059,7 @@ $("cache-reset").onclick = async () => {
   allRows = null; histP = null; rawHist = null;
   $("cache-info").textContent = "Кэш очищен. При следующем открытии вкладки история загрузится заново целиком.";
 };
-// Марафоны и «По дням» берут данные из кэшированной истории, если она уже загружена.
+// Марафоны и «Матрица» берут данные из кэшированной истории, если она уже загружена.
 const mrRowsBase = mrRows;
 mrRows = function(m){ return allRows ? Promise.resolve(allRows) : mrRowsBase(m); };
 
@@ -8831,7 +8833,7 @@ renderCacheInfo();
 
 
 /* ===================== Сгруппированные вкладки: «Топы» и «Другое» ===================== */
-const TAB_GROUPS = {tops:["months", "days"], other:["marathons", "time", "yearreview", "achievements", "chronicle", "birthdays", "usermap", "vk"]};
+const TAB_GROUPS = {other:["records", "months", "days", "forecast", "marathons", "time", "yearreview", "achievements", "chronicle", "birthdays", "selfie", "usermap", "vk"]};
 const GROUP_KEY = "chatstats.tabGroups.v1";
 (function(){
   const nav = document.querySelector("nav");
@@ -11747,7 +11749,7 @@ function liveApply(){
 <script>
 /* Версия сайта и проверка обновлений на GitHub */
 (function(){
-  const APP_VERSION = "2026.10.21-11", APP_BUILT = "2026-10-21";
+  const APP_VERSION = "2026.10.21-12", APP_BUILT = "2026-10-21";
   const LOADED = Date.now(), KEY = "chatstats.ghcommit.v1";
   const $ = id => document.getElementById(id);
   const isGh = /\.github\.io$/i.test(location.hostname);
@@ -11814,7 +11816,7 @@ function liveApply(){
       {tab:"profile", ic:"👤", t:"Профиль", d:"Личная карточка: цифры, серии, цели, прогноз и активность участника"},
       {tab:"compare", ic:"⚖️", t:"Сравнение", d:"Дуэль двух участников, чатов, месяцев или лет, в том числе на радаре"},
       {tab:"stats", ic:"📊", t:"Статистика", d:"Топ участников и чатов за выбранный день, неделю, месяц или год"},
-      {tab:"daymatrix", ic:"🗓️", t:"По дням", d:"Таблица активности по дням и тепловая карта"},
+      {tab:"daymatrix", ic:"🗓️", t:"Матрица", d:"Участники × дни: таблица активности с тепловой заливкой, сравнением периодов и выбором показателя"},
     ]},
     {cat:"Графики и прогнозы", items:[
       {tab:"charts", ic:"📈", t:"Графики", d:"Динамика, столбцы, гонка, годы, тепловые карты и другие виды"},
@@ -11837,7 +11839,7 @@ function liveApply(){
       {tab:"settings", ic:"⚙️", t:"Настройки", d:"Тема, участники, аватарки, города и дни рождения, Ultimate, кэш, перенос настроек"},
     ]},
   ];
-  const NAV_HIDDEN = ["marathons", "time", "yearreview", "achievements", "chronicle", "birthdays", "usermap", "vk", "months", "days"];
+  const NAV_HIDDEN = ["records", "forecast", "selfie", "marathons", "time", "yearreview", "achievements", "chronicle", "birthdays", "usermap", "vk", "months", "days"];
   function go(tab){
     const b = (NAV_HIDDEN.includes(tab) && document.querySelector(`nav button.nav-hidden[data-tab="${tab}"]`)) || document.querySelector(`nav button[data-tab="${tab}"]`);
     if (b) { b.click(); window.scrollTo({top:0}); }
