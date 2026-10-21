@@ -1492,6 +1492,9 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
       <label class="checkline"><input type="checkbox" id="quiet-on">«Тихие участники» на вкладке «Участники»</label>
       <div class="field"><label for="quiet-days">Тихий — молчит дней</label><select id="quiet-days"><option value="3">3+ дня</option><option value="5">5+ дней</option><option value="7">7+ дней</option><option value="14">14+ дней</option></select></div>
     </div>
+    <h2>Адрес сервера данных</h2>
+    <p class="hint">Страница берёт данные с сервера через прокси (тот, что запускает start.bat). Если страница открыта не с него (например, с GitHub Pages или с телефона), укажи здесь адрес прокси, например <code>http://192.168.1.5:8000</code> или адрес своего туннеля / воркера. Пусто — тот же адрес, откуда открыта страница. После сохранения страница перезагрузится.</p>
+    <div class="filters"><div class="field"><label for="api-base">Адрес</label><input type="text" id="api-base" placeholder="как у страницы" style="width:320px" inputmode="url" autocapitalize="off" spellcheck="false"></div><button class="mini" id="api-base-save" type="button">Сохранить</button><span class="hint" id="api-base-now"></span></div>
     <h2>Поля API</h2>
     <p class="hint">Какие столбцы приходят с сервера. Помогает понять, что ещё можно показывать на сайте.</p>
     <p><button class="mini" id="api-fields-btn">Загрузить поля</button> <span class="hint" id="api-fields-status"></span></p>
@@ -1523,7 +1526,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 /* ============ НАСТРОЙКИ ============ */
 // API-ключ хранится только у локального прокси (файл api_key.txt рядом с server.py), страница его не знает.
 const CONFIG = {
-  BASE_URL: location.protocol.startsWith("http") ? location.origin : "http://localhost:8000",   // локальный прокси (start.bat)
+  BASE_URL: (() => { try { const u = (localStorage.getItem("chatstats.apiBase.v1") || "").trim(); if (/^https?:\/\//i.test(u)) return u.replace(/\/+$/, ""); } catch (e) {} return location.protocol.startsWith("http") ? location.origin : "http://localhost:8000"; })(),   // локальный прокси (start.bat)
   ENDPOINT: "/api/v1/excel/user_daily_stats",
   LIMIT: 5000,
 };
@@ -11492,6 +11495,20 @@ function liveApply(){
     const t = document.getElementById(b.dataset.secGo); if (t) t.scrollIntoView({behavior:"smooth", block:"start"});
   });
   sched();
+})();
+</script>
+<script>
+(function(){
+  const K = "chatstats.apiBase.v1", inp = document.getElementById("api-base"); if (!inp) return;
+  let cur = ""; try { cur = localStorage.getItem(K) || ""; } catch (e) {}
+  inp.value = cur;
+  document.getElementById("api-base-now").textContent = "Сейчас: " + CONFIG.BASE_URL;
+  document.getElementById("api-base-save").addEventListener("click", () => {
+    let v = inp.value.trim();
+    if (v && !/^https?:\/\//i.test(v)) v = "http://" + v;
+    try { v ? localStorage.setItem(K, v.replace(/\/+$/, "")) : localStorage.removeItem(K); } catch (e) {}
+    location.reload();
+  });
 })();
 </script>
 </body>
