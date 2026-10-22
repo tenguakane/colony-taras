@@ -451,6 +451,8 @@ tbody tr.ytint:hover td{filter:brightness(1.18)}
 .dm-pop-sub{color:var(--muted);font-size:12px;margin:10px 0 5px}
 .dm-pop-bar{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:8px;margin:3px 0}
 .dm-pop-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-pop-bar.sel span{color:var(--accent);font-weight:600}.dm-pop-bar b small{color:var(--muted);font-weight:400;font-size:11px}
+.dm-pop{max-height:min(80vh,620px);overflow:auto}
 .dm-pop-bar i{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--c) var(--w),#ffffff12 var(--w))}
 
 /* ===================== Палитры ===================== */
@@ -1115,6 +1117,34 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .cl-tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:6px;margin-right:6px;vertical-align:1px;font-weight:600}
 .cl-tag.new{background:#76F0B622;color:#76F0B6}.cl-tag.imp{background:#7aa2f722;color:#7aa2f7}.cl-tag.fix{background:#ffd16622;color:#ffd166}.cl-tag.del{background:#f7768e22;color:#f7768e}
 .cl-ver mark{background:#ffd16655;color:inherit;border-radius:3px}
+/* ===================== Экспериментально: вкладки слева (только ПК) ===================== */
+.side-sep,.side-toggle{display:none}
+body:not(.side-nav) .in-sidenav-only{display:none}
+@media (min-width:721px){
+  body.side-nav{--side-w:228px;padding-left:var(--side-w);transition:padding-left .2s}
+  /* backdrop-filter у шапки делает её «контейнером» для fixed-элементов — в боковом режиме отключаем */
+  body.side-nav header{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg)}
+  body.side-nav.side-collapsed{--side-w:68px}
+  body.side-nav nav{position:fixed;left:0;top:0;bottom:0;width:var(--side-w);z-index:55;flex-direction:column;flex-wrap:nowrap;gap:2px;padding:12px 10px 16px;overflow-y:auto;overflow-x:hidden;background:var(--panel);border-right:1px solid var(--line);box-shadow:none;scrollbar-width:thin;transition:width .2s}
+  body.side-nav nav button{display:flex!important;align-items:center;gap:12px;width:100%;flex:0 0 auto;text-align:left;padding:8px 12px;border-radius:10px;border:1px solid transparent;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.side-nav nav button::before{content:attr(data-ic);flex:0 0 22px;width:22px;text-align:center;font-size:17px;line-height:1;filter:none}
+  body.side-nav nav button.nav-hidden{display:flex!important}
+  body.side-nav nav button.side-skip,body.side-nav nav .nav-more-btn{display:none!important}
+  body.side-nav nav button.active,body.side-nav nav button.side-active{background:var(--accent-bg);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  body.side-nav nav button.nav-hidden:not(.side-active){background:none;color:var(--muted);border-color:transparent}
+  body.side-nav nav button.nav-hidden:not(.side-active):hover{color:var(--text);background:#ffffff0a}
+  body.side-nav .side-sep{display:block;margin:12px 12px 4px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);opacity:.8;white-space:nowrap;overflow:hidden}
+  body.side-nav .side-toggle{display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:6px 8px 10px 12px;border:0;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:none!important;color:var(--text)!important;font-weight:600}
+  body.side-nav .side-toggle::before{content:none!important}
+  body.side-nav .side-toggle i{font-style:normal;color:var(--muted);font-size:16px}
+  body.side-nav [data-group-seg="other"]{display:none!important}
+  body.side-nav.side-collapsed nav button{font-size:0;justify-content:center;padding:9px 0;gap:0}
+  body.side-nav.side-collapsed nav button::before{font-size:19px}
+  body.side-nav.side-collapsed .side-sep{font-size:0;margin:8px 10px;border-top:1px solid var(--line)}
+  body.side-nav.side-collapsed .side-toggle{justify-content:center;padding:6px 0 10px}
+  body.side-nav.side-collapsed .side-toggle span{display:none}
+  body.side-nav.side-collapsed .side-toggle i{font-size:18px}
+}
 .hub-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .hub-hero h2{margin:0;font-size:26px}.hub-hero .hint{margin:4px 0 0}
 .hub-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 6px}
@@ -1287,6 +1317,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 
   <section class="tab" id="tab-daymatrix">
     <div class="filters">
+      <div class="field"><label>Строки</label><div class="seg" id="dm-entity"><button type="button" data-dm-entity="users">Участники</button><button type="button" data-dm-entity="chats">Чаты</button></div></div>
       <label class="checkline"><input type="checkbox" id="dm-year">Год</label>
       <label class="checkline" title="Колонки — недели (с понедельника). Можно выбрать период до двух лет"><input type="checkbox" id="dm-week">По неделям</label>
       <label class="checkline"><input type="checkbox" id="dm-compare">Сравнение</label>
@@ -1697,6 +1728,8 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <h2>Экспериментально</h2>
     <p class="hint">Дополнения к таблицам «Участники» и «Чаты». Можно включить и выключить в любой момент.</p>
     <div class="filters">
+      <label class="checkline" title="Только для компьютера: на телефоне остаётся нижняя навигация"><input type="checkbox" id="exp-sidenav">Вкладки слева (только ПК)</label>
+      <label class="checkline in-sidenav-only"><input type="checkbox" id="exp-sidenav-icons">Боковая панель — только иконки</label>
       <label class="checkline"><input type="checkbox" id="exp-spark">Мини-графики в строках таблиц</label>
       <label class="checkline"><input type="checkbox" id="exp-bars">Полоски-заливки в ячейках</label>
       <label class="checkline"><input type="checkbox" id="exp-hist">Мини-гистограммы в ячейках всех таблиц</label>
@@ -6888,7 +6921,7 @@ $("p-out").addEventListener("click", e => {
 
 /* ===================== Матрица дней / года: участники × периоды ===================== */
 const DM_KEY = "chatstats.dayMatrix.v1";
-let DM = {quick:"14", from:"", to:"", chat:"", metric:"msgs", top:"all", heat:false, year:false, week:false, minDays:0, sort:{k:"tot", dir:-1}};
+let DM = {quick:"14", from:"", to:"", chat:"", metric:"msgs", top:"all", heat:false, year:false, week:false, minDays:0, sort:{k:"tot", dir:-1}, entity:"users"};
 try { const j = JSON.parse(localStorage.getItem(DM_KEY) || "null"); if (j && typeof j === "object") DM = {...DM, ...j}; } catch (e) {}
 if (!DM.sort || typeof DM.sort !== "object") DM.sort = {k:"tot", dir:-1};
 const dmSave = () => { try { localStorage.setItem(DM_KEY, JSON.stringify(DM)); } catch (e) {} };
@@ -6923,6 +6956,10 @@ function dmSyncControls(){
   const quickField = $("dm-quick")?.closest(".field"); if (quickField) quickField.hidden = Boolean(DM.year);
   $("dm-metric").value = DM.metric; $("dm-top").value = DM.top; $("dm-heat").checked = DM.heat;
   if ($("dm-min")) $("dm-min").value = String(DM.minDays || 0);
+  const chatsMode = DM.entity === "chats";
+  document.querySelectorAll("#dm-entity [data-dm-entity]").forEach(b => b.classList.toggle("active", b.dataset.dmEntity === (chatsMode ? "chats" : "users")));
+  const chatField = $("dm-chat")?.closest(".field"); if (chatField) chatField.hidden = chatsMode;
+  const topLbl = document.querySelector('label[for="dm-top"]'); if (topLbl) topLbl.textContent = chatsMode ? "Чаты" : "Участники";
   const compare = $("dm-compare"); if (compare) compare.checked = comparisonEnabled;
 }
 function dmMaxMonth(rows, year){
@@ -7030,17 +7067,19 @@ function renderDayMatrix(from = DM.from, to = DM.to){
     if (weekView) return Math.floor((dayIdx(d) - dayIdx(prevRange[0])) / 7);
     return dayIdx(d) - dayIdx(prevRange[0]);
   };
+  const chatsMode = DM.entity === "chats";
   function aggregate(sourceRows, isPrior = false){
     const result = new Map();
-    pick(sourceRows || [], DM.chat).forEach(x => {
+    (chatsMode ? chatRowsForChart(sourceRows || []) : pick(sourceRows || [], DM.chat)).forEach(x => {
       const d = String(x[F.date] ?? "").slice(0, 10); if (!d) return;
       const idx = isPrior ? priorColOf(d) : colOf(d);
       if (idx == null || idx < 0 || idx >= ncol) return;
       if (!isPrior && (d < columns[0].from || d > columns[ncol - 1].to)) return;
-      const k = String(x[F.userId] ?? x[F.name]); if (!isVisibleUser(k)) return;
+      const k = chatsMode ? String(x[F.chatPk] ?? x[F.chat]) : String(x[F.userId] ?? x[F.name]);
+      if (!chatsMode && !isVisibleUser(k)) return;
       const v = Number(g(x, metric)) || 0; if (!v) return;
       let u = result.get(k);
-      if (!u) { u = {k, name:who(x), a:Array(ncol).fill(0), tot:0, days:new Set()}; result.set(k, u); }
+      if (!u) { u = {k, name:chatsMode ? String(x[F.chat] || `Чат ${k}`) : who(x), a:Array(ncol).fill(0), tot:0, days:new Set()}; result.set(k, u); }
       u.a[idx] += v; u.tot += v; u.days.add(d);
     });
     return result;
@@ -7065,9 +7104,9 @@ function renderDayMatrix(from = DM.from, to = DM.to){
   const grand = colTot.reduce((a, v) => a + v, 0), maxCol = Math.max(1, ...colTot);
   const colMax = columns.map((_, i) => Math.max(0, ...shown.map(u => u.a[i])));
   const cellMax = Math.max(1, ...colMax);
-  const chatName = DM.chat || "Все чаты";
+  const chatName = chatsMode ? "Чаты" : (DM.chat || "Все чаты");
   const cmpOn = comparisonEnabled && priorPer.size > 0;
-  dmLast = {columns, per, ranked, colTot, metric, yearView, weekView, year, priorPer, priorColOf, cmpOn};
+  dmLast = {columns, per, ranked, colTot, metric, yearView, weekView, year, priorPer, priorColOf, cmpOn, chatsMode};
   const bar = (v, i) => {
     const h = Math.max(v ? 3 : 0, Math.round(v / maxCol * 46));
     return `<svg width="58" height="72" viewBox="0 0 58 72" aria-label="${fmt(v)}"><text x="29" y="${66 - h - 6}" text-anchor="middle" font-size="13" fill="#e8eaf1" font-family="Segoe UI, system-ui, sans-serif">${fmt(v)}</text><rect class="anim-bar-y" x="14" y="${66 - h}" width="30" height="${h}" rx="3" fill="${dmFill()}" fill-opacity="${v ? .85 : 0}"/><line x1="4" y1="66.5" x2="54" y2="66.5" stroke="#3a4050"/></svg>${dmDelta(v, priorColTot[i] || 0, cmpOn)}`;
@@ -7076,7 +7115,7 @@ function renderDayMatrix(from = DM.from, to = DM.to){
   const arrow = k => sk === k ? (sd < 0 ? " ↓" : " ↑") : "";
   const sth = (k, label, cls = "", extra = "") => `<th data-dm-sort="${k}" class="${cls}${sk === k ? " sorted" : ""}" tabindex="0" title="Сортировать"${extra}>${label}${arrow(k)}</th>`;
   const head1 = `<tr class="dm-bars"><th colspan="2" class="dm-corner">${escH(chatName)}<small>${escH(MLBL[metric].toLowerCase())}${yearView ? ` · ${year} год` : weekView ? " · по неделям" : ""}</small></th>${columns.map((c, i) => `<th class="dm-barcell">${!yearView && c.from > today ? "" : bar(colTot[i], i)}</th>`).join("")}<th colspan="${tailCols}" class="dm-grand">${fmt(grand)}${dmDelta(grand, priorColTot.reduce((a,v)=>a+v,0), cmpOn)}<small>всего</small></th></tr>`;
-  const head2 = `<tr class="dm-labels"><th class="dm-no">№</th>${sth("name", "Имя", "dm-name")}${columns.map((c, i) => {
+  const head2 = `<tr class="dm-labels"><th class="dm-no">№</th>${sth("name", chatsMode ? "Чат" : "Имя", "dm-name")}${columns.map((c, i) => {
     const wd = new Date(c.date + "T00:00:00Z").getUTCDay(), weekend = !yearView && !weekView && (wd === 0 || wd === 6);
     const label = weekView ? `${escH(c.label)}<small>${escH(c.sub)}</small>` : escH(c.label);
     return sth("c" + i, label, weekend ? "dm-weekend" : "", ` data-col="${i}"`);
@@ -7094,15 +7133,15 @@ function renderDayMatrix(from = DM.from, to = DM.to){
       else if (DM.heat) style = `background-color:${hexA(dmFill(), (0.06 + 0.4 * Math.pow(v / cellMax, 0.7)).toFixed(3))}`;
       return `<td class="dm-cell${top ? " dm-top" : ""}" data-dm-cell="${escH(u.k)}|${i}"${style ? ` style="${style}"` : ""}>${fmt(v)}${dmDelta(v, pv, cmpOn && Boolean(prior))}</td>`;
     }).join("");
-    return `<tr><td class="dm-no${rank <= 3 ? " medal-" + rank : ""}">${rank}</td><td class="dm-name"><span class="pname" data-open-profile="${escH(u.k)}">${escH(u.name)}</span></td>${cells}<td class="dm-total">${fmt(u.tot)}${dmDelta(u.tot, prior?.tot || 0, cmpOn && Boolean(prior))}</td><td class="dm-share">${dmPct(u.tot, grand)}</td>${showDelta ? `<td class="dm-delta">${dmRankDelta(rank, priorRank.get(u.k))}</td>` : ""}</tr>`;
-  }).join("") : `<tr><td colspan="${colSpanAll}" style="text-align:center;color:var(--muted)">${hiddenLow ? "Все участники скрыты фильтром малоактивных" : "Нет данных за выбранный период"}</td></tr>`;
+    return `<tr><td class="dm-no${rank <= 3 ? " medal-" + rank : ""}">${rank}</td><td class="dm-name">${chatsMode ? `<span>${escH(u.name)}</span>` : `<span class="pname" data-open-profile="${escH(u.k)}">${escH(u.name)}</span>`}</td>${cells}<td class="dm-total">${fmt(u.tot)}${dmDelta(u.tot, prior?.tot || 0, cmpOn && Boolean(prior))}</td><td class="dm-share">${dmPct(u.tot, grand)}</td>${showDelta ? `<td class="dm-delta">${dmRankDelta(rank, priorRank.get(u.k))}</td>` : ""}</tr>`;
+  }).join("") : `<tr><td colspan="${colSpanAll}" style="text-align:center;color:var(--muted)">${hiddenLow ? `Все ${chatsMode ? "чаты" : "участники"} скрыты фильтром малоактивных` : "Нет данных за выбранный период"}</td></tr>`;
   dmSticky();
   const leftNote = hideLeft && leftFilterError ? ` · статусы участников не получены, вышедшие не отфильтрованы` : "";
   const comparisonNote = comparisonEnabled ? (dmCompareError ? ` · не удалось загрузить предыдущий период: ${dmCompareError}` : ` · сравнение с ${yearView ? (year-1) + " годом" : "предыдущим периодом"}`) : "";
   const unit = yearView ? "каждого месяца" : weekView ? "каждой недели" : "каждого дня";
   const heading = yearView ? `${ncol} ${wordForm(ncol, ["месяц","месяца","месяцев"])} за ${year} год` : weekView ? `${ncol} ${wordForm(ncol, ["неделя","недели","недель"])} · ${sFmtDate(columns[0].from)} — ${sFmtDate(to)}` : `${fmt(ncol)} ${wordForm(ncol, ["день","дня","дней"])} · ${sFmtDate(from)} — ${sFmtDate(to)}`;
   const lowNote = hiddenLow ? ` · скрыто малоактивных: ${hiddenLow}` : "";
-  dmStatus(`${heading} · участников: ${fmt(ranked.length)}${shown.length < ranked.length ? `, показано ${shown.length}` : ""}${lowNote} · подсвечен лучший результат ${unit} · нажми на число, чтобы увидеть подробности${comparisonNote}${leftNote}`);
+  dmStatus(`${heading} · ${chatsMode ? "чатов" : "участников"}: ${fmt(ranked.length)}${shown.length < ranked.length ? `, показано ${shown.length}` : ""}${lowNote} · подсвечен лучший результат ${unit} · нажми на число, чтобы увидеть подробности${comparisonNote}${leftNote}`);
 }
 // Шапка и колонки «№ / Имя» не уезжают при прокрутке: отступы считаются по реальным размерам.
 function dmSticky(){
@@ -7120,29 +7159,42 @@ function dmPopClose(){ if (dmPopEl) { dmPopEl.remove(); dmPopEl = null; } docume
 function dmCellDetails(k, i){
   const L = dmLast; if (!L) return "";
   const c = L.columns[i], u = L.per.get(k); if (!c || !u) return "";
-  const rowsU = pick(dmRows || [], DM.chat).filter(x => String(x[F.userId] ?? x[F.name]) === k && (() => { const d = String(x[F.date] ?? "").slice(0, 10); return d >= c.from && d <= c.to; })());
-  const sumM = key => rowsU.reduce((s2, x) => s2 + (Number(g(x, key)) || 0), 0);
+  const inCol = x => { const d = String(x[F.date] ?? "").slice(0, 10); return d >= c.from && d <= c.to; };
+  const chatRows = chatRowsForChart(dmRows || []).filter(inCol);
+  const keyU = x => String(x[F.userId] ?? x[F.name]), keyC = x => String(x[F.chatPk] ?? x[F.chat]);
+  // Строки, из которых сложено число в ячейке (для участника — с учётом фильтра чата).
+  const rowsCell = L.chatsMode ? chatRows.filter(x => keyC(x) === k) : pick(dmRows || [], DM.chat).filter(x => keyU(x) === k && inCol(x));
+  const sumM = (rs, key) => rs.reduce((s2, x) => s2 + (Number(g(x, key)) || 0), 0);
   const v = u.a[i], colTot = L.colTot[i];
   const order = L.ranked.map(x => x.a[i]).filter(x => x > 0).sort((a, b) => b - a), place = order.indexOf(v) + 1;
+  const unit = L.yearView ? "месяца" : L.weekView ? "недели" : "дня";
   const title = L.yearView ? `${MONTHS[i]} ${L.year}` : L.weekView ? `Неделя ${sFmtDate(c.from)} — ${sFmtDate(c.to)}` : `${sFmtDate(c.from)}, ${DM_WD[new Date(c.from + "T00:00:00Z").getUTCDay()]}`;
   let h = `<div class="dm-pop-h"><b>${escH(u.name)}</b><span>${escH(title)}</span><button type="button" class="dm-pop-x" aria-label="Закрыть">×</button></div>`;
   h += `<div class="dm-pop-grid">`;
-  h += `<div><em>Место</em><b>${place ? `${place} из ${order.length}` : "—"}</b></div><div><em>Доля ${L.yearView ? "месяца" : L.weekView ? "недели" : "дня"}</em><b>${dmPct(v, colTot)}</b></div>`;
+  h += `<div><em>Место среди ${L.chatsMode ? "чатов" : "участников"}</em><b>${place ? `${place} из ${order.length}` : "—"}</b></div><div><em>Доля ${unit}</em><b>${dmPct(v, colTot)}</b></div>`;
   if (L.cmpOn) { const p = L.priorPer.get(k)?.a?.[i] || 0; h += `<div><em>В прошлом периоде</em><b>${fmt(p)} ${dmDelta(v, p, true)}</b></div>`; }
   if (L.yearView || L.weekView) {
-    const days = new Map(); rowsU.forEach(x => { const d = String(x[F.date] ?? "").slice(0, 10), m = Number(g(x, L.metric)) || 0; if (m) days.set(d, (days.get(d) || 0) + m); });
+    const days = new Map(); rowsCell.forEach(x => { const d = String(x[F.date] ?? "").slice(0, 10), m = Number(g(x, L.metric)) || 0; if (m) days.set(d, (days.get(d) || 0) + m); });
     const best = [...days.entries()].sort((a, b) => b[1] - a[1])[0];
     h += `<div><em>Активных дней</em><b>${days.size}</b></div>`;
     if (best) h += `<div><em>Лучший день</em><b>${fmt(best[1])} · ${sFmtDate(best[0])}</b></div>`;
   }
-  h += `</div><div class="dm-pop-sub">Все показатели</div><div class="dm-pop-grid">` + ["msgs", "stick", "voice", "video"].map(key => `<div class="${key === L.metric ? "on" : ""}"><em>${MLBL[key]}</em><b>${fmt(sumM(key))}</b></div>`).join("") + `</div>`;
-  if (!DM.chat) {
-    const chats = new Map(); rowsU.forEach(x => { const n = String(x[F.chat] || "Без названия"), m = Number(g(x, L.metric)) || 0; if (m) chats.set(n, (chats.get(n) || 0) + m); });
-    const list = [...chats.entries()].sort((a, b) => b[1] - a[1]);
-    if (list.length) {
-      const mx = list[0][1];
-      h += `<div class="dm-pop-sub">По чатам · ${escH(MLBL[L.metric].toLowerCase())}</div>` + list.map(([n, m]) => `<div class="dm-pop-bar"><span title="${escH(n)}">${escH(n)}</span><i style="--w:${(m / mx * 100).toFixed(1)}%;--c:${dmFill()}"></i><b>${fmt(m)}</b></div>`).join("");
-    }
+  h += `</div><div class="dm-pop-sub">Все показатели${!L.chatsMode && DM.chat ? ` · чат «${escH(DM.chat)}»` : ""}</div><div class="dm-pop-grid">` + ["msgs", "stick", "voice", "video"].map(key => `<div class="${key === L.metric ? "on" : ""}"><em>${MLBL[key]}</em><b>${fmt(sumM(rowsCell, key))}</b></div>`).join("") + `</div>`;
+  // Разбивка: для участника — по всем чатам, для чата — по участникам.
+  const groups = new Map();
+  (L.chatsMode ? chatRows.filter(x => keyC(x) === k && isVisibleUser(keyU(x))) : chatRows.filter(x => keyU(x) === k)).forEach(x => {
+    const gk = L.chatsMode ? keyU(x) : String(x[F.chat] || "Без названия"), m = Number(g(x, L.metric)) || 0; if (!m) return;
+    const e = groups.get(gk) || {n:L.chatsMode ? who(x) : gk, v:0, k:gk}; e.v += m; groups.set(gk, e);
+  });
+  const list = [...groups.values()].sort((a, b) => b.v - a.v);
+  if (list.length) {
+    const mx = list[0].v, tot = list.reduce((a, b) => a + b.v, 0), cap = 15;
+    h += `<div class="dm-pop-sub">${L.chatsMode ? `Участники (${list.length})` : `По всем чатам (${list.length})`} · ${escH(MLBL[L.metric].toLowerCase())}</div>`;
+    h += list.slice(0, cap).map(e => {
+      const sel = !L.chatsMode && DM.chat && e.k === DM.chat, col = L.chatsMode ? getStyle("u", e.k).c[0] : dmFill();
+      return `<div class="dm-pop-bar${sel ? " sel" : ""}"><span title="${escH(e.n)}">${L.chatsMode ? `<span class="pname" data-open-profile="${escH(e.k)}">${escH(e.n)}</span>` : escH(e.n)}</span><i style="--w:${(e.v / mx * 100).toFixed(1)}%;--c:${col}"></i><b>${fmt(e.v)}<small> ${dmPct(e.v, tot)}</small></b></div>`;
+    }).join("");
+    if (list.length > cap) h += `<div class="dm-pop-sub">…и ещё ${list.length - cap}: ${fmt(list.slice(cap).reduce((a, b) => a + b.v, 0))}</div>`;
   }
   return h;
 }
@@ -7175,7 +7227,7 @@ $("dm-table").closest(".wrap")?.addEventListener("scroll", () => dmPopClose(), {
 addEventListener("resize", () => { if ($("tab-daymatrix")?.classList.contains("active")) dmSticky(); });
 function dmTitle(){
   const f = DM.from <= DM.to ? DM.from : DM.to, t = DM.from <= DM.to ? DM.to : DM.from;
-  return `${MLBL[DM.metric]} ${DM.year ? "по месяцам" : "по дням"} · ${DM.chat || "Все чаты"} · ${DM.year ? f.slice(0,4) + " год" : sFmtDate(f) + " — " + sFmtDate(t)}`;
+  return `${MLBL[DM.metric]} ${DM.year ? "по месяцам" : DM.week ? "по неделям" : "по дням"} · ${DM.entity === "chats" ? "сравнение чатов" : (DM.chat || "Все чаты")} · ${DM.year ? f.slice(0,4) + " год" : sFmtDate(f) + " — " + sFmtDate(t)}`;
 }
 document.querySelectorAll("#dm-quick button").forEach(b => b.onclick = () => { DM.quick = b.dataset.q; DM.year = false; if (b.dataset.q === "182") DM.week = true; dmSave(); loadDayMatrix(); });
 $("dm-week").onchange = () => {
@@ -7184,6 +7236,7 @@ $("dm-week").onchange = () => {
   if (!DM.week && !DM.year && DM.from && DM.to && dayIdx(DM.to) - dayIdx(DM.from) + 1 > DM_MAX_DAYS) { DM.quick = "30"; [DM.from, DM.to] = dmQuickRange("30"); }
   dmSave(); loadDayMatrix();
 };
+document.querySelectorAll("#dm-entity [data-dm-entity]").forEach(b => b.onclick = () => { DM.entity = b.dataset.dmEntity; dmSave(); dmSyncControls(); renderDayMatrix(); });
 $("dm-min").onchange = () => { DM.minDays = Number($("dm-min").value) || 0; dmSave(); renderDayMatrix(); };
 ["dm-from", "dm-to"].forEach(id => $(id).onchange = () => {
   const value = $(id).value; DM.quick = "";
@@ -12322,9 +12375,70 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== Экспериментально: вкладки слева (только ПК) ===================== */
+(function(){
+  const KEY = "chatstats.sideNav.v1", KEY_C = "chatstats.sideNavCollapsed.v1";
+  const nav = document.querySelector("nav"); if (!nav) return;
+  const ICONS = {hub:"🧭", profile:"👤", stats:"📊", compare:"⚖️", daymatrix:"🗓️", charts:"📈", settings:"⚙️", records:"🏆", months:"🥇", days:"📆", forecast:"🔮",
+    marathons:"🏁", time:"⏳", yearreview:"🎬", achievements:"🏅", chronicle:"📜", birthdays:"🎂", selfie:"📸", usermap:"🗺️", vk:"🅥"};
+  const MAIN = ["hub", "profile", "stats", "compare", "daymatrix", "charts"];
+  const OTHER = ["records", "months", "days", "forecast", "marathons", "time", "yearreview", "chronicle", "birthdays", "selfie", "usermap", "vk"];
+  const btns = [...nav.querySelectorAll("button[data-tab]")];
+  btns.forEach(b => {
+    const tab = b.dataset.tab, grp = b.dataset.group;
+    const label = b.textContent.trim();
+    b.dataset.ic = ICONS[grp === "profile" ? "profile" : tab] || "•";
+    if (!b.title) b.title = label;
+    // Дубликаты для внутренних переходов и сама кнопка «Другое» в боковом режиме не показываются.
+    const skip = grp === "other" || (b.classList.contains("nav-hidden") && (tab === "profile" || tab === "achievements"));
+    b.classList.toggle("side-skip", skip);
+    const ord = grp === "profile" ? MAIN.indexOf("profile") : MAIN.includes(tab) && !b.classList.contains("nav-hidden") ? MAIN.indexOf(tab) : OTHER.includes(tab) ? 20 + OTHER.indexOf(tab) : tab === "settings" ? 90 : 50;
+    b.style.order = String(ord + 2);
+  });
+  const toggle = document.createElement("button");
+  toggle.type = "button"; toggle.className = "side-toggle"; toggle.style.order = "0";
+  toggle.innerHTML = `<span>Навигация</span><i aria-hidden="true">«</i>`;
+  const sep1 = document.createElement("div"); sep1.className = "side-sep"; sep1.textContent = "Другое"; sep1.style.order = "19";
+  const sep2 = document.createElement("div"); sep2.className = "side-sep"; sep2.textContent = "Сервис"; sep2.style.order = "89";
+  nav.prepend(toggle); nav.append(sep1, sep2);
+  const isOn = () => document.body.classList.contains("side-nav");
+  function sync(){
+    if (!isOn()) return;
+    const act = nav.querySelector("button.active[data-tab]");
+    let target = act;
+    if (act && act.dataset.group === "other") target = nav.querySelector(`button.nav-hidden[data-tab="${act.dataset.tab}"]`) || act;
+    nav.querySelectorAll("button[data-tab]").forEach(b => { const on = b === target; if (b.classList.contains("side-active") !== on) b.classList.toggle("side-active", on); });
+  }
+  function apply(on, collapsed){
+    document.body.classList.toggle("side-nav", on);
+    document.body.classList.toggle("side-collapsed", on && collapsed);
+    toggle.querySelector("i").textContent = collapsed ? "»" : "«";
+    toggle.title = collapsed ? "Развернуть панель" : "Свернуть до иконок";
+    const a = document.getElementById("exp-sidenav"), c = document.getElementById("exp-sidenav-icons");
+    if (a) a.checked = on; if (c) c.checked = collapsed;
+    sync();
+    // Графики подстраиваются под ширину области: перерисуем при смене раскладки.
+    setTimeout(() => { try { window.dispatchEvent(new Event("resize")); } catch (e) {} }, 250);
+  }
+  let on = false, collapsed = false;
+  try { on = localStorage.getItem(KEY) === "1"; collapsed = localStorage.getItem(KEY_C) === "1"; } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, on ? "1" : "0"); localStorage.setItem(KEY_C, collapsed ? "1" : "0"); } catch (e) {} };
+  toggle.addEventListener("click", e => { e.stopPropagation(); collapsed = !collapsed; save(); apply(on, collapsed); });
+  document.getElementById("exp-sidenav")?.addEventListener("change", e => { on = e.target.checked; save(); apply(on, collapsed); });
+  document.getElementById("exp-sidenav-icons")?.addEventListener("change", e => { collapsed = e.target.checked; save(); apply(on, collapsed); });
+  new MutationObserver(() => sync()).observe(nav, {subtree:true, attributes:true, attributeFilter:["class", "data-tab"]});
+  apply(on, collapsed);
+})();
+</script>
+<script>
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.22-4", date:"2026-10-22", title:"Матрица по чатам и вкладки слева", items:[
+    {tag:"new", area:"Матрица", text:"Переключатель «Строки: Участники / Чаты». В режиме чатов строки — чаты, а клик по ячейке показывает, кто из участников писал в этом чате в этот день, неделю или месяц."},
+    {tag:"imp", area:"Матрица", text:"Подробности ячейки участника показывают разбивку по всем чатам, даже если выбран один чат (выбранный подсвечен), с долями в процентах."},
+    {tag:"new", area:"Настройки", text:"Экспериментально, только для ПК: «Вкладки слева». Боковая панель с иконкой у каждого раздела, сворачивается до одних иконок. Всё содержимое «Другого» становится обычными вкладками."},
+  ]},
   {v:"2026.10.22-3", date:"2026-10-22", title:"Матрица 2.0 и история обновлений", items:[
     {tag:"new", area:"Хаб", text:"Вкладка «История обновлений»: что и в какой версии появилось, с поиском и фильтром по типу изменений. Пока есть непрочитанные изменения, на вкладке горит метка «new»."},
     {tag:"new", area:"Матрица", text:"Клик по числу открывает карточку с подробностями: место за день, доля дня, все показатели (сообщения, стикеры, голосовые, видео) и разбивка по чатам. Для недель и месяцев показываются ещё активные дни и лучший день."},
