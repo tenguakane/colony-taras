@@ -68,7 +68,8 @@ table{width:100%;border-collapse:separate;border-spacing:0;min-width:520px}
 #tab-months .wrap, #tab-days .wrap, #tab-chats .wrap{width:fit-content;max-width:100%}
 #tab-months .wrap > table, #tab-days .wrap > table, #chat-rank-table{width:max-content;min-width:0;max-width:none;table-layout:auto}
 /* Keep the rank column compact and centred on the Chats table. */
-#chat-rank-table th:first-child, #chat-rank-table td:first-child{text-align:center!important;padding-left:8px;padding-right:8px;white-space:nowrap;width:1%}
+#chat-rank-table th:first-child, #chat-rank-table td:first-child, #participants-table th:first-child, #participants-table tbody td:first-child{text-align:center!important;padding-left:8px;padding-right:8px;white-space:nowrap;width:1%}
+#participants-table th:nth-child(2), #participants-table tbody td:nth-child(2){text-align:left}
 th,td{padding:10px 14px;text-align:center;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 th:first-child,td:first-child{text-align:left}
 th{color:var(--muted);font-weight:500;font-size:13px;cursor:pointer;user-select:none;white-space:nowrap}
@@ -423,6 +424,34 @@ tbody tr.ytint:hover td{filter:brightness(1.18)}
 .dm-table td.dm-top{color:#fff}
 .dm-table .dm-total{color:var(--text)}
 .dm-table .dm-share{color:var(--muted)}
+/* Липкая шапка и колонки «№ / Имя» */
+#tab-daymatrix .wrap{max-height:calc(100vh - 150px);overflow:auto}
+.dm-table thead th{position:sticky;top:0;z-index:3;background:var(--th-bg)}
+.dm-table thead tr.dm-bars th{background:var(--panel)}
+.dm-table thead tr.dm-labels th{top:var(--dm-h1,0px)}
+.dm-table .dm-no{position:sticky;left:0;z-index:1;background:var(--panel)}
+.dm-table thead .dm-no,.dm-table thead .dm-name{z-index:5}
+.dm-table thead .dm-corner{position:sticky;left:0;z-index:5}
+.dm-table .dm-name{left:var(--dm-w1,44px)!important}
+.dm-table tbody tr:hover .dm-no{background:var(--hover)}
+.dm-table th[data-dm-sort]{cursor:pointer}
+.dm-table th[data-dm-sort]:hover{color:var(--text)}
+.dm-table th small{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.dm-table td.dm-cell{cursor:pointer}
+.dm-table td.dm-cell:hover{outline:1px solid var(--accent);outline-offset:-1px}
+.dm-table td.dm-sel{outline:2px solid var(--accent);outline-offset:-2px}
+.dm-rk{font-size:12.5px;white-space:nowrap}.dm-rk.up{color:#9ece6a}.dm-rk.down{color:#f7768e}.dm-rk.same{color:var(--muted)}.dm-rk.new{color:var(--accent-2)}
+.dm-pop{position:absolute;z-index:80;width:300px;max-width:calc(100vw - 16px);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;box-shadow:0 14px 40px #000a;font-size:13px}
+.dm-pop-h{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}.dm-pop-h b{font-size:15px}.dm-pop-h span{color:var(--muted);flex:1}
+.dm-pop-x{background:none;border:0;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:0 2px}
+.dm-pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dm-pop-grid div{background:var(--ctrl);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.dm-pop-grid div.on{border-color:var(--accent)}
+.dm-pop-grid em{display:block;font-style:normal;color:var(--muted);font-size:11.5px}.dm-pop-grid b{font-size:14px}
+.dm-pop-sub{color:var(--muted);font-size:12px;margin:10px 0 5px}
+.dm-pop-bar{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:8px;margin:3px 0}
+.dm-pop-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dm-pop-bar i{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--c) var(--w),#ffffff12 var(--w))}
 
 /* ===================== Палитры ===================== */
 .pal-group{grid-column:span 2}
@@ -503,6 +532,7 @@ button.mini:hover{background:var(--accent-bg)}
 .theme-card{display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:12px;border:1px solid var(--line);background:var(--ctrl);color:var(--text);font:inherit;font-size:13px;cursor:pointer;text-align:left;transition:border-color .15s,transform .15s}
 .theme-card:hover{border-color:var(--accent);transform:translateY(-1px)}
 .theme-card.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.base-dot{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid;margin-right:6px;vertical-align:-1px}
 .theme-preview{display:flex;flex-direction:column;gap:5px;padding:8px;border-radius:8px;background:var(--t-bg);border:1px solid var(--t-line)}
 .theme-prev-head{display:flex;align-items:center;gap:6px}
 .theme-prev-head i{width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,var(--t-accent),var(--t-accent2))}
@@ -837,7 +867,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .chart-setting-group .chart-setting-field select{font-size:12.5px}
 .chart-settings-panel .mini{height:26px;min-height:0;padding:0 9px;font-size:12.5px}
 /* палитры */
-.pal-grid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:4px;max-height:190px}
+.pal-grid{grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:4px;max-height:260px}
 .pal-btn{gap:3px;padding:4px;font-size:11.5px;border-radius:6px}
 .pal-strip{height:10px}
 .pal-group-title{margin:4px 0 0;font-size:11.5px}
@@ -1009,7 +1039,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   nav button,.nav-more-btn{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:6px 2px!important;font-size:11px!important;line-height:1.15;border-radius:12px!important;min-height:50px}
   nav button.nav-secondary,nav button.nav-hidden{display:none!important}
   nav button::before,.nav-more-btn::before{display:block;font-size:19px;line-height:1.1}
-  nav button[data-tab=profile]::before{content:"👤"}
+  nav button[data-group=profile]::before{content:"👤"}
   nav button[data-tab=stats]::before{content:"📊"}
   nav button[data-tab=daymatrix]::before{content:"🗓️"}
   nav button[data-tab=charts]::before{content:"📈"}
@@ -1114,7 +1144,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </div>
   <nav role="tablist">
     <button data-tab="hub">Хаб</button>
-    <button data-tab="profile">Профиль</button>
+    <button data-tab="profile" data-group="profile">Профиль</button>
     <button class="active" data-tab="stats">Статистика</button>
     <button data-tab="compare">Сравнение</button>
     <button data-tab="daymatrix">Матрица</button>
@@ -1129,6 +1159,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <button data-tab="marathons" class="nav-hidden">Марафоны</button>
     <button data-tab="time" class="nav-hidden">Время</button>
     <button data-tab="yearreview" class="nav-hidden">Итоги года</button>
+    <button data-tab="profile" class="nav-hidden">Профиль</button>
     <button data-tab="achievements" class="nav-hidden">Достижения</button>
     <button data-tab="chronicle" class="nav-hidden">Хроника</button>
     <button data-tab="birthdays" class="nav-hidden">Дни рождения</button>
@@ -1176,6 +1207,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-profile">
+    <div class="seg group-tabs" data-group-seg="profile"><button type="button" data-gtab="profile" class="active">Профиль</button><button type="button" data-gtab="achievements" class="">Достижения</button></div>
     <div class="filters">
       <div class="field"><label for="person">Участник</label><select id="person"></select></div>
       <div class="field"><label for="pv-period">Итоги</label><select id="pv-period" title="За какой период делать видео-итоги"><option value="all">За всё время</option></select><button class="mini" id="pv-video" type="button" title="Вертикальное видео 1080×1920 с итогами участника">🎬 Видео-итоги</button></div>
@@ -1235,13 +1267,15 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   <section class="tab" id="tab-daymatrix">
     <div class="filters">
       <label class="checkline"><input type="checkbox" id="dm-year">Год</label>
+      <label class="checkline" title="Колонки — недели (с понедельника). Можно выбрать период до двух лет"><input type="checkbox" id="dm-week">По неделям</label>
       <label class="checkline"><input type="checkbox" id="dm-compare">Сравнение</label>
       <div class="field"><label for="dm-from">С</label><input type="date" id="dm-from"></div>
       <div class="field"><label for="dm-to">По</label><input type="date" id="dm-to"></div>
-      <div class="field"><label>Быстрый выбор</label><div class="seg" id="dm-quick"><button data-q="7">7 дней</button><button data-q="14">14 дней</button><button data-q="30">30 дней</button><button data-q="month">Этот месяц</button><button data-q="prev">Прошлый месяц</button></div></div>
+      <div class="field"><label>Быстрый выбор</label><div class="seg" id="dm-quick"><button data-q="7">7 дней</button><button data-q="14">14 дней</button><button data-q="30">30 дней</button><button data-q="90">90 дней</button><button data-q="182" title="Включает режим «По неделям»">Полгода</button><button data-q="month">Этот месяц</button><button data-q="prev">Прошлый месяц</button></div></div>
       <div class="field"><label for="dm-chat">Чат</label><select id="dm-chat"><option value="">Все чаты</option></select></div>
       <div class="field"><label for="dm-metric">Показатель</label><select id="dm-metric"><option value="msgs">Сообщения</option><option value="stick">Стикеры</option><option value="voice">Голосовые</option><option value="video">Видеосообщения</option></select></div>
       <div class="field"><label for="dm-top">Участники</label><select id="dm-top"><option value="10">Топ-10</option><option value="20">Топ-20</option><option value="all">Все</option></select></div>
+      <div class="field"><label for="dm-min" title="Скрыть тех, кто был активен меньше указанного числа дней за период">Малоактивные</label><select id="dm-min"><option value="0">Показывать всех</option><option value="2">Скрыть: меньше 2 дней</option><option value="3">Скрыть: меньше 3 дней</option><option value="5">Скрыть: меньше 5 дней</option><option value="10">Скрыть: меньше 10 дней</option></select></div>
       <label class="checkline"><input type="checkbox" id="dm-heat">Тепловая заливка</label>
       <div class="field"><label>Оформление</label><button class="mini" id="dm-colors-toggle" type="button" aria-expanded="false">⚙ Цвета</button></div>
       <label class="checkline"><input type="checkbox" id="hide-left-daymatrix">Убрать вышедших</label>
@@ -1353,7 +1387,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-achievements">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="active">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="profile"><button type="button" data-gtab="profile" class="">Профиль</button><button type="button" data-gtab="achievements" class="active">Достижения</button></div>
     <div class="filters">
       <div class="field"><label for="ach-person">Участник</label><select id="ach-person"></select></div>
       <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="ach-copy" type="button">Копировать как картинку</button><button class="mini" id="ach-download" type="button">⬇ Скачать PNG</button><span class="hint" id="ach-msg" role="status" aria-live="polite"></span></div>
@@ -1363,7 +1397,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-chronicle">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="active">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="active">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label for="ch-person">Участник</label><select id="ch-person"></select></div>
       <div class="field"><label for="ch-year">Год</label><select id="ch-year"></select></div>
@@ -1375,7 +1409,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-birthdays">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="active">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="active">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <label class="checkline"><input type="checkbox" id="hide-left-birthdays">Убрать вышедших</label>
       <div class="table-export-actions filters-export-actions"><button class="mini" id="bd-ics" type="button">⬇ Календарь (.ics)</button><button class="mini" id="bd-open-settings" type="button">⚙ Изменить данные</button><span class="hint" id="bd-msg" role="status" aria-live="polite"></span></div>
@@ -1385,7 +1419,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-usermap">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="active">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="active">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <label class="checkline"><input type="checkbox" id="hide-left-usermap">Убрать вышедших</label>
       <label class="checkline" title="Участники, у которых указана только страна, ставятся в её столицу. В рейтинг ближайших не попадают."><input type="checkbox" id="um-approx">Без города — по столице страны</label>
@@ -1398,7 +1432,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-vk">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="active">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="active">VK</button></div>
     <div class="filters">
       <div class="field"><label for="vk-person">Участник</label><select id="vk-person"><option value="">Все</option></select></div>
       <div class="field"><label for="vk-year">Год</label><select id="vk-year"><option value="">Все годы</option></select></div>
@@ -1411,7 +1445,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-marathons">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="active">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="active">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label for="mr-select">Марафон</label><select id="mr-select" style="min-width:260px"></select></div>
       <div class="field"><label for="mr-metric">Показатель</label><select id="mr-metric"><option value="msgs">Сообщения</option><option value="stick">Стикеры</option><option value="voice">Голосовые</option><option value="video">Видеосообщения</option></select></div>
@@ -1437,7 +1471,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-records">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="active">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="active">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Рекорды</label>
         <div class="seg" id="record-entity">
@@ -1461,7 +1495,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-months">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="active">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="active">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Сортировка</label>
         <div class="seg" id="m-sort"><button data-s="msgs" class="active">По сообщениям</button><button data-s="date">По дате</button></div>
@@ -1481,7 +1515,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-days">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="active">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="active">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Сортировка</label>
         <div class="seg" id="d-sort"><button data-s="msgs" class="active">По сообщениям</button><button data-s="date">По дате</button></div>
@@ -1503,7 +1537,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-time">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="active">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="active">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters"><label class="checkline"><input type="checkbox" id="hide-left-time">Убрать вышедших</label></div>
     <div class="table-export-row">
       <h2 id="time-title">Время участия в чате</h2>
@@ -1524,7 +1558,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     </table></div>
   </section>
   <section class="tab" id="tab-forecast">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="active">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="active">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>Период</label>
         <div class="seg" id="fc-period"><button data-p="month" class="active">До конца месяца</button><button data-p="year">До конца года</button></div>
@@ -1548,7 +1582,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div id="fc-out"></div>
   </section>
   <section class="tab" id="tab-selfie">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="active">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="active">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>База селфи</label><div class="pbtn"><button class="mini" id="s-import" type="button">Импорт из Excel</button><button class="mini" id="s-export" type="button">Экспорт в Excel</button><button class="mini" id="s-undo" type="button" disabled>Отменить изменение</button><button class="mini" id="s-builtin" type="button" title="Вернуть базу селфи, встроенную в сайт">Встроенная база</button></div><input type="file" id="s-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></div>
       <div class="field"><label for="s-range">Период</label><select id="s-range"></select></div>
@@ -1587,7 +1621,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="wrap"><table id="s-years-table"><thead><tr><th>Год</th><th>Селфи</th><th>Селфи-пятниц</th><th>В среднем за пятницу</th><th>Рекорд пятницы</th><th>Участников</th><th style="text-align:left">Больше всех</th></tr></thead><tbody id="s-years-body"></tbody></table></div>
   </section>
   <section class="tab" id="tab-yearreview">
-    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="active">Итоги года</button><button type="button" data-gtab="achievements" class="">Достижения</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="active">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label for="yr-year">Год</label><select id="yr-year" style="min-width:120px"></select></div>
       <div class="field"><label for="yr-cmp">Сравнить с</label><select id="yr-cmp" style="min-width:160px"></select></div>
@@ -1601,7 +1635,8 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 
   <section class="tab" id="tab-settings">
     <h2>Тема оформления</h2>
-    <p class="hint">Меняет цвета всего сайта и таблиц, в том числе в скопированных картинках таблиц. Цвета графиков настраиваются отдельно через «⚙ Настройка».</p>
+    <p class="hint">Все темы тёмные: тема задаёт цвет акцентов (кнопки, подсветка, ссылки), а «Фон» — оттенок тёмной основы. Меняет цвета всего сайта и таблиц, в том числе в скопированных картинках. Цвета графиков настраиваются отдельно через «⚙ Настройка».</p>
+    <div class="quick-ranges" id="theme-bases" role="group" aria-label="Фон сайта" style="margin:0 0 10px"></div>
     <div class="theme-grid" id="theme-grid"></div>
     <h2>Шрифт</h2>
     <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label></div>
@@ -1740,6 +1775,7 @@ const g = (x, k) => {
 /* ======================================================= */
 
 const COLS = [
+  {k:"place", t:"Место"},
   {k:"name",  t:"Участник"},
   {k:"msgs",  t:"Сообщения"},
   {k:"voice", t:"Голосовые"},
@@ -2429,19 +2465,19 @@ function render(){
   $("head").innerHTML = COLS.map(c =>
     `<th tabindex="0" data-k="${c.k}" class="${sort.k===c.k?"sorted":""}">${c.t}${sort.k===c.k?(sort.dir<0?" ↓":" ↑"):""}</th>`).join("");
   document.querySelectorAll("#head th").forEach(th => {
-    const go = () => { const k = th.dataset.k; sort = {k, dir: sort.k===k ? -sort.dir : -1}; render(); };
+    const go = () => { const k = th.dataset.k; if (k === "place") return; sort = {k, dir: sort.k===k ? -sort.dir : -1}; render(); };
     th.onclick = go; th.onkeydown = e => { if (e.key === "Enter") go(); };
   });
 
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const cell = (u,k) => displayedCell(Number(u[k])||0, Number((priorMap.get(u.key)||{})[k])||0, compareOn, priorMap.has(u.key));
   $("body").innerHTML = list.length
-    ? list.map(u => `<tr data-row-entity="participants" data-row-key="${esc(u.key)}"><td><div class="row-name-with-action"><span class="pname" data-open-profile="${esc(u.key)}">${esc(u.name)}</span>${goalMini(u.key, rawPM.get(u.key))}<button type="button" class="row-exclude-btn" data-no-export="true" data-exclude-row="participants" data-row-key="${esc(u.key)}" data-row-name="${esc(u.name)}" title="Исключить из таблицы" aria-label="Исключить ${esc(u.name)} из таблицы">×</button></div></td>${cell(u,"msgs")}${cell(u,"voice")}${cell(u,"video")}${cell(u,"stick")}</tr>`).join("")
-    : `<tr><td colspan="5" style="text-align:center;color:var(--muted)">${EXCLUDED_TABLE_ROWS.participants.size ? "Нет строк: участники исключены из таблицы" : "Нет данных за выбранный период"}</td></tr>`;
+    ? list.map((u, i) => `<tr data-row-entity="participants" data-row-key="${esc(u.key)}"><td>${i + 1}</td><td><div class="row-name-with-action"><span class="pname" data-open-profile="${esc(u.key)}">${esc(u.name)}</span>${goalMini(u.key, rawPM.get(u.key))}<button type="button" class="row-exclude-btn" data-no-export="true" data-exclude-row="participants" data-row-key="${esc(u.key)}" data-row-name="${esc(u.name)}" title="Исключить из таблицы" aria-label="Исключить ${esc(u.name)} из таблицы">×</button></div></td>${cell(u,"msgs")}${cell(u,"voice")}${cell(u,"video")}${cell(u,"stick")}</tr>`).join("")
+    : `<tr><td colspan="6" style="text-align:center;color:var(--muted)">${EXCLUDED_TABLE_ROWS.participants.size ? "Нет строк: участники исключены из таблицы" : "Нет данных за выбранный период"}</td></tr>`;
 
   $("foot").innerHTML = list.length
-    ? (NORM === "day" ? "" : `<tr><td>Всего (${list.length})</td>${["msgs","voice","video","stick"].map(k => displayedCell(sumMapMetric(visibleMap,k), sumMapMetric(visiblePriorMap,k), compareOn, visiblePriorMap.size > 0)).join("")}</tr>`)
-      + statRows(list, ["msgs","voice","video","stick"], label => `<td>${label}</td>`) : "";
+    ? (NORM === "day" ? "" : `<tr><td colspan="2">Всего (${list.length})</td>${["msgs","voice","video","stick"].map(k => displayedCell(sumMapMetric(visibleMap,k), sumMapMetric(visiblePriorMap,k), compareOn, visiblePriorMap.size > 0)).join("")}</tr>`)
+      + statRows(list, ["msgs","voice","video","stick"], label => `<td colspan="2">${label}</td>`) : "";
 
   let statusText = hideLeft && leftFilterError ? `Не удалось получить статусы участников: ${leftFilterError}. Вышедшие не отфильтрованы.` : "";
   if (comparisonEnabled && mode === "all") statusText = [statusText, "Сравнение недоступно для режима «Все данные». Выберите день, неделю, месяц или год."].filter(Boolean).join(" ");
@@ -6831,13 +6867,15 @@ $("p-out").addEventListener("click", e => {
 
 /* ===================== Матрица дней / года: участники × периоды ===================== */
 const DM_KEY = "chatstats.dayMatrix.v1";
-let DM = {quick:"14", from:"", to:"", chat:"", metric:"msgs", top:"all", heat:false, year:false};
+let DM = {quick:"14", from:"", to:"", chat:"", metric:"msgs", top:"all", heat:false, year:false, week:false, minDays:0, sort:{k:"tot", dir:-1}};
 try { const j = JSON.parse(localStorage.getItem(DM_KEY) || "null"); if (j && typeof j === "object") DM = {...DM, ...j}; } catch (e) {}
+if (!DM.sort || typeof DM.sort !== "object") DM.sort = {k:"tot", dir:-1};
 const dmSave = () => { try { localStorage.setItem(DM_KEY, JSON.stringify(DM)); } catch (e) {} };
 const dmCache = new Map();
-let dmRows = null, dmCompareRows = null, dmCompareError = "", dmReq = 0;
-const DM_MAX_DAYS = 92;
+let dmRows = null, dmCompareRows = null, dmCompareError = "", dmReq = 0, dmLast = null;
+const DM_MAX_DAYS = 92, DM_MAX_WEEK_DAYS = 731;
 const DM_MONTHS = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+const DM_WD = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
 function dmStatus(t, err = false){ const el = $("dm-status"); el.textContent = t; el.className = "status" + (err ? " err" : ""); }
 function dmQuickRange(q){
   const t = new Date(), today = iso(t);
@@ -6849,6 +6887,8 @@ function dmYearRange(year){
   const y = Number(year), today = iso(new Date());
   return [`${y}-01-01`, y === new Date().getFullYear() ? today : `${y}-12-31`];
 }
+// Понедельник недели, в которую попадает дата.
+function dmMonday(d){ const wd = new Date(d + "T00:00:00Z").getUTCDay(); return addDaysIso(d, -((wd + 6) % 7)); }
 function dmSyncControls(){
   if (DM.year) {
     const anchor = DM.to || DM.from || iso(new Date());
@@ -6857,9 +6897,11 @@ function dmSyncControls(){
   } else if (DM.quick) { const [f, t] = dmQuickRange(DM.quick); DM.from = f; DM.to = t; }
   $("dm-from").value = DM.from; $("dm-to").value = DM.to;
   $("dm-year").checked = Boolean(DM.year);
+  if ($("dm-week")) { $("dm-week").checked = Boolean(DM.week) && !DM.year; $("dm-week").disabled = Boolean(DM.year); }
   document.querySelectorAll("#dm-quick button").forEach(b => b.classList.toggle("active", b.dataset.q === DM.quick));
   const quickField = $("dm-quick")?.closest(".field"); if (quickField) quickField.hidden = Boolean(DM.year);
   $("dm-metric").value = DM.metric; $("dm-top").value = DM.top; $("dm-heat").checked = DM.heat;
+  if ($("dm-min")) $("dm-min").value = String(DM.minDays || 0);
   const compare = $("dm-compare"); if (compare) compare.checked = comparisonEnabled;
 }
 function dmMaxMonth(rows, year){
@@ -6871,12 +6913,16 @@ function dmMaxMonth(rows, year){
   }
   return max;
 }
-function dmCompareRange(from, to, yearView, currentRows){
+function dmCompareRange(from, to, yearView, currentRows, weekView = false){
   if (yearView) {
     const year = Number(from.slice(0,4)) - 1;
     const maxMonth = dmMaxMonth(currentRows, Number(from.slice(0,4))) || Math.max(1, Number(to.slice(5,7)) || 1);
     const lastDay = new Date(year, maxMonth, 0).getDate();
     return [`${year}-01-01`, `${year}-${pad(maxMonth)}-${pad(lastDay)}`];
+  }
+  if (weekView) {
+    const ws = dmMonday(from), ncols = Math.floor((dayIdx(to) - dayIdx(ws)) / 7) + 1;
+    return [addDaysIso(ws, -ncols * 7), addDaysIso(ws, -1)];
   }
   const n = dayIdx(to) - dayIdx(from) + 1;
   const prevTo = addDaysIso(from, -1);
@@ -6890,21 +6936,24 @@ async function dmGetRange(from, to, force = false){
 }
 async function loadDayMatrix(force = false){
   dmSyncControls();
+  // Сортировка по конкретной колонке не переносится на другой период.
+  if (String(DM.sort?.k || "").startsWith("c")) { DM.sort = {k:"tot", dir:-1}; dmSave(); }
   let from = DM.from, to = DM.to;
   if (!from || !to) { dmStatus("Выбери период", true); return; }
   if (from > to) [from, to] = [to, from];
-  const len = dayIdx(to) - dayIdx(from) + 1;
-  if (!DM.year && len > DM_MAX_DAYS) { dmStatus(`Слишком длинный период: ${fmt(len)} ${wordForm(len, ["день","дня","дней"])}. Максимум — ${DM_MAX_DAYS}. Для помесячной таблицы включи «Год».`, true); return; }
+  const len = dayIdx(to) - dayIdx(from) + 1, weekView = Boolean(DM.week) && !DM.year;
+  if (!DM.year && !weekView && len > DM_MAX_DAYS) { dmStatus(`Слишком длинный период: ${fmt(len)} ${wordForm(len, ["день","дня","дней"])}. По дням можно до ${DM_MAX_DAYS} — включи «По неделям» (до двух лет) или «Год» для помесячной таблицы.`, true); $("dm-body").innerHTML = ""; $("dm-head").innerHTML = ""; return; }
+  if (weekView && len > DM_MAX_WEEK_DAYS) { dmStatus(`Слишком длинный период для недель: максимум два года. Для больших периодов включи «Год».`, true); $("dm-body").innerHTML = ""; $("dm-head").innerHTML = ""; return; }
   const id = ++dmReq;
   try {
     dmStatus(""); $("dm-body").innerHTML = skRows(16, 10);
-    dmRows = await dmGetRange(from, to, force); stamp();
+    const loadFrom = weekView ? dmMonday(from) : from;
+    dmRows = await dmGetRange(loadFrom, to, force); stamp();
+    // Предыдущий период грузим всегда: он нужен для колонки «Δ места»; разница в ячейках — только при «Сравнении».
     dmCompareRows = null; dmCompareError = "";
-    if (comparisonEnabled) {
-      const prev = dmCompareRange(from, to, Boolean(DM.year), dmRows);
-      try { dmCompareRows = await dmGetRange(prev[0], prev[1], force); }
-      catch (e) { dmCompareError = e.message || String(e); }
-    }
+    const prev = dmCompareRange(from, to, Boolean(DM.year), dmRows, weekView);
+    try { dmCompareRows = await dmGetRange(prev[0], prev[1], force); }
+    catch (e) { dmCompareError = e.message || String(e); }
   } catch (e) { if (id === dmReq) dmStatus("Не удалось загрузить данные: " + e.message, true); return; }
   if (id !== dmReq) return;
   if (hideLeft && !userMetricRows) { try { await ensureUserMetrics(); } catch (e) { leftFilterError = e.message || String(e); } }
@@ -6925,86 +6974,196 @@ function dmDelta(current, previous, hasPrevious = true){
   const label = delta > 0 ? "+" + fmt(delta) : fmt(delta);
   return ` <span class="compare-diff ${delta > 0 ? "positive" : "negative"}">(${label})</span>`;
 }
+function dmRankDelta(rank, prevRank){
+  if (prevRank == null) return `<span class="dm-rk new" title="Не было в прошлом периоде">нов.</span>`;
+  const d = prevRank - rank;
+  if (!d) return `<span class="dm-rk same" title="Место не изменилось (было ${prevRank})">=</span>`;
+  return `<span class="dm-rk ${d > 0 ? "up" : "down"}" title="Было ${prevRank}-е место">${d > 0 ? "▲" : "▼"}${Math.abs(d)}</span>`;
+}
 function renderDayMatrix(from = DM.from, to = DM.to){
   if (!dmRows) return;
   if (from > to) [from, to] = [to, from];
-  const metric = DM.metric, today = iso(new Date()), yearView = Boolean(DM.year), year = Number(from.slice(0,4));
+  dmPopClose();
+  const metric = DM.metric, today = iso(new Date()), yearView = Boolean(DM.year), weekView = !yearView && Boolean(DM.week), year = Number(from.slice(0,4));
   let columns;
   if (yearView) {
     const maxMonth = dmMaxMonth(dmRows, year);
-    columns = Array.from({length:maxMonth}, (_, i) => ({key:`${year}-${pad(i+1)}`, label:DM_MONTHS[i], index:i, date:`${year}-${pad(i+1)}-01`}));
+    columns = Array.from({length:maxMonth}, (_, i) => ({key:`${year}-${pad(i+1)}`, label:DM_MONTHS[i], index:i, date:`${year}-${pad(i+1)}-01`, from:`${year}-${pad(i+1)}-01`, to:iso(new Date(year, i + 1, 0))}));
+  } else if (weekView) {
+    const ws = dmMonday(from), n = Math.floor((dayIdx(to) - dayIdx(ws)) / 7) + 1;
+    columns = Array.from({length:n}, (_, i) => { const a = addDaysIso(ws, i * 7), b = addDaysIso(a, 6);
+      return {key:a, label:`${+a.slice(8)} ${DM_MONTHS[+a.slice(5,7)-1]}`, sub:`–${+b.slice(8)} ${DM_MONTHS[+b.slice(5,7)-1]}`, index:i, date:a, from:a, to:b}; });
   } else {
     const days = []; for (let d = from; d <= to; d = addDaysIso(d, 1)) days.push(d);
-    columns = days.map((d, i) => ({key:d, label:`${d.slice(8)} ${DM_MONTHS[+d.slice(5,7)-1]}`, index:i, date:d}));
+    columns = days.map((d, i) => ({key:d, label:`${d.slice(8)} ${DM_MONTHS[+d.slice(5,7)-1]}`, index:i, date:d, from:d, to:d}));
   }
-  const colPos = new Map(columns.map((c, i) => [c.key, i]));
-  const prevStart = comparisonEnabled && !dmCompareError && dmCompareRows ? (yearView ? `${year-1}-01-01` : addDaysIso(from, -(dayIdx(to)-dayIdx(from)+1))) : "";
+  const ncol = columns.length;
+  const colOf = d => {
+    if (yearView) { if (d.slice(0, 4) !== String(year)) return -1; return Number(d.slice(5, 7)) - 1; }
+    if (weekView) return Math.floor((dayIdx(d) - dayIdx(columns[0].from)) / 7);
+    return dayIdx(d) - dayIdx(from);
+  };
+  const prevRange = dmCompareRange(from, to, yearView, dmRows, weekView);
+  const priorColOf = d => {
+    if (yearView) return Number(d.slice(5, 7)) - 1;
+    if (weekView) return Math.floor((dayIdx(d) - dayIdx(prevRange[0])) / 7);
+    return dayIdx(d) - dayIdx(prevRange[0]);
+  };
   function aggregate(sourceRows, isPrior = false){
     const result = new Map();
     pick(sourceRows || [], DM.chat).forEach(x => {
       const d = String(x[F.date] ?? "").slice(0, 10); if (!d) return;
-      let colKey;
-      if (yearView) {
-        if (isPrior) colKey = d.slice(5,7); else colKey = d.slice(0,7);
-      } else {
-        if (isPrior) {
-          const idx = dayIdx(d) - dayIdx(prevStart);
-          if (idx < 0 || idx >= columns.length) return;
-          colKey = columns[idx]?.key;
-        } else colKey = d;
-      }
-      const idx = yearView ? (isPrior ? Number(colKey)-1 : colPos.get(colKey)) : colPos.get(colKey);
-      if (idx == null || idx < 0 || idx >= columns.length) return;
+      const idx = isPrior ? priorColOf(d) : colOf(d);
+      if (idx == null || idx < 0 || idx >= ncol) return;
+      if (!isPrior && (d < columns[0].from || d > columns[ncol - 1].to)) return;
       const k = String(x[F.userId] ?? x[F.name]); if (!isVisibleUser(k)) return;
       const v = Number(g(x, metric)) || 0; if (!v) return;
       let u = result.get(k);
-      if (!u) { u = {k, name:who(x), a:Array(columns.length).fill(0), tot:0}; result.set(k, u); }
-      u.a[idx] += v; u.tot += v;
+      if (!u) { u = {k, name:who(x), a:Array(ncol).fill(0), tot:0, days:new Set()}; result.set(k, u); }
+      u.a[idx] += v; u.tot += v; u.days.add(d);
     });
     return result;
   }
-  const per = aggregate(dmRows), priorPer = comparisonEnabled && !dmCompareError && dmCompareRows ? aggregate(dmCompareRows, true) : new Map();
-  const ranked = [...per.values()].sort((a, b) => b.tot - a.tot || a.name.localeCompare(b.name, "ru"));
-  const shown = DM.top === "all" ? ranked : ranked.slice(0, Number(DM.top));
+  const per = aggregate(dmRows), hasPrior = !dmCompareError && Array.isArray(dmCompareRows);
+  const priorPer = hasPrior ? aggregate(dmCompareRows, true) : new Map();
+  const byTot = (a, b) => b.tot - a.tot || a.name.localeCompare(b.name, "ru");
+  const ranked = [...per.values()].sort(byTot);
+  const rankOf = new Map(ranked.map((u, i) => [u.k, i + 1]));
+  const priorRank = new Map([...priorPer.values()].sort(byTot).map((u, i) => [u.k, i + 1]));
+  const showDelta = hasPrior && priorPer.size > 0;
+  const minDays = Number(DM.minDays) || 0;
+  const eligible = ranked.filter(u => u.days.size >= minDays);
+  const hiddenLow = ranked.length - eligible.length;
+  let shown = DM.top === "all" ? eligible : eligible.slice(0, Number(DM.top));
+  // Сортировка по клику на заголовок; № всегда показывает место по сумме.
+  const sk = DM.sort?.k || "tot", sd = DM.sort?.dir || -1;
+  const sortVal = u => sk === "name" ? null : sk === "delta" ? (priorRank.has(u.k) ? priorRank.get(u.k) - rankOf.get(u.k) : -1e9) : sk === "tot" || sk === "share" ? u.tot : sk === "days" ? u.days.size : u.a[Number(sk.slice(1))] || 0;
+  shown = [...shown].sort((a, b) => sk === "name" ? -sd * a.name.localeCompare(b.name, "ru") : sd * (sortVal(a) - sortVal(b)) || byTot(a, b));
   const colTot = columns.map((_, i) => ranked.reduce((sum, u) => sum + u.a[i], 0));
   const priorColTot = columns.map((_, i) => [...priorPer.values()].reduce((sum, u) => sum + u.a[i], 0));
   const grand = colTot.reduce((a, v) => a + v, 0), maxCol = Math.max(1, ...colTot);
   const colMax = columns.map((_, i) => Math.max(0, ...shown.map(u => u.a[i])));
   const cellMax = Math.max(1, ...colMax);
   const chatName = DM.chat || "Все чаты";
+  const cmpOn = comparisonEnabled && priorPer.size > 0;
+  dmLast = {columns, per, ranked, colTot, metric, yearView, weekView, year, priorPer, priorColOf, cmpOn};
   const bar = (v, i) => {
     const h = Math.max(v ? 3 : 0, Math.round(v / maxCol * 46));
-    return `<svg width="58" height="72" viewBox="0 0 58 72" aria-label="${fmt(v)}"><text x="29" y="${66 - h - 6}" text-anchor="middle" font-size="13" fill="#e8eaf1" font-family="Segoe UI, system-ui, sans-serif">${fmt(v)}</text><rect class="anim-bar-y" x="14" y="${66 - h}" width="30" height="${h}" rx="3" fill="${dmFill()}" fill-opacity="${v ? .85 : 0}"/><line x1="4" y1="66.5" x2="54" y2="66.5" stroke="#3a4050"/></svg>${dmDelta(v, priorColTot[i] || 0, priorPer.size > 0)}`;
+    return `<svg width="58" height="72" viewBox="0 0 58 72" aria-label="${fmt(v)}"><text x="29" y="${66 - h - 6}" text-anchor="middle" font-size="13" fill="#e8eaf1" font-family="Segoe UI, system-ui, sans-serif">${fmt(v)}</text><rect class="anim-bar-y" x="14" y="${66 - h}" width="30" height="${h}" rx="3" fill="${dmFill()}" fill-opacity="${v ? .85 : 0}"/><line x1="4" y1="66.5" x2="54" y2="66.5" stroke="#3a4050"/></svg>${dmDelta(v, priorColTot[i] || 0, cmpOn)}`;
   };
-  const head1 = `<tr class="dm-bars"><th colspan="2" class="dm-corner">${escH(chatName)}<small>${escH(MLBL[metric].toLowerCase())}${yearView ? ` · ${year} год` : ""}</small></th>${columns.map((c, i) => `<th class="dm-barcell">${!yearView && c.date > today ? "" : bar(colTot[i], i)}</th>`).join("")}<th colspan="2" class="dm-grand">${fmt(grand)}${dmDelta(grand, priorColTot.reduce((a,v)=>a+v,0), priorPer.size > 0)}<small>всего</small></th></tr>`;
-  const head2 = `<tr><th>№</th><th class="dm-name">Имя</th>${columns.map(c => {
-    const wd = new Date(Date.UTC(+c.date.slice(0, 4), +c.date.slice(5, 7) - 1, +c.date.slice(8))).getUTCDay();
-    return `<th class="${!yearView && (wd === 0 || wd === 6) ? "dm-weekend" : ""}">${escH(c.label)}</th>`;
-  }).join("")}<th class="dm-totcol">Всего</th><th>%</th></tr>`;
+  const tailCols = showDelta ? 3 : 2;
+  const arrow = k => sk === k ? (sd < 0 ? " ↓" : " ↑") : "";
+  const sth = (k, label, cls = "", extra = "") => `<th data-dm-sort="${k}" class="${cls}${sk === k ? " sorted" : ""}" tabindex="0" title="Сортировать"${extra}>${label}${arrow(k)}</th>`;
+  const head1 = `<tr class="dm-bars"><th colspan="2" class="dm-corner">${escH(chatName)}<small>${escH(MLBL[metric].toLowerCase())}${yearView ? ` · ${year} год` : weekView ? " · по неделям" : ""}</small></th>${columns.map((c, i) => `<th class="dm-barcell">${!yearView && c.from > today ? "" : bar(colTot[i], i)}</th>`).join("")}<th colspan="${tailCols}" class="dm-grand">${fmt(grand)}${dmDelta(grand, priorColTot.reduce((a,v)=>a+v,0), cmpOn)}<small>всего</small></th></tr>`;
+  const head2 = `<tr class="dm-labels"><th class="dm-no">№</th>${sth("name", "Имя", "dm-name")}${columns.map((c, i) => {
+    const wd = new Date(c.date + "T00:00:00Z").getUTCDay(), weekend = !yearView && !weekView && (wd === 0 || wd === 6);
+    const label = weekView ? `${escH(c.label)}<small>${escH(c.sub)}</small>` : escH(c.label);
+    return sth("c" + i, label, weekend ? "dm-weekend" : "", ` data-col="${i}"`);
+  }).join("")}${sth("tot", "Всего", "dm-totcol")}${sth("share", "%")}${showDelta ? sth("delta", "Δ места", "", ` title="Изменение места по сравнению с прошлым периодом"`) : ""}</tr>`;
   $("dm-head").innerHTML = head1 + head2;
-  $("dm-body").innerHTML = shown.length ? shown.map((u, r) => {
-    const prior = priorPer.get(u.k);
+  const colSpanAll = ncol + 2 + tailCols;
+  $("dm-body").innerHTML = shown.length ? shown.map(u => {
+    const prior = priorPer.get(u.k), rank = rankOf.get(u.k);
     const cells = u.a.map((v, i) => {
       const pv = prior?.a?.[i] || 0;
-      if (!v) return `<td class="dm-empty">${yearView || columns[i].date <= today ? "–" : ""}${dmDelta(v,pv,Boolean(prior))}</td>`;
+      if (!v) return `<td class="dm-empty">${yearView || columns[i].from <= today ? "–" : ""}${dmDelta(v, pv, cmpOn && Boolean(prior))}</td>`;
       const top = v === colMax[i];
       let style = "";
       if (top) style = `background-color:${hexA(dmHl(), DM.heat ? .6 : .42)};color:#fff`;
       else if (DM.heat) style = `background-color:${hexA(dmFill(), (0.06 + 0.4 * Math.pow(v / cellMax, 0.7)).toFixed(3))}`;
-      return `<td class="${top ? "dm-top" : ""}"${style ? ` style="${style}"` : ""}${top ? ` title="Больше всех за ${yearView ? columns[i].label + " " + year : sFmtDate(columns[i].date)}"` : ""}>${fmt(v)}${dmDelta(v,pv,Boolean(prior))}</td>`;
+      return `<td class="dm-cell${top ? " dm-top" : ""}" data-dm-cell="${escH(u.k)}|${i}"${style ? ` style="${style}"` : ""}>${fmt(v)}${dmDelta(v, pv, cmpOn && Boolean(prior))}</td>`;
     }).join("");
-    return `<tr><td class="${r < 3 ? "medal-" + (r + 1) : ""}">${r + 1}</td><td class="dm-name"><span class="pname" data-open-profile="${escH(u.k)}">${escH(u.name)}</span></td>${cells}<td class="dm-total">${fmt(u.tot)}${dmDelta(u.tot,prior?.tot || 0,Boolean(prior))}</td><td class="dm-share">${dmPct(u.tot, grand)}</td></tr>`;
-  }).join("") : `<tr><td colspan="${columns.length + 4}" style="text-align:center;color:var(--muted)">Нет данных за выбранный период</td></tr>`;
+    return `<tr><td class="dm-no${rank <= 3 ? " medal-" + rank : ""}">${rank}</td><td class="dm-name"><span class="pname" data-open-profile="${escH(u.k)}">${escH(u.name)}</span></td>${cells}<td class="dm-total">${fmt(u.tot)}${dmDelta(u.tot, prior?.tot || 0, cmpOn && Boolean(prior))}</td><td class="dm-share">${dmPct(u.tot, grand)}</td>${showDelta ? `<td class="dm-delta">${dmRankDelta(rank, priorRank.get(u.k))}</td>` : ""}</tr>`;
+  }).join("") : `<tr><td colspan="${colSpanAll}" style="text-align:center;color:var(--muted)">${hiddenLow ? "Все участники скрыты фильтром малоактивных" : "Нет данных за выбранный период"}</td></tr>`;
+  dmSticky();
   const leftNote = hideLeft && leftFilterError ? ` · статусы участников не получены, вышедшие не отфильтрованы` : "";
   const comparisonNote = comparisonEnabled ? (dmCompareError ? ` · не удалось загрузить предыдущий период: ${dmCompareError}` : ` · сравнение с ${yearView ? (year-1) + " годом" : "предыдущим периодом"}`) : "";
-  const heading = yearView ? `${columns.length} ${wordForm(columns.length, ["месяц","месяца","месяцев"])} за ${year} год` : `${fmt(columns.length)} ${wordForm(columns.length, ["день","дня","дней"])} · ${sFmtDate(from)} — ${sFmtDate(to)}`;
-  dmStatus(`${heading} · участников: ${fmt(ranked.length)}${shown.length < ranked.length ? `, показано ${shown.length}` : ""} · подсвечен лучший результат каждого ${yearView ? "месяца" : "дня"}${comparisonNote}${leftNote}`);
+  const unit = yearView ? "каждого месяца" : weekView ? "каждой недели" : "каждого дня";
+  const heading = yearView ? `${ncol} ${wordForm(ncol, ["месяц","месяца","месяцев"])} за ${year} год` : weekView ? `${ncol} ${wordForm(ncol, ["неделя","недели","недель"])} · ${sFmtDate(columns[0].from)} — ${sFmtDate(to)}` : `${fmt(ncol)} ${wordForm(ncol, ["день","дня","дней"])} · ${sFmtDate(from)} — ${sFmtDate(to)}`;
+  const lowNote = hiddenLow ? ` · скрыто малоактивных: ${hiddenLow}` : "";
+  dmStatus(`${heading} · участников: ${fmt(ranked.length)}${shown.length < ranked.length ? `, показано ${shown.length}` : ""}${lowNote} · подсвечен лучший результат ${unit} · нажми на число, чтобы увидеть подробности${comparisonNote}${leftNote}`);
 }
+// Шапка и колонки «№ / Имя» не уезжают при прокрутке: отступы считаются по реальным размерам.
+function dmSticky(){
+  const t = $("dm-table"); if (!t) return;
+  requestAnimationFrame(() => {
+    const r1 = t.querySelector("thead tr.dm-bars"), no = t.querySelector("thead .dm-no");
+    const h1 = r1 ? r1.getBoundingClientRect().height : 0, w1 = no ? no.getBoundingClientRect().width : 44;
+    t.style.setProperty("--dm-h1", h1 + "px"); t.style.setProperty("--dm-w1", w1 + "px");
+  });
+}
+
+/* --- Подробности ячейки --- */
+let dmPopEl = null;
+function dmPopClose(){ if (dmPopEl) { dmPopEl.remove(); dmPopEl = null; } document.querySelectorAll("#dm-table td.dm-sel").forEach(x => x.classList.remove("dm-sel")); }
+function dmCellDetails(k, i){
+  const L = dmLast; if (!L) return "";
+  const c = L.columns[i], u = L.per.get(k); if (!c || !u) return "";
+  const rowsU = pick(dmRows || [], DM.chat).filter(x => String(x[F.userId] ?? x[F.name]) === k && (() => { const d = String(x[F.date] ?? "").slice(0, 10); return d >= c.from && d <= c.to; })());
+  const sumM = key => rowsU.reduce((s2, x) => s2 + (Number(g(x, key)) || 0), 0);
+  const v = u.a[i], colTot = L.colTot[i];
+  const order = L.ranked.map(x => x.a[i]).filter(x => x > 0).sort((a, b) => b - a), place = order.indexOf(v) + 1;
+  const title = L.yearView ? `${MONTHS[i]} ${L.year}` : L.weekView ? `Неделя ${sFmtDate(c.from)} — ${sFmtDate(c.to)}` : `${sFmtDate(c.from)}, ${DM_WD[new Date(c.from + "T00:00:00Z").getUTCDay()]}`;
+  let h = `<div class="dm-pop-h"><b>${escH(u.name)}</b><span>${escH(title)}</span><button type="button" class="dm-pop-x" aria-label="Закрыть">×</button></div>`;
+  h += `<div class="dm-pop-grid">`;
+  h += `<div><em>Место</em><b>${place ? `${place} из ${order.length}` : "—"}</b></div><div><em>Доля ${L.yearView ? "месяца" : L.weekView ? "недели" : "дня"}</em><b>${dmPct(v, colTot)}</b></div>`;
+  if (L.cmpOn) { const p = L.priorPer.get(k)?.a?.[i] || 0; h += `<div><em>В прошлом периоде</em><b>${fmt(p)} ${dmDelta(v, p, true)}</b></div>`; }
+  if (L.yearView || L.weekView) {
+    const days = new Map(); rowsU.forEach(x => { const d = String(x[F.date] ?? "").slice(0, 10), m = Number(g(x, L.metric)) || 0; if (m) days.set(d, (days.get(d) || 0) + m); });
+    const best = [...days.entries()].sort((a, b) => b[1] - a[1])[0];
+    h += `<div><em>Активных дней</em><b>${days.size}</b></div>`;
+    if (best) h += `<div><em>Лучший день</em><b>${fmt(best[1])} · ${sFmtDate(best[0])}</b></div>`;
+  }
+  h += `</div><div class="dm-pop-sub">Все показатели</div><div class="dm-pop-grid">` + ["msgs", "stick", "voice", "video"].map(key => `<div class="${key === L.metric ? "on" : ""}"><em>${MLBL[key]}</em><b>${fmt(sumM(key))}</b></div>`).join("") + `</div>`;
+  if (!DM.chat) {
+    const chats = new Map(); rowsU.forEach(x => { const n = String(x[F.chat] || "Без названия"), m = Number(g(x, L.metric)) || 0; if (m) chats.set(n, (chats.get(n) || 0) + m); });
+    const list = [...chats.entries()].sort((a, b) => b[1] - a[1]);
+    if (list.length) {
+      const mx = list[0][1];
+      h += `<div class="dm-pop-sub">По чатам · ${escH(MLBL[L.metric].toLowerCase())}</div>` + list.map(([n, m]) => `<div class="dm-pop-bar"><span title="${escH(n)}">${escH(n)}</span><i style="--w:${(m / mx * 100).toFixed(1)}%;--c:${dmFill()}"></i><b>${fmt(m)}</b></div>`).join("");
+    }
+  }
+  return h;
+}
+$("dm-table").addEventListener("click", e => {
+  const th = e.target.closest("[data-dm-sort]");
+  if (th) {
+    const k = th.dataset.dmSort, cur = DM.sort || {};
+    DM.sort = {k, dir: cur.k === k ? -(cur.dir || -1) : (k === "name" ? 1 : -1)};
+    dmSave(); renderDayMatrix(); return;
+  }
+  const td = e.target.closest("td[data-dm-cell]");
+  if (!td) return;
+  if (e.target.closest(".pname")) return;
+  const wasSel = td.classList.contains("dm-sel");
+  dmPopClose(); if (wasSel) return;
+  const [k, i] = td.dataset.dmCell.split("|");
+  const html = dmCellDetails(k, Number(i)); if (!html) return;
+  td.classList.add("dm-sel");
+  dmPopEl = document.createElement("div"); dmPopEl.className = "dm-pop"; dmPopEl.innerHTML = html; document.body.appendChild(dmPopEl);
+  const r = td.getBoundingClientRect(), w = dmPopEl.offsetWidth, h = dmPopEl.offsetHeight;
+  let x = r.left + r.width / 2 - w / 2, y = r.bottom + 8;
+  if (y + h > innerHeight - 8) y = r.top - h - 8;
+  x = Math.max(8, Math.min(innerWidth - w - 8, x)); y = Math.max(8, y);
+  dmPopEl.style.left = (x + scrollX) + "px"; dmPopEl.style.top = (y + scrollY) + "px";
+});
+$("dm-table").addEventListener("keydown", e => { const th = e.target.closest?.("[data-dm-sort]"); if (th && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); th.click(); } });
+document.addEventListener("click", e => { if (dmPopEl && (e.target.closest(".dm-pop-x") || (!dmPopEl.contains(e.target) && !e.target.closest("td[data-dm-cell]")))) dmPopClose(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") dmPopClose(); });
+$("dm-table").closest(".wrap")?.addEventListener("scroll", () => dmPopClose(), {passive:true});
+addEventListener("resize", () => { if ($("tab-daymatrix")?.classList.contains("active")) dmSticky(); });
 function dmTitle(){
   const f = DM.from <= DM.to ? DM.from : DM.to, t = DM.from <= DM.to ? DM.to : DM.from;
   return `${MLBL[DM.metric]} ${DM.year ? "по месяцам" : "по дням"} · ${DM.chat || "Все чаты"} · ${DM.year ? f.slice(0,4) + " год" : sFmtDate(f) + " — " + sFmtDate(t)}`;
 }
-document.querySelectorAll("#dm-quick button").forEach(b => b.onclick = () => { DM.quick = b.dataset.q; DM.year = false; dmSave(); loadDayMatrix(); });
+document.querySelectorAll("#dm-quick button").forEach(b => b.onclick = () => { DM.quick = b.dataset.q; DM.year = false; if (b.dataset.q === "182") DM.week = true; dmSave(); loadDayMatrix(); });
+$("dm-week").onchange = () => {
+  DM.week = $("dm-week").checked;
+  // Вернувшись к дням с длинным периодом, ужимаем его до допустимых 92 дней.
+  if (!DM.week && !DM.year && DM.from && DM.to && dayIdx(DM.to) - dayIdx(DM.from) + 1 > DM_MAX_DAYS) { DM.quick = "30"; [DM.from, DM.to] = dmQuickRange("30"); }
+  dmSave(); loadDayMatrix();
+};
+$("dm-min").onchange = () => { DM.minDays = Number($("dm-min").value) || 0; dmSave(); renderDayMatrix(); };
 ["dm-from", "dm-to"].forEach(id => $(id).onchange = () => {
   const value = $(id).value; DM.quick = "";
   if (DM.year && value) { const y = Number(value.slice(0,4)); [DM.from, DM.to] = dmYearRange(y); }
@@ -7021,7 +7180,12 @@ $("dm-chat").onchange = () => { DM.chat = $("dm-chat").value; dmSave(); renderDa
 $("dm-metric").onchange = () => { DM.metric = $("dm-metric").value; dmSave(); renderDayMatrix(); };
 $("dm-top").onchange = () => { DM.top = $("dm-top").value; dmSave(); renderDayMatrix(); };
 $("dm-heat").onchange = () => { DM.heat = $("dm-heat").checked; dmSave(); renderDayMatrix(); };
-$("dm-copy").onclick = () => copyTableImage("dm-table", dmTitle, "dm-copy-status");
+$("dm-copy").onclick = () => {
+  // Липкие ячейки при прокрутке смещаются — для картинки возвращаем таблицу в начало.
+  const w = $("dm-table").closest(".wrap"); if (w) { w.scrollTop = 0; w.scrollLeft = 0; }
+  dmPopClose();
+  copyTableImage("dm-table", dmTitle, "dm-copy-status");
+};
 
 /* ===================== Палитры для всех графиков ===================== */
 // Последовательные палитры (мало → средне → много): календарь, спираль, карта участников/чатов.
@@ -7044,6 +7208,14 @@ const SEQ_PALETTES = [
   ["Спокойные", [
     ["Графит", ["#2a2d35","#6b7280","#e5e7eb"]], ["Серебро", ["#30343d","#9aa3b5","#ffffff"]], ["Сепия", ["#2f2620","#8a6d52","#e8d5bc"]],
     ["Фиолетовый", ["#2a1f45","#7c4dcc","#d4b8ff"]], ["Пастель", ["#2e2a3a","#b8a1e3","#ffd6e8"]], ["Зефир", ["#2d3340","#9fc5e8","#fff1c1"]]]],
+  ["Научные", [
+    ["Виридис", ["#3b1f5c","#21908d","#fde725"]], ["Инферно", ["#2a0b3d","#bc3754","#fcffa4"]], ["Плазма+", ["#1f0c6b","#cc4778","#f0f921"]],
+    ["Цивидис", ["#1d2e4f","#7c7b78","#fde845"]], ["Мако", ["#1f1a33","#357ba3","#def5e5"]], ["Рокет", ["#2a0f2e","#cb1b4f","#faebdd"]],
+    ["Турбо", ["#30123b","#1ae4b6","#fb8022"]]]],
+  ["Ещё", [
+    ["Мята", ["#12312b","#2bb39a","#c8fff0"]], ["Малина", ["#33101f","#c2185b","#ffb0d0"]], ["Небо", ["#14263d","#3d8bfd","#cfe6ff"]],
+    ["Медь", ["#2b1a12","#b8693a","#ffd2a6"]], ["Лимон", ["#28301a","#a3c021","#f7ffad"]], ["Слива", ["#2a1530","#8e3fae","#f1c6ff"]],
+    ["Морская волна", ["#0e2b30","#0ea5b7","#b6fbff"]], ["Ржавчина", ["#2b140e","#a8431e","#ffbe8f"]], ["Ночь и луна", ["#151a2e","#5867a8","#fff3c4"]]]],
 ];
 // Категориальные палитры: цвета участников, чатов, лет и диапазонов.
 const CAT_PALETTES = [
@@ -7069,14 +7241,26 @@ const CAT_PALETTES = [
     ["Космос", ["#b5179e","#f72585","#4361ee","#4cc9f0","#7209b7","#9d4edd","#4895ef","#e0aaff"]]]],
   ["Удобные для глаз", [
     ["Для дальтоников", ["#e69f00","#56b4e9","#009e73","#f0e442","#0072b2","#d55e00","#cc79a7","#ffffff"]],
-    ["Контраст", ["#ffffff","#ffd166","#06d6a0","#118ab2","#ef476f","#8338ec","#fb5607","#3a86ff"]]]],
+    ["Контраст", ["#ffffff","#ffd166","#06d6a0","#118ab2","#ef476f","#8338ec","#fb5607","#3a86ff"]],
+    ["Окабэ — Ито", ["#e69f00","#56b4e9","#009e73","#f0e442","#0072b2","#d55e00","#cc79a7","#999999"]],
+    ["Тол", ["#4477aa","#66ccee","#228833","#ccbb44","#ee6677","#aa3377","#bbbbbb","#88ccee"]]]],
+  ["Ещё", [
+    ["Катпуччин", ["#f38ba8","#89b4fa","#a6e3a1","#f9e2af","#cba6f7","#94e2d5","#fab387","#89dceb"]],
+    ["Дракула", ["#ff79c6","#8be9fd","#50fa7b","#f1fa8c","#bd93f9","#ffb86c","#ff5555","#6272a4"]],
+    ["Норд", ["#88c0d0","#81a1c1","#a3be8c","#ebcb8b","#b48ead","#d08770","#bf616a","#8fbcbb"]],
+    ["Грувбокс", ["#fb4934","#b8bb26","#fabd2f","#83a598","#d3869b","#8ec07c","#fe8019","#a89984"]],
+    ["Тропики", ["#ff595e","#ffca3a","#8ac926","#1982c4","#6a4c93","#ff924c","#52a675","#4267ac"]],
+    ["Драгоценности", ["#e0115f","#0f52ba","#50c878","#ffbf00","#9966cc","#40e0d0","#ff7f50","#c0c0c0"]],
+    ["Сумерки", ["#ffadad","#ffd6a5","#fdffb6","#caffbf","#9bf6ff","#a0c4ff","#bdb2ff","#ffc6ff"]],
+    ["Карамель", ["#d4a373","#e9c46a","#f4a261","#e76f51","#a68a64","#ccd5ae","#faedcd","#bc6c25"]]]],
 ];
 // Пары «селфи / пропуск» для карты посещаемости.
 const PAIR_PALETTES = [
   ["Пары", [
     ["Классика", ["#9ece6a","#f7768e"]], ["Для дальтоников", ["#56b4e9","#e69f00"]], ["Неон", ["#00f5d4","#ff006e"]],
     ["Пастель", ["#caffbf","#ffadad"]], ["Океан", ["#4cc9f0","#f4a261"]], ["Фиолет", ["#bb9af7","#e0af68"]],
-    ["Монохром", ["#e5e7eb","#575d6b"]], ["Закат", ["#ffd56b","#c06c84"]], ["Лес", ["#52b788","#bc6c25"]], ["Лёд", ["#a0c4ff","#ff8fa3"]]]],
+    ["Монохром", ["#e5e7eb","#575d6b"]], ["Закат", ["#ffd56b","#c06c84"]], ["Лес", ["#52b788","#bc6c25"]], ["Лёд", ["#a0c4ff","#ff8fa3"]],
+    ["Мята и коралл", ["#5eead4","#ff7f6e"]], ["Лайм и слива", ["#a3e635","#a855f7"]], ["Золото и графит", ["#e8c26a","#4b5563"]], ["Небо и малина", ["#7dd3fc","#e11d74"]]]],
 ];
 const palMap = groups => new Map(groups.flatMap(([, items]) => items));
 const SEQ_MAP = palMap(SEQ_PALETTES), CAT_MAP = palMap(CAT_PALETTES), PAIR_MAP = palMap(PAIR_PALETTES);
@@ -7231,7 +7415,7 @@ const pbSat = h => { const c = pbRgb(h), mx = Math.max(...c), mn = Math.min(...c
 // Затемняет цвет, пока его яркость не станет не выше limit: текст графиков светлый, фон должен оставаться тёмным.
 function pbDarkTo(h, limit){ let c = h, i = 0; while (pbLum(c) > limit && i++ < 40) c = pbMix(c, "#05060a", .12); return c; }
 const PAL_BG_SOLID = new Set(["Графит", "Серебро", "Сепия", "Монохром", "Контраст", "Для дальтоников", "Классика", "Пастель"]);
-const PAL_BG_RADIAL = new Set(["Неон", "Кибер", "Плазма", "Вейпорвейв", "Аврора", "Синтвейв", "Космос", "Северное сияние", "Магма", "Огонь", "Лава", "Кислота", "Полночь", "Глубина"]);
+const PAL_BG_RADIAL = new Set(["Неон", "Кибер", "Плазма", "Вейпорвейв", "Аврора", "Синтвейв", "Космос", "Северное сияние", "Магма", "Огонь", "Лава", "Кислота", "Полночь", "Глубина", "Инферно", "Турбо", "Ночь и луна", "Дракула", "Катпуччин"]);
 function palBgAuto(name, cols){
   const list = (cols || []).filter(c => /^#[0-9a-f]{6}$/i.test(c));
   if (!list.length) return null;
@@ -7796,21 +7980,52 @@ $("yr-same").onchange = () => { YR.same = $("yr-same").checked; yrSave(); render
 
 /* ===================== Темы оформления сайта ===================== */
 const SITE_THEME_KEY = "chatstats.siteTheme.v1";
-const SITE_THEMES = [
-  {id:"midnight", name:"Полночь", bg:"#0f1117", panel:"#171a22", panel2:"#1d212b", line:"#272b36", text:"#e8eaf1", muted:"#8a90a2", accent:"#7aa2f7", accent2:"#bb9af7", accentBg:"#1f2840", th:"#1b1f29", ctrl:"#11141b", hover:"#1e2331", foot:"#1b1f2a", glow1:"#1a2444", glow2:"#2b1d40"},
-  {id:"graphite", name:"Графит", bg:"#111214", panel:"#1a1b1e", panel2:"#212226", line:"#2c2d32", text:"#ececee", muted:"#8d8f97", accent:"#a9b4c8", accent2:"#e2e5ea", accentBg:"#272a31", th:"#1e1f23", ctrl:"#141518", hover:"#24262b", foot:"#1f2024", glow1:"#1d1f24", glow2:"#1a1b20"},
-  {id:"ocean", name:"Океан", bg:"#0b1520", panel:"#102030", panel2:"#14283a", line:"#1e3549", text:"#e3f1fb", muted:"#7f9bb3", accent:"#4cc9f0", accent2:"#4361ee", accentBg:"#12324a", th:"#12263a", ctrl:"#0c1a28", hover:"#163048", foot:"#12283c", glow1:"#0f3a52", glow2:"#13265e"},
-  {id:"emerald", name:"Изумруд", bg:"#0c1411", panel:"#121e19", panel2:"#17261f", line:"#213428", text:"#e4f3ea", muted:"#82a091", accent:"#4ade80", accent2:"#2dd4bf", accentBg:"#143326", th:"#15241d", ctrl:"#0d1813", hover:"#1a2e24", foot:"#15251e", glow1:"#0f3a26", glow2:"#0e3333"},
-  {id:"amethyst", name:"Аметист", bg:"#120e1a", panel:"#1a1424", panel2:"#21192e", line:"#2e2440", text:"#efe8fb", muted:"#9a8db3", accent:"#c792ea", accent2:"#f472b6", accentBg:"#2c1d42", th:"#1e172a", ctrl:"#140f1d", hover:"#261d35", foot:"#201830", glow1:"#3a1d5c", glow2:"#4a1d3c"},
-  {id:"sunset", name:"Закат", bg:"#160f0f", panel:"#201515", panel2:"#2a1a1a", line:"#3a2525", text:"#fbeee8", muted:"#b39389", accent:"#ff9e64", accent2:"#ff4d6d", accentBg:"#3a2016", th:"#261818", ctrl:"#170f0f", hover:"#2e1d1d", foot:"#251717", glow1:"#4a1d14", glow2:"#4a1428"},
-  {id:"coffee", name:"Кофе", bg:"#14110e", panel:"#1d1915", panel2:"#25201b", line:"#352d25", text:"#f1e8dd", muted:"#a39282", accent:"#d4a373", accent2:"#e9c46a", accentBg:"#33281c", th:"#221d18", ctrl:"#15120f", hover:"#2a231d", foot:"#221c17", glow1:"#3a2a18", glow2:"#2a2418"},
-  {id:"cyber", name:"Кибер", bg:"#07080f", panel:"#0e1020", panel2:"#13162b", line:"#23284a", text:"#e6f7ff", muted:"#7c86b0", accent:"#00f5d4", accent2:"#f15bb5", accentBg:"#0f2e3a", th:"#10132a", ctrl:"#090b18", hover:"#161a36", foot:"#11142a", glow1:"#003a44", glow2:"#3d0a3a"},
-  {id:"contrast", name:"Контраст", bg:"#000000", panel:"#0d0d0d", panel2:"#141414", line:"#3a3a3a", text:"#ffffff", muted:"#b8b8b8", accent:"#ffd166", accent2:"#4cc9f0", accentBg:"#2a2410", th:"#121212", ctrl:"#050505", hover:"#1c1c1c", foot:"#151515", glow1:"#000000", glow2:"#000000"},
+// Все темы тёмные: фон — одна из нейтральных «основ», от темы зависят только цветовые акценты.
+const SITE_BASES = {
+  night:   {name:"Полночь",  bg:"#0f1117", panel:"#171a22", panel2:"#1d212b", line:"#272b36", text:"#e8eaf1", muted:"#8a90a2", th:"#1b1f29", ctrl:"#11141b", hover:"#1e2331", foot:"#1b1f2a"},
+  graphite:{name:"Графит",   bg:"#111214", panel:"#1a1b1e", panel2:"#212226", line:"#2c2d32", text:"#ececee", muted:"#8d8f97", th:"#1e1f23", ctrl:"#141518", hover:"#24262b", foot:"#1f2024"},
+  slate:   {name:"Сланец",   bg:"#0e1215", panel:"#161b1f", panel2:"#1c2227", line:"#273036", text:"#e6ecef", muted:"#87939b", th:"#1a2025", ctrl:"#101417", hover:"#1e252b", foot:"#192025"},
+  warm:    {name:"Тёплый",   bg:"#121110", panel:"#1b1a18", panel2:"#22201e", line:"#2e2b28", text:"#efebe6", muted:"#968f87", th:"#1f1d1b", ctrl:"#151413", hover:"#262321", foot:"#201e1c"},
+  oled:    {name:"Чёрный",   bg:"#000000", panel:"#0c0c0e", panel2:"#131316", line:"#26262c", text:"#f5f5f7", muted:"#a0a0aa", th:"#101013", ctrl:"#060607", hover:"#19191d", foot:"#121215"},
+};
+const SITE_ACCENTS = [
+  ["midnight", "Полночь", "#7aa2f7", "#bb9af7", "night"],
+  ["graphite", "Графит", "#a9b4c8", "#e2e5ea", "graphite"],
+  ["ocean", "Океан", "#4cc9f0", "#4361ee", "night"],
+  ["emerald", "Изумруд", "#4ade80", "#2dd4bf", "slate"],
+  ["amethyst", "Аметист", "#c792ea", "#f472b6", "night"],
+  ["sunset", "Закат", "#ff9e64", "#ff4d6d", "warm"],
+  ["coffee", "Кофе", "#d4a373", "#e9c46a", "warm"],
+  ["cyber", "Кибер", "#00f5d4", "#f15bb5", "oled"],
+  ["contrast", "Контраст", "#ffd166", "#4cc9f0", "oled"],
+  ["ruby", "Рубин", "#f7768e", "#ff9e64", "graphite"],
+  ["sakura", "Сакура", "#ff8fb7", "#c3a6ff", "night"],
+  ["lime", "Лайм", "#a3e635", "#facc15", "graphite"],
+  ["mint", "Мята", "#5eead4", "#7dd3fc", "slate"],
+  ["amber", "Янтарь", "#fbbf24", "#fb923c", "warm"],
+  ["lavender", "Лаванда", "#a5b4fc", "#f0abfc", "night"],
+  ["indigo", "Индиго", "#818cf8", "#38bdf8", "night"],
+  ["coral", "Коралл", "#ff7f6e", "#ffc078", "graphite"],
+  ["aurora", "Северное сияние", "#34d399", "#a78bfa", "oled"],
+  ["gold", "Золото", "#e8c26a", "#c9925a", "oled"],
+  ["glacier", "Ледник", "#9fd8ff", "#c7d2fe", "slate"],
+  ["crimson", "Кармин", "#ef4444", "#f97316", "oled"],
+  ["sea", "Морская волна", "#2dd4bf", "#22d3ee", "night"],
 ];
+const SITE_BASE_KEY = "chatstats.siteBase.v1";
+let siteBaseId = "auto";
+try { const b = localStorage.getItem(SITE_BASE_KEY); if (b === "auto" || SITE_BASES[b]) siteBaseId = b; } catch (e) {}
+function siteTheme(id, baseOverride = siteBaseId){
+  const a = SITE_ACCENTS.find(x => x[0] === id) || SITE_ACCENTS[0];
+  const baseId = baseOverride !== "auto" && SITE_BASES[baseOverride] ? baseOverride : a[4], b = SITE_BASES[baseId];
+  return {...b, id:a[0], name:a[1], accent:a[2], accent2:a[3], baseId,
+    accentBg:pbMix(b.panel, a[2], .17), glow1:pbMix(b.bg, a[2], .13), glow2:pbMix(b.bg, a[3], .10)};
+}
+const SITE_THEMES = SITE_ACCENTS.map(a => siteTheme(a[0], "auto"));
 let siteThemeId = "midnight";
 try { const t = localStorage.getItem(SITE_THEME_KEY); if (SITE_THEMES.some(x => x.id === t)) siteThemeId = t; } catch (e) {}
 function applySiteTheme(id){
-  const t = SITE_THEMES.find(x => x.id === id) || SITE_THEMES[0], r = document.documentElement.style;
+  const t = siteTheme(id), r = document.documentElement.style;
   siteThemeId = t.id;
   const vars = {"--bg":t.bg, "--panel":t.panel, "--panel-2":t.panel2, "--line":t.line, "--text":t.text, "--muted":t.muted, "--accent":t.accent, "--accent-2":t.accent2,
     "--accent-bg":t.accentBg, "--th-bg":t.th, "--ctrl":t.ctrl, "--hover":t.hover, "--foot":t.foot, "--glow1":t.glow1, "--glow2":t.glow2,
@@ -7822,7 +8037,9 @@ function applySiteTheme(id){
 }
 function renderThemeGrid(){
   const box = $("theme-grid"); if (!box) return;
-  box.innerHTML = SITE_THEMES.map(t => `<button type="button" class="theme-card${t.id === siteThemeId ? " active" : ""}" data-theme-id="${t.id}" style="--t-bg:${t.bg};--t-panel:${t.panel};--t-line:${t.line};--t-text:${t.text};--t-muted:${t.muted};--t-accent:${t.accent};--t-accent2:${t.accent2}">
+  const bases = $("theme-bases");
+  if (bases) bases.innerHTML = `<span class="qr-label">Фон:</span>` + [["auto", "Как в теме"], ...Object.entries(SITE_BASES).map(([k, b]) => [k, b.name])].map(([k, n]) => `<button type="button" class="quick-chip${k === siteBaseId ? " active" : ""}" data-site-base="${k}"${k !== "auto" ? ` style="--chip-bg:${SITE_BASES[k].bg}"` : ""}>${k !== "auto" ? `<i class="base-dot" style="background:${SITE_BASES[k].bg};border-color:${SITE_BASES[k].line}"></i>` : ""}${escH(n)}</button>`).join("");
+  box.innerHTML = SITE_ACCENTS.map(a => siteTheme(a[0])).map(t => `<button type="button" class="theme-card${t.id === siteThemeId ? " active" : ""}" data-theme-id="${t.id}" style="--t-bg:${t.bg};--t-panel:${t.panel};--t-line:${t.line};--t-text:${t.text};--t-muted:${t.muted};--t-accent:${t.accent};--t-accent2:${t.accent2}">
     <span class="theme-preview"><span class="theme-prev-head"><i></i><b></b></span><span class="theme-prev-row"><em></em><em></em><em></em></span><span class="theme-prev-row"><em></em><em class="hl"></em><em></em></span></span>
     <span class="theme-name">${escH(t.name)}</span></button>`).join("");
 }
@@ -7833,6 +8050,13 @@ $("theme-grid").addEventListener("click", e => {
   renderThemeGrid();
   if ($("tab-selfie").classList.contains("active")) renderSelfie();
 });
+$("theme-bases")?.addEventListener("click", e => {
+  const b = e.target.closest("[data-site-base]"); if (!b) return;
+  siteBaseId = b.dataset.siteBase;
+  try { localStorage.setItem(SITE_BASE_KEY, siteBaseId); } catch (err) {}
+  applySiteTheme(siteThemeId); renderThemeGrid();
+  if ($("tab-selfie").classList.contains("active")) renderSelfie();
+});
 applySiteTheme(siteThemeId);
 renderThemeGrid();
 
@@ -7841,6 +8065,12 @@ const DM_PALETTES = [["Пары «лучший день / заливка»", [
   ["Классика", ["#ff9e64","#7aa2f7"]], ["Лёд", ["#7dcfff","#5a8fc2"]], ["Изумруд", ["#9ece6a","#2f8f4e"]], ["Золото", ["#ffd166","#c2861b"]],
   ["Огонь", ["#ff4d6d","#d9531e"]], ["Аметист", ["#c792ea","#7c4dcc"]], ["Неон", ["#00f5d4","#f15bb5"]], ["Закат", ["#ffd56b","#c06c84"]],
   ["Океан", ["#4cc9f0","#4361ee"]], ["Сакура", ["#ffb3c6","#d07aa0"]], ["Монохром", ["#ffffff","#8c93a3"]], ["Для дальтоников", ["#e69f00","#56b4e9"]],
+]], ["Ещё пары", [
+  ["Мята", ["#5eead4","#14b8a6"]], ["Лайм", ["#d9f99d","#65a30d"]], ["Рубин", ["#fb7185","#9f1239"]], ["Янтарь", ["#fde68a","#d97706"]],
+  ["Индиго", ["#c7d2fe","#4f46e5"]], ["Лаванда", ["#f0abfc","#8b5cf6"]], ["Коралл", ["#ffb4a2","#e5603d"]], ["Ледник", ["#e0f2fe","#38bdf8"]],
+  ["Северное сияние", ["#a7f3d0","#7c3aed"]], ["Кофе", ["#f2c48d","#8a5a3b"]], ["Кибер", ["#f15bb5","#00bbf9"]], ["Золото и ночь", ["#ffd166","#3b4a8c"]],
+]], ["Контрастные", [
+  ["Жёлтый на синем", ["#ffe600","#1d4ed8"]], ["Белый на красном", ["#ffffff","#dc2626"]], ["Оранжевый на бирюзе", ["#fb923c","#0d9488"]], ["Розовый на зелёном", ["#ff4fa3","#16a34a"]],
 ]]];
 BUILTIN_PAL.dm = palMap(DM_PALETTES);
 if (!Array.isArray(CUSTOM_PAL.dm)) {
@@ -8763,8 +8993,8 @@ window.addEventListener("hashchange", () => { if (location.hash.slice(1).split("
 renderCacheInfo();
 
 
-/* ===================== Сгруппированные вкладки: «Топы» и «Другое» ===================== */
-const TAB_GROUPS = {other:["records", "months", "days", "forecast", "marathons", "time", "yearreview", "achievements", "chronicle", "birthdays", "selfie", "usermap", "vk"]};
+/* ===================== Сгруппированные вкладки: «Профиль» (+ Достижения) и «Другое» ===================== */
+const TAB_GROUPS = {profile:["profile", "achievements"], other:["records", "months", "days", "forecast", "marathons", "time", "yearreview", "chronicle", "birthdays", "selfie", "usermap", "vk"]};
 const GROUP_KEY = "chatstats.tabGroups.v1";
 (function(){
   const nav = document.querySelector("nav");
@@ -10765,7 +10995,8 @@ function multiplesChart(){
     const entries = Object.entries(NAMES).sort((a, b) => a[1].localeCompare(b[1], "ru"));
     base().users.forEach((u, k) => { if (!NAMES[k] && u.msgs > 0) entries.push([k, `ID ${k}`]); });
     s2.innerHTML = entries.map(([k, n]) => `<option value="${escH(k)}">${escH(n)}</option>`).join("");
-    let want = cur;
+    // Достижения — часть профиля: по умолчанию тот же участник, что открыт в профиле.
+    let want = (typeof person !== "undefined" && person.value && [...s2.options].some(o => o.value === person.value)) ? person.value : cur;
     try { if (!want) want = localStorage.getItem("chatstats.achPerson.v1") || ""; } catch (e) {}
     if (!want || ![...s2.options].some(o => o.value === want)) want = (typeof person !== "undefined" && person.value) || "";
     if (!want || ![...s2.options].some(o => o.value === want)) {
@@ -10794,7 +11025,13 @@ function multiplesChart(){
     const b = e.target.closest && e.target.closest("nav button[data-tab]");
     if (b && b.dataset.tab === "achievements") setTimeout(() => window.loadAchievements(), 0);
   });
-  sel().addEventListener("change", () => { try { localStorage.setItem("chatstats.achPerson.v1", sel().value); } catch (e) {} render(); });
+  sel().addEventListener("change", () => {
+    const v = sel().value;
+    try { localStorage.setItem("chatstats.achPerson.v1", v); } catch (e) {}
+    // Возвращаясь в «Профиль», увидим того же участника.
+    if (typeof person !== "undefined" && v) { if (![...person.options].some(o => o.value === v)) { const o = document.createElement("option"); o.value = v; o.textContent = NAMES[v] || `ID ${v}`; person.appendChild(o); } person.value = v; }
+    render();
+  });
 
   // ---------- Экспорт картинкой ----------
   function wrapLines(t, n){ return cmpWrap(t, n); }
@@ -12131,6 +12368,7 @@ function multiplesChart(){
   const CATALOG = [
     {cat:"Участники", items:[
       {tab:"profile", ic:"👤", t:"Профиль", d:"Личная карточка: цифры, серии, цели, прогноз и активность участника"},
+      {tab:"achievements", ic:"🏅", t:"Достижения", d:"Вкладка профиля: уровни, очки и звания участника по десяти достижениям"},
       {tab:"compare", ic:"⚖️", t:"Сравнение", d:"Дуэль двух участников, чатов, месяцев или лет, в том числе на радаре"},
       {tab:"stats", ic:"📊", t:"Статистика", d:"Топ участников и чатов за выбранный день, неделю, месяц или год"},
       {tab:"daymatrix", ic:"🗓️", t:"Матрица", d:"Участники × дни: таблица активности с тепловой заливкой, сравнением периодов и выбором показателя"},
@@ -12142,7 +12380,6 @@ function multiplesChart(){
       {tab:"months", ic:"🥇", t:"Топы", d:"Лучшие месяцы и дни за всё время"},
     ]},
     {cat:"События и сообщество", items:[
-      {tab:"achievements", ic:"🏅", t:"Достижения", d:"Уровни, очки и звания участников по десяти достижениям"},
       {tab:"chronicle", ic:"📜", t:"Хроника чата", d:"Лента всех событий: достижения, рекорды, смены лидеров, серии и вступления с датами"},
       {tab:"birthdays", ic:"🎂", t:"Дни рождения", d:"Календарь, знаки зодиака, часовые пояса и активность в дни рождения"},
       {tab:"selfie", ic:"📸", t:"Селфи", d:"База селфи-пятниц, отметки, импорт и экспорт"},
