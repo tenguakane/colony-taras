@@ -690,7 +690,7 @@ h1::before{background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w
 svg.dimming [data-n]:not(.hl){opacity:.1!important;transition:opacity .15s}
 svg.dimming [data-n].hl{opacity:1!important}
 /* Анимация появления не должна перебивать затемнение фильтра «Выделить» */
-#c-out svg [data-n][style*="opacity"],#c-out svg [data-n][style*="opacity"] *{animation:none!important}
+#c-out svg [data-n][style*="opacity"],#c-out svg [data-n][style*="opacity"] *,#c-out svg.focus-static *{animation:none!important}
 svg [data-n].hl{transition:opacity .15s}
 
 .nav-hidden{display:none!important}
@@ -4031,7 +4031,7 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
     if (s.fc) {
       // Прогноз: полоса вероятного диапазона, пунктир и точка на конце месяца.
       const f = s.fc, X0 = sx(f.x0), Y0 = sy(f.y0), X1 = sx(f.x1);
-      o += `<path d="M${X0.toFixed(1)},${Y0.toFixed(1)} L${X1.toFixed(1)},${sy(f.hi).toFixed(1)} L${X1.toFixed(1)},${sy(f.lo).toFixed(1)} Z" fill="${pa.z}" fill-opacity="${(.12 * lineOpacity).toFixed(3)}" pointer-events="none"/>`;
+      o += `<path data-n="${escH(s.name)}" d="M${X0.toFixed(1)},${Y0.toFixed(1)} L${X1.toFixed(1)},${sy(f.hi).toFixed(1)} L${X1.toFixed(1)},${sy(f.lo).toFixed(1)} Z" fill="${pa.z}" fill-opacity="${(.12 * lineOpacity).toFixed(3)}" pointer-events="none"/>`;
       o += `<line x1="${X0.toFixed(1)}" y1="${Y0.toFixed(1)}" x2="${X1.toFixed(1)}" y2="${sy(f.y1).toFixed(1)}" stroke="${pa.z}" stroke-opacity="${(.9 * lineOpacity).toFixed(3)}" stroke-width="${Math.max(1.5, lineWidth * .6)}" stroke-dasharray="6 5" stroke-linecap="round" data-n="${escH(s.name)}"/>`;
       o += `<circle cx="${X1.toFixed(1)}" cy="${sy(f.y1).toFixed(1)}" r="${Math.max(3.5, pointRadius * .7)}" fill="none" stroke="${pa.z}" stroke-width="2" stroke-opacity="${lineOpacity}" data-n="${escH(s.name)}"/>`;
     }
@@ -4350,15 +4350,16 @@ function yearsChart(){
         if (v) daily.set(d, (daily.get(d) || 0) + v);
       });
       const forecast = fcCompute(daily, fcBounds("month"));
-      const endValue = forecast.forecast;
-      yMax = Math.max(yMax, endValue);
-      series.splice(series.indexOf(cur), 0, {
-        name: "Прогноз", st: {c: [cur.st.c[cur.st.c.length - 1]]}, op: 0.7,
-        dash: "10 8", pts: [[n, lastV], [currentMonthDays, endValue]]
-      });
+      // Прогноз рисуется как на «Динамике»: пунктир, полоса разброса и итог у конца линии текущего года.
+      const shift = lastV - forecast.current, endValue = forecast.forecast + shift;
+      cur.fc = {x0:n, y0:lastV, x1:currentMonthDays, y1:endValue, lo:Math.max(lastV, forecast.lo + shift), hi:forecast.hi + shift, month:endValue, place:1, nowPlace:1,
+        note:"темп — как на вкладке «Прогноз»"};
+      // С чем сравнить: итог того же месяца в прошлые годы.
+      cur.fc.prev = series.filter(s2 => s2 !== cur && s2.pts.length).map(s2 => ({name:s2.name, v:s2.pts[s2.pts.length - 1][1]}));
+      yMax = Math.max(yMax, cur.fc.hi);
     }
   }
-  return lineChart({title: MONTHS[m - 1], st: sub() + ", накопительно по годам", series, xMin: 1, xMax, ticks: makeTicks(Date.UTC(cy, m - 1, 1), xMax, 600, true), yMax, xLabel: i => `${pad(i)}.${pad(m)}`});
+  return lineChart({title: MONTHS[m - 1], st: sub() + ", накопительно по годам" + (cur && cur.fc ? `, прогноз до ${currentMonthDays}.${pad(m)}` : ""), series, xMin: 1, xMax, ticks: makeTicks(Date.UTC(cy, m - 1, 1), xMax, 600, true), yMax, xLabel: i => `${pad(i)}.${pad(m)}`});
 }
 
 function applyChartTextStyles(){
@@ -5227,7 +5228,14 @@ function highlightDonut(seg){
           const mv = atEnd && Math.round(q.f.month) !== Math.round(q.v) ? ` · за месяц ≈ ${fmt(Math.round(q.f.month))}` : "";
           const mv2 = atEnd && q.f.place !== q.f.nowPlace ? ` <span class="${q.f.place < q.f.nowPlace ? "up" : "down"}">${q.f.place < q.f.nowPlace ? "▲" : "▼"}${Math.abs(q.f.nowPlace - q.f.place)}</span>` : "";
           return tipRow(`<i style="background:${q.s.c}"></i>${k + 1}. ${escH(q.s.name)}${mv2}`, `≈ ${fmt(Math.round(q.v))}${mv}`);
-        }).join("") + tipRow("Темп", "60% — последние 14 дней, 40% — весь период") + (M.evNote ? M.evNote(x) : ""), e);
+        }).join("") + tipRow("Темп", fi[0].f.note || "60% — последние 14 дней, 40% — весь период") + (M.evNote ? M.evNote(x) : ""), e);
+        return;
+      }
+      if (fcs.length) {
+        // Есть и факты (например, прошлые годы), и прогноз — показываем вместе, прогноз помечен «≈».
+        fcs.forEach(s => { const f = s.fc, t2 = Math.min(1, (x - f.x0) / (f.x1 - f.x0)); items.push({s, v:f.y0 + (f.y1 - f.y0) * t2, fc:true}); });
+        items.sort((a, b) => b.v - a.v);
+        showTip(`<b>${escH(M.xLabel(x))}</b>` + items.map((q, k) => tipRow(`<i style="background:${q.s.c}"></i>${k + 1}. ${escH(q.s.name)}${q.fc ? " · прогноз" : ""}`, `${q.fc ? "≈ " : ""}${fmt(Math.round(q.v))}${q.fc && x >= q.s.fc.x1 ? ` <small>(${fmt(Math.round(q.s.fc.lo))}–${fmt(Math.round(q.s.fc.hi))})</small>` : ""}`)).join("") + (M.evNote ? M.evNote(x) : ""), e);
         return;
       }
       const sum = items.reduce((a, q) => a + q.v, 0);
@@ -10351,6 +10359,8 @@ function syncChartFocus(){
 $("c-focus")?.addEventListener("change", e => {
   CHART_FOCUS = e.target.value;
   try { localStorage.setItem("chatstats.chartFocus.v1", CHART_FOCUS); } catch (err) {}
+  // Смена выделения не должна заново проигрывать анимацию появления линий.
+  $("c-out")?.querySelector("svg")?.classList.add("focus-static");
   applyChartFocus();
 });
 
@@ -12826,6 +12836,10 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.22-11", date:"2026-10-22", title:"Прогноз на «По годам» в новом стиле", items:[
+    {tag:"imp", area:"Графики", text:"На «По годам» прогноз текущего года нарисован как на «Динамике»: пунктир от сегодняшнего дня, полоса вероятного разброса и ожидаемый итог у конца линии (≈). В подсказке прогноз стоит в одном списке с прошлыми годами, на последний день — с диапазоном."},
+    {tag:"fix", area:"Графики", text:"Прогноз больше не отдельная линия «Прогноз»: при «Выделить: 2026» он остаётся виден вместе с линией года, при выделении другого года — затемняется."},
+  ]},
   {v:"2026.10.22-10", date:"2026-10-22", title:"Фильтр «Выделить»", items:[
     {tag:"new", area:"Графики", text:"Поле «Выделить» на «Графиках»: выбери участника, чат или год — его линия, столбец или сегмент остаётся ярким, остальные затемняются. Работает на «Динамике», «По годам», «Графике мест», «Столбцах», «Кольце», «Разбросе» и «Маленьких графиках», выделение сохраняется и в скачанной картинке."},
   ]},
