@@ -1096,6 +1096,25 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 @media(max-width:720px){.app-ver{padding:0 12px calc(88px + env(safe-area-inset-bottom,0px));}}
 
 /* ===================== Хаб ===================== */
+#hub-seg{margin:0 0 16px}
+.hub-log-new{display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--bg);font-size:10.5px;font-weight:700;line-height:16px;vertical-align:1px;text-transform:uppercase}
+.cl-sum{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+.cl-sum div{padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);min-width:120px}
+.cl-sum b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.cl-sum span{color:var(--muted);font-size:12.5px}
+.cl-filters{margin:0 0 14px}
+.cl-list{position:relative;padding-left:22px}
+.cl-list::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--line);border-radius:2px}
+.cl-ver{position:relative;margin:0 0 16px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.cl-ver::before{content:"";position:absolute;left:-21px;top:20px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:2px solid var(--accent)}
+.cl-ver.cur::before{background:var(--accent)}
+.cl-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 4px}
+.cl-head h3{margin:0;font-size:17px}.cl-head code{font-size:12.5px;color:var(--accent);background:var(--accent-bg);padding:1px 7px;border-radius:999px}
+.cl-head .d{color:var(--muted);font-size:13px}.cl-head .cur-badge{font-size:11.5px;color:#76F0B6;border:1px solid #76F0B666;border-radius:999px;padding:0 7px}
+.cl-sec{margin:10px 0 0}.cl-sec h4{margin:0 0 4px;font-size:13.5px;color:var(--muted);font-weight:600}
+.cl-sec ul{margin:0;padding-left:18px}.cl-sec li{margin:3px 0;line-height:1.45}
+.cl-tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:6px;margin-right:6px;vertical-align:1px;font-weight:600}
+.cl-tag.new{background:#76F0B622;color:#76F0B6}.cl-tag.imp{background:#7aa2f722;color:#7aa2f7}.cl-tag.fix{background:#ffd16622;color:#ffd166}.cl-tag.del{background:#f7768e22;color:#f7768e}
+.cl-ver mark{background:#ffd16655;color:inherit;border-radius:3px}
 .hub-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .hub-hero h2{margin:0;font-size:26px}.hub-hero .hint{margin:4px 0 0}
 .hub-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 6px}
@@ -1203,7 +1222,9 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
   </section>
 
   <section class="tab" id="tab-hub">
+    <div class="seg group-tabs" id="hub-seg"><button type="button" data-hub-view="main" class="active">Хаб</button><button type="button" data-hub-view="log">История обновлений<span class="hub-log-new" id="hub-log-new" hidden>new</span></button></div>
     <div id="hub-out"></div>
+    <div id="hub-log" hidden></div>
   </section>
 
   <section class="tab" id="tab-profile">
@@ -1691,7 +1712,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
     <div class="filters"><div class="field"><label for="api-base">Адрес</label><input type="text" id="api-base" placeholder="как у страницы" style="width:320px" inputmode="url" autocapitalize="off" spellcheck="false"></div><button class="mini" id="api-base-save" type="button">Сохранить</button><span class="hint" id="api-base-now"></span></div>
     <h2>О сайте</h2>
     <p class="hint">Версия страницы. Если сайт открыт с GitHub Pages, ниже показано, когда его последний раз обновляли в репозитории; при выходе новой версии появится кнопка обновления.</p>
-    <div class="p-card" id="about-box" style="max-width:640px"><div id="about-lines" class="hint">Загрузка…</div><div class="pbtn" style="margin-top:8px"><button class="mini" id="about-check" type="button">Проверить обновления</button></div></div>
+    <div class="p-card" id="about-box" style="max-width:640px"><div id="about-lines" class="hint">Загрузка…</div><div class="pbtn" style="margin-top:8px"><button class="mini" type="button" onclick="window.__changelog && __changelog.open()">📜 История обновлений</button><button class="mini" id="about-check" type="button">Проверить обновления</button></div></div>
     <h2>Поля API</h2>
     <p class="hint">Какие столбцы приходят с сервера. Помогает понять, что ещё можно показывать на сайте.</p>
     <p><button class="mini" id="api-fields-btn">Загрузить поля</button> <span class="hint" id="api-fields-status"></span></p>
@@ -12301,9 +12322,46 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== История обновлений (новые версии — сверху) ===================== */
+// tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
+window.CHANGELOG = [
+  {v:"2026.10.22-3", date:"2026-10-22", title:"Матрица 2.0 и история обновлений", items:[
+    {tag:"new", area:"Хаб", text:"Вкладка «История обновлений»: что и в какой версии появилось, с поиском и фильтром по типу изменений. Пока есть непрочитанные изменения, на вкладке горит метка «new»."},
+    {tag:"new", area:"Матрица", text:"Клик по числу открывает карточку с подробностями: место за день, доля дня, все показатели (сообщения, стикеры, голосовые, видео) и разбивка по чатам. Для недель и месяцев показываются ещё активные дни и лучший день."},
+    {tag:"new", area:"Матрица", text:"Сортировка по клику на любой заголовок: день или неделя, «Всего», «%», имя, «Δ места». Повторный клик меняет направление. «№» всегда показывает место по сумме."},
+    {tag:"new", area:"Матрица", text:"Режим «По неделям»: колонки — недели с понедельника, период до двух лет. В быстрый выбор добавлены «90 дней» и «Полгода»."},
+    {tag:"new", area:"Матрица", text:"Колонка «Δ места»: на сколько мест человек поднялся ▲ или опустился ▼ по сравнению с прошлым периодом той же длины (= — без изменений, «нов.» — не было раньше)."},
+    {tag:"new", area:"Матрица", text:"Фильтр «Малоактивные»: можно скрыть тех, кто был активен меньше 2, 3, 5 или 10 дней."},
+    {tag:"imp", area:"Матрица", text:"Шапка со столбиками и датами и колонки «№ / Имя» закреплены: таблица прокручивается внутри рамки и не теряет подписи."},
+    {tag:"new", area:"Статистика", text:"В таблице участников появился первый столбец «Место», как у чатов."},
+  ]},
+  {v:"2026.10.22-2", date:"2026-10-22", title:"Темы, палитры и Достижения в профиле", items:[
+    {tag:"imp", area:"Профиль", text:"«Достижения» переехали из «Другого» в «Профиль» отдельной вкладкой. Участник общий: в профиле и достижениях открыт один и тот же человек."},
+    {tag:"imp", area:"Настройки", text:"Все темы стали тёмными: тема меняет только цветовые акценты, а не весь фон. Например, «Изумруд» — тёмный сайт с зелёными деталями."},
+    {tag:"new", area:"Настройки", text:"Тем стало 22: Рубин, Сакура, Лайм, Мята, Янтарь, Лаванда, Индиго, Коралл, Северное сияние, Золото, Ледник, Кармин, Морская волна и другие."},
+    {tag:"new", area:"Настройки", text:"Выбор фона отдельно от темы: Полночь, Графит, Сланец, Тёплый, Чёрный или «Как в теме». Сочетается с любыми акцентами."},
+    {tag:"new", area:"Графики", text:"Новые палитры: «Научные» (Виридис, Инферно, Мако, Турбо…), Катпуччин, Дракула, Норд, Грувбокс, Тропики и палитры для дальтоников (Окабэ — Ито, Тол)."},
+    {tag:"new", area:"Матрица", text:"Пар цветов стало 28 вместо 12, появились группы «Ещё пары» и «Контрастные»."},
+  ]},
+  {v:"2026.10.22-1", date:"2026-10-22", title:"Четыре новых графика и события на оси", items:[
+    {tag:"new", area:"Графики", text:"«График мест»: кто на каком месте по дням, неделям или месяцам — за каждый отрезок или накопительно. Медальные цвета, клик по имени скрывает линию."},
+    {tag:"new", area:"Графики", text:"«Разброс по дням»: типичный день и разброс каждого — коробка, медиана, среднее, необычные дни точками. Можно учитывать дни без активности и включить логарифмическую шкалу."},
+    {tag:"new", area:"Графики", text:"«Концентрация активности»: кривая Лоренца и индекс Джини, доли лидера, топ-3, топ-5 и «половину сообщений дают k из n», плюс динамика по месяцам."},
+    {tag:"new", area:"Графики", text:"«Маленькие графики»: отдельный мини-график на каждого со средним и пиком, общая или своя шкала."},
+    {tag:"new", area:"Графики", text:"«События на оси»: марафоны полосами и события хроники флажками на «Динамике», «Календаре», «Графике мест» и «Маленьких графиках»."},
+    {tag:"imp", area:"Графики", text:"Режимы «На активный день» и «Доля, %» работают в «Динамике», «Графике мест» и «Маленьких графиках»."},
+    {tag:"imp", area:"Графики", text:"«Карта: участники / чаты» растягивается на всю ширину и получила выбор количества строк."},
+    {tag:"imp", area:"Везде", text:"Во всех списках «Топ-5 / 10 / 20» есть пункт «Все»; в «Топе месяцев» и «Топе дней» — кнопка «Копировать все»."},
+    {tag:"fix", area:"Сравнение", text:"Цвета участников на радарах совпадают с цветами на остальной странице."},
+    {tag:"fix", area:"Достижения", text:"Аватарки круглые — и на экране, и в скачанной картинке."},
+    {tag:"del", area:"Графики", text:"Убран старый график «Доли во времени» и неиспользуемый код."},
+  ]},
+];
+</script>
+<script>
 /* Версия сайта и проверка обновлений на GitHub */
 (function(){
-  const APP_VERSION = "2026.10.21-12", APP_BUILT = "2026-10-21";
+  const APP_VERSION = (window.CHANGELOG && CHANGELOG[0] && CHANGELOG[0].v) || "2026.10.22-3", APP_BUILT = (window.CHANGELOG && CHANGELOG[0] && CHANGELOG[0].date) || "2026-10-22";
   const LOADED = Date.now(), KEY = "chatstats.ghcommit.v1";
   const $ = id => document.getElementById(id);
   const isGh = /\.github\.io$/i.test(location.hostname);
@@ -12530,6 +12588,54 @@ function multiplesChart(){
   });
   if (document.querySelector("#tab-hub.active")) window.loadHub();
   document.addEventListener("input", e => { if (e.target && e.target.id === "hub-find") { FIND = e.target.value; const c = $h("hub-cats"); if (c) c.innerHTML = catalog(LASTMETA); } });
+})();
+/* --- Хаб: «История обновлений» --- */
+(function(){
+  const VIEW_KEY = "chatstats.hubView.v1", SEEN_KEY = "chatstats.changelogSeen.v1";
+  const TAGS = {new:"Новое", imp:"Улучшено", fix:"Исправлено", del:"Убрано"};
+  const LOG = window.CHANGELOG || [];
+  const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[c]));
+  const MG = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+  const dLong = d => `${+d.slice(8)} ${MG[+d.slice(5, 7) - 1]} ${d.slice(0, 4)}`;
+  let view = "main", tagF = "", q = "";
+  try { if (localStorage.getItem(VIEW_KEY) === "log") view = "log"; } catch (e) {}
+  const seen = () => { try { return localStorage.getItem(SEEN_KEY) || ""; } catch (e) { return ""; } };
+  function syncBadge(){ const b = document.getElementById("hub-log-new"); if (b) b.hidden = !LOG.length || seen() === LOG[0].v; }
+  function hl(t){ const s2 = esc(t); if (!q) return s2; const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"); return s2.replace(re, m => `<mark>${m}</mark>`); }
+  function render(){
+    const box = document.getElementById("hub-log"); if (!box) return;
+    const all = LOG.flatMap(v => v.items), cnt = k => all.filter(i => i.tag === k).length;
+    const areas = new Set(all.map(i => i.area));
+    let h = `<div class="hub-hero"><div><h2>История обновлений</h2><p class="hint">Что и в какой версии появилось на сайте. Сейчас открыта версия <b>${esc(window.__appVersion || (LOG[0] && LOG[0].v) || "")}</b>.</p></div></div>`;
+    h += `<div class="cl-sum"><div><b>${LOG.length}</b><span>${wordForm(LOG.length, ["версия", "версии", "версий"])}</span></div><div><b>${cnt("new")}</b><span>новых возможностей</span></div><div><b>${cnt("imp")}</b><span>улучшений</span></div><div><b>${cnt("fix")}</b><span>исправлений</span></div><div><b>${areas.size}</b><span>${wordForm(areas.size, ["раздел затронут", "раздела затронуто", "разделов затронуто"])}</span></div></div>`;
+    h += `<div class="quick-ranges cl-filters"><span class="qr-label">Показать:</span>${[["", "Всё"], ...Object.entries(TAGS)].map(([k, n]) => `<button type="button" class="quick-chip${tagF === k ? " active" : ""}" data-cl-tag="${k}">${n}</button>`).join("")}<input type="search" id="cl-find" placeholder="Поиск по изменениям" value="${esc(q)}" autocomplete="off" style="margin-left:8px;min-width:200px"></div>`;
+    const ql = q.toLowerCase();
+    const vers = LOG.map((v, idx) => ({v, idx, items:v.items.filter(i => (!tagF || i.tag === tagF) && (!ql || (i.text + " " + i.area + " " + v.title + " " + v.v).toLowerCase().includes(ql)))})).filter(x => x.items.length);
+    h += vers.length ? `<div class="cl-list">` + vers.map(({v, idx, items}) => {
+      const byArea = new Map(); items.forEach(i => { if (!byArea.has(i.area)) byArea.set(i.area, []); byArea.get(i.area).push(i); });
+      return `<div class="cl-ver${idx === 0 ? " cur" : ""}"><div class="cl-head"><h3>${hl(v.title)}</h3><code>${esc(v.v)}</code><span class="d">${dLong(v.date)}</span>${idx === 0 ? `<span class="cur-badge">текущая</span>` : ""}</div>`
+        + [...byArea.entries()].map(([a, list]) => `<div class="cl-sec"><h4>${hl(a)}</h4><ul>${list.map(i => `<li><span class="cl-tag ${i.tag}">${TAGS[i.tag] || i.tag}</span>${hl(i.text)}</li>`).join("")}</ul></div>`).join("") + `</div>`;
+    }).join("") + `</div>` : `<div class="s-empty">Ничего не найдено.</div>`;
+    box.innerHTML = h;
+  }
+  function apply(){
+    document.querySelectorAll("#hub-seg [data-hub-view]").forEach(b => b.classList.toggle("active", b.dataset.hubView === view));
+    const out = document.getElementById("hub-out"), log = document.getElementById("hub-log");
+    if (out) out.hidden = view === "log"; if (log) log.hidden = view !== "log";
+    if (view === "log") { render(); if (LOG.length) { try { localStorage.setItem(SEEN_KEY, LOG[0].v); } catch (e) {} } }
+    syncBadge();
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("#hub-seg [data-hub-view]");
+    if (b) { view = b.dataset.hubView; try { localStorage.setItem(VIEW_KEY, view); } catch (err) {} apply(); return; }
+    const t = e.target.closest && e.target.closest("[data-cl-tag]");
+    if (t) { tagF = t.dataset.clTag; render(); }
+  });
+  document.addEventListener("input", e => {
+    if (e.target && e.target.id === "cl-find") { q = e.target.value.trim(); const pos = e.target.selectionStart; render(); const f = document.getElementById("cl-find"); if (f) { f.focus(); try { f.setSelectionRange(pos, pos); } catch (err) {} } }
+  });
+  window.__changelog = {open(){ view = "log"; apply(); const b = document.querySelector('nav button[data-tab="hub"]'); if (b) b.click(); }};
+  apply();
 })();
 </script>
 <script>
