@@ -132,10 +132,10 @@ input[type=color]{min-width:0;width:44px;height:32px;padding:2px;cursor:pointer}
 /* Scale down the rendered chart area by about 30% while preserving its proportions.
    PNG export uses the original SVG viewBox, so export resolution is unchanged. */
 #c-out > svg{width:70%;max-width:805px;height:auto;margin-left:auto;margin-right:auto}
-/* Activity matrix: show at about 30% of the available width on desktop (70% smaller), centered.
-   Keep a more readable width on phones; PNG export still uses the SVG's original viewBox. */
-#c-out > svg.heatrows-svg{width:30% !important;max-width:none !important;height:auto !important;margin-left:auto;margin-right:auto}
-@media(max-width:720px){#c-out > svg{width:70%;max-width:70%}#c-out > svg.heatrows-svg{width:70% !important;max-width:none !important;height:auto !important}}
+/* Activity matrix: natural size (the SVG is already fitted to the chart width), never wider than the panel. */
+#c-out > svg.heatrows-svg{width:auto !important;max-width:100% !important;height:auto !important;margin-left:auto;margin-right:auto}
+#c-out > svg.wide-svg{width:96%;max-width:1180px}
+@media(max-width:720px){#c-out > svg{width:70%;max-width:70%}#c-out > svg.wide-svg{width:100%;max-width:100%}#c-out > svg.heatrows-svg{width:100% !important;max-width:100% !important;height:auto !important}}
 .pick{position:relative}
 .pick summary{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px;cursor:pointer;min-width:150px;list-style:none}
 .pick summary::-webkit-details-marker{display:none}
@@ -452,7 +452,6 @@ tr.is-today td{background-color:var(--accent-bg)}
 .mr-phase{font-size:13.5px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
 .mr-phase.live{color:#9ece6a;border-color:#9ece6a77}
 .mr-phase.soon{color:#e0af68;border-color:#e0af6877}
-.mr-phase
 /* ===================== Итоги года ===================== */
 #tab-yearreview{--yr:var(--accent)}
 .yr-poster{max-width:900px;margin:0 auto 8px;border-radius:26px;box-shadow:0 30px 60px -30px #000,0 0 0 1px #ffffff12}
@@ -873,7 +872,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 /* ===================== Достижения ===================== */
 .ach-hero{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 18px;margin:0 0 14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(160deg,var(--panel-2),var(--panel));box-shadow:var(--shadow);position:relative;overflow:hidden}
 .ach-hero::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,var(--hc,var(--accent)),var(--accent-2));opacity:.85}
-.ach-avatar{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;font-size:28px;font-weight:700;color:#10131a;background:var(--hc,var(--accent))}
+.ach-avatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:28px;font-weight:700;color:#10131a;background:var(--hc,var(--accent))}
 .ach-hname{font-size:24px;font-weight:700;line-height:1.15}
 .ach-hrank{display:inline-flex;align-items:center;gap:6px;margin-top:4px;padding:2px 10px;border-radius:999px;border:1px solid #ffffff22;background:#ffffff0d;font-size:13px;color:var(--text)}
 .ach-score-bar{height:8px;border-radius:9px;background:#ffffff12;overflow:hidden;margin-top:10px;max-width:460px}
@@ -1275,6 +1274,10 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
           <option value="race">Гонка</option>
           <option value="pairs">Кто активен вместе</option>
           <option value="season">Сезонность</option>
+          <option value="bump">График мест</option>
+          <option value="spread">Разброс по дням</option>
+          <option value="gini">Концентрация активности</option>
+          <option value="multiples">Маленькие графики</option>
         </select>
       </div>
       <div class="field"><label for="metric">Показатель</label>
@@ -1283,11 +1286,23 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
           <option value="voice">Голосовые</option><option value="video">Видеосообщения</option>
         </select>
       </div>
-      <div class="field" id="stack-mode-field" hidden><label for="stack-mode">Шкала</label>
-        <select id="stack-mode"><option value="share">Доли (100%)</option><option value="abs">Абсолютные значения</option></select>
-      </div>
       <div class="field" id="heat-scale-field" hidden><label for="heat-scale">Шкала цвета</label>
         <select id="heat-scale"><option value="all">Общая</option><option value="row">По каждой строке</option></select>
+      </div>
+      <div class="field" id="bump-mode-field" hidden><label for="bump-mode" title="Место в каждом отрезке времени или место по сумме с начала периода">Места</label>
+        <select id="bump-mode"><option value="period">За каждый отрезок</option><option value="cum">Накопительно</option></select>
+      </div>
+      <div class="field" id="spread-zero-field" hidden><label for="spread-zero" title="Учитывать ли дни, когда участник ничего не написал">Дни</label>
+        <select id="spread-zero"><option value="active">Только активные</option><option value="all">Все, включая нулевые</option></select>
+      </div>
+      <div class="field" id="spread-scale-field" hidden><label for="spread-scale">Шкала</label>
+        <select id="spread-scale"><option value="lin">Обычная</option><option value="log">Логарифмическая</option></select>
+      </div>
+      <div class="field" id="mult-scale-field" hidden><label for="mult-scale" title="Общая шкала позволяет сравнивать высоту графиков между собой, своя — лучше видна форма каждого">Шкала графиков</label>
+        <select id="mult-scale"><option value="shared">Общая</option><option value="own">Своя у каждого</option></select>
+      </div>
+      <div class="field" id="chart-events-field" hidden><label for="chart-events" title="Отметки марафонов и событий хроники на оси времени">События на оси</label>
+        <select id="chart-events"><option value="none">Не показывать</option><option value="mar">Марафоны</option><option value="all">Марафоны и хроника</option></select>
       </div>
       <div class="field"><label>Участники на графике</label>
         <details class="pick" id="people"><summary id="psum">Участники: авто</summary>
@@ -1311,10 +1326,12 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
           <option value="5" selected>Топ-5 пользователей</option>
           <option value="10">Топ-10 пользователей</option>
           <option value="20">Топ-20 пользователей</option>
+          <option value="all">Все</option>
         </select>
       </div>
       <div class="field" id="heatrows-custom-top-field" hidden><label for="heatrows-custom-top">Участники на карте</label>
         <select id="heatrows-custom-top">
+          <option value="auto">Авто</option>
           <option value="5">Топ-5</option>
           <option value="10" selected>Топ-10</option>
           <option value="20">Топ-20</option>
@@ -1453,7 +1470,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
         <div class="seg" id="m-dir"><button data-d="-1" class="active">По убыванию</button><button data-d="1">По возрастанию</button></div>
       </div>
       <div class="field"><label for="m-chat">Чат</label><select id="m-chat"><option value="">Все чаты</option></select></div>
-      <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="copy-months-top10" type="button">Копировать топ-10</button><button class="mini copy-btn" id="copy-months-top20" type="button">Копировать топ-20</button><span class="hint" id="months-copy-status" role="status" aria-live="polite"></span></div>
+      <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="copy-months-top10" type="button">Копировать топ-10</button><button class="mini copy-btn" id="copy-months-top20" type="button">Копировать топ-20</button><button class="mini copy-btn" id="copy-months-all" type="button">Копировать все</button><span class="hint" id="months-copy-status" role="status" aria-live="polite"></span></div>
     </div>
     <div class="year-legend" id="m-years"></div>
     <p class="status" id="m-status"></p>
@@ -1474,7 +1491,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
       </div>
       <div class="field"><label for="d-chat">Чат</label><select id="d-chat"><option value="">Все чаты</option></select></div>
       <label class="checkline"><input type="checkbox" id="d-show-today">Отобразить сегодня</label>
-      <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="copy-days-top10" type="button">Копировать топ-10</button><button class="mini copy-btn" id="copy-days-top20" type="button">Копировать топ-20</button><span class="hint" id="days-copy-status" role="status" aria-live="polite"></span></div>
+      <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="copy-days-top10" type="button">Копировать топ-10</button><button class="mini copy-btn" id="copy-days-top20" type="button">Копировать топ-20</button><button class="mini copy-btn" id="copy-days-all" type="button">Копировать все</button><span class="hint" id="days-copy-status" role="status" aria-live="polite"></span></div>
     </div>
     <p class="hint">Место рассчитывается по количеству сообщений за день. Если включить «Отобразить сегодня», сегодняшняя дата будет первой в таблице, но её номер места останется реальным. Нажми на год, чтобы оставить в таблице только его.</p>
     <div class="year-legend" id="d-years"></div>
@@ -1720,9 +1737,6 @@ const g = (x, k) => {
   return x[resolved[k]];
 };
 
-function buildParams(from, to){
-  return { limit: CONFIG.LIMIT, stat_date_from: from, stat_date_to: to };
-}
 /* ======================================================= */
 
 const COLS = [
@@ -1771,8 +1785,7 @@ const DEFAULT_CUSTOM_HEAT_BANDS_CHATS = [
   {min:250, color:"#22c55e"},
   {min:500, color:"#a855f7"}
 ];
-const CHART_TYPES = ["bars", "donut", "trend", "stacked", "years", "heat", "spiral", "heatrows", "heatrows-custom", "race", "pairs", "season"];
-const CHART_TYPE_LABELS = {bars:"Столбцы", donut:"Кольцо", trend:"Динамика", stacked:"Доли во времени", years:"По годам", heat:"Календарь", spiral:"Спираль года", heatrows:"Карта: участники / чаты", "heatrows-custom":"Карта: Настраиваемая", race:"Гонка", pairs:"Кто активен вместе", season:"Сезонность"};
+const CHART_TYPE_LABELS = {bars:"Столбцы", donut:"Кольцо", trend:"Динамика", years:"По годам", heat:"Календарь", spiral:"Спираль года", heatrows:"Карта: участники / чаты", "heatrows-custom":"Карта: Настраиваемая", race:"Гонка", pairs:"Кто активен вместе", season:"Сезонность", bump:"График мест", spread:"Разброс по дням", gini:"Концентрация активности", multiples:"Маленькие графики"};
 const DEFAULT_TEXT_STYLE = {
   bars:    {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:18,labelsColor:"#e6e8ee",valuesSize:18,valuesColor:"#eceef3",axisSize:19,axisColor:"#eceef3",legendSize:18,legendColor:"#f2f3f7"},
   donut:   {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:18,labelsColor:"#f2f3f7",valuesSize:18,valuesColor:"#eceef3",axisSize:17,axisColor:"#7d8190",legendSize:18,legendColor:"#aab0c0"},
@@ -1781,7 +1794,10 @@ const DEFAULT_TEXT_STYLE = {
   season:  {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:18,labelsColor:"#f2f3f7",valuesSize:19,valuesColor:"#eceef3",axisSize:19,axisColor:"#eceef3",legendSize:18,legendColor:"#f2f3f7"},
   heat:    {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:14,labelsColor:"#e6e8ee",valuesSize:14,valuesColor:"#e6e8ee",axisSize:11,axisColor:"#aab0c0",legendSize:14,legendColor:"#7d8190"},
   heatrows:{titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:14,labelsColor:"#e6e8ee",valuesSize:12,valuesColor:"#aab0c0",axisSize:11,axisColor:"#aab0c0",legendSize:14,legendColor:"#7d8190"},
-  stacked: {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:18,labelsColor:"#f2f3f7",valuesSize:19,valuesColor:"#eceef3",axisSize:17,axisColor:"#eceef3",legendSize:18,legendColor:"#f2f3f7"},
+  bump:    {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:16,labelsColor:"#f2f3f7",valuesSize:14,valuesColor:"#eceef3",axisSize:16,axisColor:"#aab0c0",legendSize:15,legendColor:"#f2f3f7"},
+  spread:  {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:16,labelsColor:"#e6e8ee",valuesSize:14,valuesColor:"#eceef3",axisSize:15,axisColor:"#aab0c0",legendSize:14,legendColor:"#9aa0b0"},
+  gini:    {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:16,labelsColor:"#e6e8ee",valuesSize:30,valuesColor:"#eceef3",axisSize:15,axisColor:"#aab0c0",legendSize:15,legendColor:"#9aa0b0"},
+  multiples:{titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:15,labelsColor:"#f2f3f7",valuesSize:13,valuesColor:"#aab0c0",axisSize:12,axisColor:"#7d8190",legendSize:14,legendColor:"#9aa0b0"},
   race:    {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:18,labelsColor:"#e6e8ee",valuesSize:18,valuesColor:"#eceef3",axisSize:19,axisColor:"#eceef3",legendSize:18,legendColor:"#f2f3f7"},
   pairs:   {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:16,labelsColor:"#e6e8ee",valuesSize:13,valuesColor:"#eceef3",axisSize:15,axisColor:"#aab0c0",legendSize:14,legendColor:"#9aa0b0"},
   spiral:  {titleSize:36,titleColor:"#aaaaaa",subtitleSize:17,subtitleColor:"#7d8190",labelsSize:14,labelsColor:"#e6e8ee",valuesSize:34,valuesColor:"#eceef3",axisSize:15,axisColor:"#aab0c0",legendSize:14,legendColor:"#7d8190"}
@@ -1831,7 +1847,7 @@ function chartPrefs(type = currentChartType()) {
     heatCellScale: Number(saved.heatCellScale ?? 100),
     heatCellShape: saved.heatCellShape === "circle" ? "circle" : "square",
     heatCircleScale: Number(saved.heatCircleScale ?? 100),
-    heatRowsTop: String(saved.heatRowsTop ?? "10") === "all" ? "all" : (["5", "10", "20"].includes(String(saved.heatRowsTop)) ? Number(saved.heatRowsTop) : 10),
+    heatRowsTop: ["all", "auto"].includes(String(saved.heatRowsTop)) ? String(saved.heatRowsTop) : (["5", "10", "20"].includes(String(saved.heatRowsTop)) ? Number(saved.heatRowsTop) : (type === "heatrows" ? "auto" : 10)),
     showSubtitle: saved.showSubtitle !== false,
     customBands,
     textStyle: {...(DEFAULT_TEXT_STYLE[type] || DEFAULT_TEXT_STYLE.bars), ...(saved.textStyle || {})}
@@ -2998,15 +3014,6 @@ document.addEventListener("click", e => {
   }
 });
 
-function periodLabelForMode(){
-  const r = range();
-  if (mode === "all") return "все данные";
-  if (!r) return "период не выбран";
-  if (mode === "day") return r[0];
-  if (mode === "week") return `${r[0]} — ${r[1]}`;
-  if (mode === "month") return `${MONTHS[Number(r[0].slice(5,7))-1]} ${r[0].slice(0,4)}`;
-  return r[0].slice(0,4);
-}
 
 /* ---------- Время участия и ближайшие юбилеи ---------- */
 // Даты вступления заданы вручную. ID преобразуются в имена через встроенный словарь NAMES.
@@ -3250,10 +3257,8 @@ document.querySelectorAll("#record-entity button").forEach(b => b.onclick = () =
 });
 
 /* ---------- Графики ---------- */
-const PAL = ["#ff4d6d","#7aa2f7","#e0af68","#9ece6a","#bb9af7","#2ac3de","#f7768e","#73daca"];
 const YPAL = {2019:"#6b6b6b",2020:"#3f7f7f",2021:"#7a4a7a",2022:"#44468a",2023:"#3b6577",2024:"#756a4c",2025:"#3d6247"};
-const yColor = y => YPAL[y] || `hsl(${(y * 47) % 360} 30% 42%)`;
-const CUR = "#ff4d6d", FC = "#ff7b94";
+const CUR = "#ff4d6d";
 let cType = "bars";
 let chartEntity = "users";
 const TREND_STYLE_KEY = "chatstats.trendAppearance.v4";
@@ -3318,7 +3323,7 @@ const note = t => `<div class="note">${escH(t)}</div>`;
 const CHART_QUICK_KEY = "chatstats.chartQuick.v1";
 let chartQuick = "";
 try { const q = localStorage.getItem(CHART_QUICK_KEY); if (["7", "30", "90", "365", "all"].includes(q)) chartQuick = q; } catch (e) {}
-let stackMeta = null, dayTipCtx = null, tipCtx = null, tipCache = null, tipHistoryRequested = false;
+let dayTipCtx = null, tipCtx = null, tipCache = null, tipHistoryRequested = false;
 let cRowsCache = {q:null, src:null, to:null, data:[]};
 function syncQuickChips(){
   document.querySelectorAll("#c-quick .quick-chip").forEach(b => {
@@ -3463,108 +3468,10 @@ function dayTipHtml(date){
   if (pd >= c.from) h += tipRow("К предыдущему дню", deltaHtml(v, c.by.get(pd) || 0));
   const z = c.z.get(date);
   if (isAnom(z)) h += tipRow("Аномалия", `<span class="${z > 0 ? "up" : "down"}">${zText(z)}</span>`);
+  if (c.evNote) h += c.evNote(date);
   return h;
 }
 
-/* ---------- Доли во времени (stacked area) ---------- */
-function stackedChart(){
-  stackMeta = null;
-  const chats = chartEntity === "chats", metric = $("metric").value, DAY = 864e5;
-  const src = chats ? chatRowsForChart(cRows()) : cScoped();
-  const r = cRange(); if (!r) return note("Выберите период");
-  const U = t => { const a = t.split("-").map(Number); return Date.UTC(a[0], a[1] - 1, a[2]); };
-  let dmin = "9999-99-99";
-  src.forEach(x => { const d = String(x[F.date] ?? "").slice(0, 10); if (d.length === 10 && d >= r[0] && d <= r[1] && d < dmin) dmin = d; });
-  if (dmin === "9999-99-99") return note("Нет данных за выбранный период");
-  const todayIso = iso(now), from = cMode() === "all" ? dmin : r[0], to = r[1] < todayIso ? r[1] : todayIso;
-  const days = Math.round((U(to) - U(from)) / DAY) + 1;
-  if (days < 2) return note("Для долей во времени выберите период длиннее одного дня");
-  const kind = days <= 45 ? "d" : days <= 400 ? "w" : "m", t0 = U(from);
-  const mIdx = t => { const d = new Date(t); return d.getUTCFullYear() * 12 + d.getUTCMonth(); }, m0 = mIdx(t0);
-  const colOf = t => kind === "d" ? Math.round((t - t0) / DAY) : kind === "w" ? Math.floor((t - t0) / (7 * DAY)) : mIdx(t) - m0;
-  const n = colOf(U(to)) + 1;
-  if (n < 2) return note("Слишком короткий период для этого вида графика");
-  const per = new Map();
-  src.forEach(x => {
-    const d = String(x[F.date] ?? "").slice(0, 10); if (d.length !== 10 || d < from || d > to) return;
-    const k = chats ? String(x[F.chatPk] ?? x[F.chat]) : String(x[F.userId] ?? x[F.name]);
-    if (!chats && (!isVisibleUser(k) || (SEL_ACTIVE && !SEL.has(k)))) return;
-    const e = per.get(k) || {k, name: chats ? String(x[F.chat] || `Чат ${k}`) : who(x), a: Array(n).fill(0), tot: 0};
-    const v = Number(g(x, metric)) || 0; e.a[colOf(U(d))] += v; e.tot += v; per.set(k, e);
-  });
-  const ranked = [...per.values()].filter(e => e.tot > 0).sort((a, b) => b.tot - a.tot);
-  if (!ranked.length) return note("Нет данных за выбранный период");
-  const topN = Number($("trend-top").value) || 5, kindKey = chats ? "c" : "u";
-  const series = ranked.slice(0, topN).map(e => ({name: e.name, ek: e.k, color: chartSeriesStyle(kindKey, e.k).c[0], vals: e.a}));
-  const restList = ranked.slice(topN);
-  if (restList.length) {
-    const a = Array(n).fill(0); restList.forEach(e => e.a.forEach((v, i) => a[i] += v));
-    series.push({name: `Остальные (${restList.length})`, color: chartSeriesStyle("special", "other").c[0], vals: a});
-  }
-  const visible = series.filter(s => !hiddenSeries.has(s.name));
-  const shareMode = $("stack-mode").value !== "abs";
-  const totals = Array.from({length: n}, (_, i) => visible.reduce((a, s) => a + s.vals[i], 0));
-  // В режиме долей пустой интервал берёт доли соседнего непустого, чтобы слои не схлопывались.
-  const firstNZ = totals.findIndex(t => t > 0);
-  const layerVal = visible.map(() => Array(n).fill(0));
-  let lastFr = null;
-  for (let i = 0; i < n; i++) {
-    const src_i = totals[i] > 0 ? i : (lastFr === null ? firstNZ : -1);
-    visible.forEach((s, si) => {
-      if (!shareMode) layerVal[si][i] = s.vals[i];
-      else if (src_i >= 0) layerVal[si][i] = totals[src_i] ? s.vals[src_i] / totals[src_i] : 0;
-      else layerVal[si][i] = lastFr[si];
-    });
-    if (shareMode && (totals[i] > 0 || lastFr === null)) lastFr = visible.map((_, si) => layerVal[si][i]);
-  }
-  const W = 900, L = 16, R = 850, B = 500, plotR = R - 24;
-  let lg = "", lx = 16, ly = 104;
-  series.forEach(s => {
-    const w = s.name.length * 10 + 46;
-    if (lx + w > 885) { lx = 16; ly += 28; }
-    lg += `<g class="lg-item" data-name="${escH(s.name)}"${s.ek ? ` data-ek="${escH(s.ek)}"` : ""} opacity="${hiddenSeries.has(s.name) ? 0.35 : 1}" style="cursor:pointer"><rect x="${lx}" y="${ly - 9}" width="18" height="18" rx="4" fill="${s.color}"/><text class="chart-legend" x="${lx + 28}" y="${ly + 6}" font-size="18" fill="#f2f3f7">${escH(s.name)}</text></g>`;
-    lx += w;
-  });
-  const T = ly + 40, H = B + 52;
-  const yMaxInfo = shareMode ? {max: 1, step: 0.25} : niceMax(Math.max(1, ...totals));
-  const xs = Array.from({length: n}, (_, i) => L + i / (n - 1) * (plotR - L));
-  const sy = v => B - v / yMaxInfo.max * (B - T);
-  let o = head(cPeriodLabel(), `${sub()}, ${shareMode ? "доли" : "абсолютные значения"} по ${kind === "d" ? "дням" : kind === "w" ? "неделям" : "месяцам"}, топ-${Math.min(topN, ranked.length)}`);
-  for (let v = 0; v <= yMaxInfo.max + 1e-9; v += yMaxInfo.step) {
-    const y = sy(v);
-    o += `<line x1="${L}" y1="${y.toFixed(1)}" x2="${plotR}" y2="${y.toFixed(1)}" stroke="#ffffff" stroke-opacity="0.08"/>`;
-    o += `<text class="chart-axis" x="894" y="${(y + 6).toFixed(1)}" text-anchor="end" font-size="17" fill="#eceef3">${shareMode ? Math.round(v * 100) + "%" : (yMaxInfo.max >= 1000 && v ? (v / 1000) + "K" : fmt(v))}</text>`;
-  }
-  const lower = Array(n).fill(0);
-  visible.forEach((s, si) => {
-    const upper = lower.map((b, i) => b + layerVal[si][i]);
-    const top = xs.map((x, i) => `${x.toFixed(1)},${sy(upper[i]).toFixed(1)}`);
-    const bottom = xs.map((x, i) => `${x.toFixed(1)},${sy(lower[i]).toFixed(1)}`).reverse();
-    o += `<polygon points="${top.join(" ")} ${bottom.join(" ")}" fill="${s.color}" fill-opacity="0.88" stroke="#000" stroke-opacity="0.25" stroke-width="0.8" stroke-linejoin="round"/>`;
-    upper.forEach((v, i) => lower[i] = v);
-  });
-  const SMn = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
-  const bucketDate = i => new Date(kind === "d" ? t0 + i * DAY : kind === "w" ? t0 + i * 7 * DAY : Date.UTC(Math.floor((m0 + i) / 12), (m0 + i) % 12, 1));
-  o += `<line x1="${L}" y1="${B}" x2="${plotR}" y2="${B}" stroke="#dcdcdc" stroke-width="2"/>`;
-  const every = Math.max(1, Math.ceil(n / 12));
-  for (let i = 0; i < n; i++) {
-    const d = bucketDate(i), mo = d.getUTCMonth();
-    let lab = "";
-    if (kind === "d") { if (i % every === 0) lab = `${d.getUTCDate()} ${SMn[mo]}`; }
-    else if (kind === "w") { if (i === 0 || bucketDate(i - 1).getUTCMonth() !== mo) lab = SMn[mo]; }
-    else if (n <= 24) { if (i % 2 === 0) lab = SMn[mo] + (mo === 0 || i === 0 ? ` ${d.getUTCFullYear()}` : ""); }
-    else if (mo === 0 || i === 0) lab = String(d.getUTCFullYear());
-    if (lab) o += `<line x1="${xs[i].toFixed(1)}" y1="${B}" x2="${xs[i].toFixed(1)}" y2="${B + 7}" stroke="#dcdcdc" stroke-width="2"/><text class="chart-axis" x="${xs[i].toFixed(1)}" y="${B + 30}" text-anchor="middle" font-size="16" fill="#eceef3">${lab}</text>`;
-  }
-  const bucketLabel = i => {
-    const d = bucketDate(i), dd = `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`;
-    return kind === "d" ? dd : kind === "w" ? `неделя с ${dd}` : `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-  };
-  stackMeta = {x0: L, step: (plotR - L) / (n - 1), n, xs, label: bucketLabel, totals,
-    series: visible.map(s => ({name: s.name, c: s.color, vals: s.vals}))};
-  o += `<line id="sxh" x1="0" y1="${T}" x2="0" y2="${B}" stroke="#ffffff" stroke-opacity="0.75" stroke-width="1.5" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/><rect id="stack-hov" x="${L}" y="${T}" width="${plotR - L}" height="${B - T}" fill="transparent" style="touch-action:pan-y"/>`;
-  return `<svg viewBox="0 0 ${W} ${H}" role="img">${o}${lg}</svg>`;
-}
 
 /* ---------- Спираль года: каждый день — ячейка, один виток — один год ---------- */
 function spiralChart(){
@@ -3669,13 +3576,16 @@ document.querySelectorAll("#c-entity button").forEach(b => b.onclick = () => {
   if ($("chart-settings-panel")?.classList.contains("open")) renderChartSettingsPanel();
 });
 $("metric").onchange = () => { renderCharts(); if ($("chart-settings-panel")?.classList.contains("open")) renderChartSettingsPanel(); };
+// «Все» в списке количества: Infinity, иначе число (по умолчанию def).
+const trendTop = (def = 5) => { const v = $("trend-top") ? $("trend-top").value : ""; return v === "all" ? Infinity : (Number(v) || def); };
 const barsCap = def => { const v = $("bars-top") ? $("bars-top").value : ""; return v === "all" ? 1e6 : v ? Number(v) : def; };
 $("bars-top").onchange = () => { renderCharts(); if ($("chart-settings-panel")?.classList.contains("open")) renderChartSettingsPanel(); };
 $("trend-top").onchange = () => { renderCharts(); if ($("chart-settings-panel")?.classList.contains("open")) renderChartSettingsPanel(); };
 $("heatrows-custom-top").onchange = () => {
-  const p = chartPrefs("heatrows-custom"), value = $("heatrows-custom-top").value;
-  p.heatRowsTop = value === "all" ? "all" : ([5, 10, 20].includes(Number(value)) ? Number(value) : 10);
-  CHART_PREFS["heatrows-custom"] = p;
+  const type = cType === "heatrows" ? "heatrows" : "heatrows-custom";
+  const p = chartPrefs(type), value = $("heatrows-custom-top").value;
+  p.heatRowsTop = value === "all" || value === "auto" ? value : ([5, 10, 20].includes(Number(value)) ? Number(value) : 10);
+  CHART_PREFS[type] = p;
   saveChartPrefs();
   renderCharts();
 };
@@ -3879,7 +3789,7 @@ function axisLabel(v){
 }
 
 // Линейный график в стиле: тёмная панель, гладкие линии со стрелками, шкала справа
-function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxIn, appearance = null, xLabel = null}){
+function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxIn, appearance = null, xLabel = null, valFmt = null, events = null, dateOf = null, shares = true}){
   // xLabel включает интерактивность: клик по легенде скрывает линию, при наведении появляется подсказка
   const series = xLabel ? allSeries.filter(s => !hiddenSeries.has(s.name)) : allSeries;
   const yMax = (xLabel && series.length) ? Math.max(1, ...series.flatMap(s => s.pts.map(p => p[1]))) : yMaxIn;
@@ -3892,12 +3802,6 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
   const arrowLength = Number(size.arrowLength) || 6, arrowSize = Number(size.arrowSize) || 8;
   const baseLineOpacity = Math.min(1, Math.max(0, Number(size.opacity ?? 100) / 100));
   const seriesOpacity = s => Math.min(1, Math.max(0, Number(size.seriesOpacity?.[s.seriesKey] ?? 100) / 100));
-  const item = (s, x, y) => {
-    const itemOpacity = baseLineOpacity * seriesOpacity(s) * (s.op !== undefined ? s.op : 1);
-    return (s.dash
-      ? `<line x1="${x}" y1="${y}" x2="${x + 22}" y2="${y}" stroke="${s.st.c[0]}" stroke-opacity="${itemOpacity}" stroke-width="${lineWidth}" stroke-dasharray="6 4"/>`
-      : `<circle cx="${x + 8}" cy="${y}" r="${pointRadius}" fill="${s.st.c[0]}" fill-opacity="${itemOpacity}"/>`) + `<text class="chart-legend" x="${x + 28}" y="${y + 6}" font-size="18" fill="#f2f3f7">${escH(s.name)}</text>`;
-  };
   // В «Динамике» убрана левая легенда: названия серий показываются у концов линий справа.
   // Верхнее поле графика больше не зависит от количества серий.
   const T = 100;
@@ -3911,6 +3815,12 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
   if (clipped) o += `<text x="${R - 10}" y="${T - 12}" text-anchor="end" font-size="14" fill="#f7768e">график обрезан по потолку ${escH(axisLabel(max))}</text>`;
   o += `<line x1="${L}" y1="${B}" x2="${R}" y2="${B}" stroke="#dcdcdc" stroke-width="3"/>`;
   ticks.forEach(t => o += `<line x1="${sx(t.x)}" y1="${B}" x2="${sx(t.x)}" y2="${B + 8}" stroke="#dcdcdc" stroke-width="3"/><text class="chart-axis" x="${sx(t.x)}" y="${B + 34}" text-anchor="middle" font-size="19" fill="#eceef3">${t.label}</text>`);
+  let evNotes = null;
+  if (events && dateOf) {
+    const ix = d => { for (let k = xMin; k <= xMax; k++) if (dateOf(k) >= d) return k; return xMax; };
+    const ev = chartEventsSvg(events, d => sx(ix(d)), T, B, R);
+    o += ev.svg; evNotes = ev.notes;
+  }
   o += `<g clip-path="url(#lc-clip)">`;
   series.forEach(s => {
     const P = s.pts.map(p => [sx(p[0]), sy(p[1])]);
@@ -3958,7 +3868,7 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
   }
   let extra = "";
   if (xLabel) {
-    lineMeta = {L, T, B, span: R - L - 20, xMin, xMax, xLabel, shares: series.some(s => s.ek),
+    lineMeta = {L, T, B, span: R - L - 20, xMin, xMax, xLabel, shares: shares && series.some(s => s.ek), valFmt, evNote: evNotes && dateOf ? x => evNotes(dateOf(x)) : null,
       series: series.map(s => ({name: s.name, c: s.st.c[0], v: new Map(s.pts.map(p => [p[0], p[1]]))}))};
     extra = `<line id="xh" x1="0" y1="${T}" x2="0" y2="${B}" stroke="#ffffff66" stroke-width="1.5" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/><rect id="hov" x="${L}" y="${T}" width="${R - L + 20}" height="${B - T}" fill="transparent" style="touch-action:pan-y"/>`;
   }
@@ -4116,17 +4026,32 @@ function trendChart(){
     const u = per.get(k) || {n: name, k, a: Array(last + 1).fill(0)};
     u.a[i] += Number(g(x, metric)) || 0; per.set(k, u);
   });
-  const topCount = Number($("trend-top").value) || 5;
-  const top = [...per.values()].map(u => { let s = 0; u.c = u.a.map((v, i) => i ? (s += v) : 0); u.t = s; return u; })
-    .filter(u => u.t > 0).sort((a, b) => b.t - a.t).slice(0, topCount);
+  const ranked = [...per.values()].map(u => {
+    let s = 0, act = 0; u.c = u.a.map((v, i) => i ? (s += v) : 0); u.t = s;
+    // Число активных дней нарастающим итогом — для режима «на активный день».
+    u.d = u.a.map((v, i) => i ? (act += v > 0 ? 1 : 0) : 0);
+    return u;
+  }).filter(u => u.t > 0).sort((a, b) => b.t - a.t);
+  const top = ranked.slice(0, trendTop());
   if (!top.length) return note(chartEntity === "chats" ? "Нет данных по чатам за выбранный период" : "Нет данных за выбранный период");
   const entityWord = chartEntity === "chats" ? "чата" : "пользователя";
-  const selectedLabel = chartEntity === "users" && SEL_ACTIVE ? `, выбрано участников: ${SEL.size}` : `, топ-${top.length} ${entityWord}`;
+  const allShown = top.length === ranked.length && $("trend-top").value === "all";
+  const selectedLabel = chartEntity === "users" && SEL_ACTIVE ? `, выбрано участников: ${SEL.size}` : allShown ? `, все (${top.length})` : `, топ-${top.length} ${entityWord}`;
+  // Нормирование: доля — от суммы всех (не только показанных) за период с начала; на активный день — накопленное / активных дней.
+  const totC = Array(last + 1).fill(0);
+  if (NORM === "share") ranked.forEach(u => { for (let j = 1; j <= last; j++) totC[j] += u.c[j]; });
+  const valAt = (u, j) => NORM === "share" ? (totC[j] ? u.c[j] / totC[j] * 100 : 0) : NORM === "day" ? (u.d[j] ? u.c[j] / u.d[j] : 0) : u.c[j];
+  const series = top.map(u => ({name: u.n, ek: String(u.k), seriesKey: `${chartStyleKind()}:${String(u.k)}`, st: chartSeriesStyle(chartStyleKind(), u.k), pts: Array.from({length: last}, (_, j) => [j + 1, valAt(u, j + 1)]).filter(p => NORM !== "day" || u.d[p[0]] > 0), w: 4}));
+  const yMax = Math.max(1, ...series.flatMap(s => s.pts.map(p => p[1])));
+  const normWord = NORM === "share" ? ", доля от всех, %" : NORM === "day" ? ", в среднем на активный день" : "";
+  const dateOf = i => iso(new Date(t0 + (i - 1) * DAY + 12 * 3600e3)).slice(0, 10);
   return lineChart({
-    title: cPeriodLabel(), st: sub() + ", накопительно" + selectedLabel,
-    series: top.map((u, i) => ({name: u.n, ek: String(u.k), seriesKey: `${chartStyleKind()}:${String(u.k)}`, st: chartSeriesStyle(chartStyleKind(), u.k), pts: Array.from({length: last}, (_, j) => [j + 1, u.c[j + 1]]), w: 4})),
-    xMin: 1, xMax: displayN, ticks: trendTicks, yMax: top[0].t, appearance: TREND_STYLE,
+    title: cPeriodLabel(), st: sub() + ", накопительно" + normWord + selectedLabel,
+    series, xMin: 1, xMax: displayN, ticks: trendTicks, yMax, appearance: TREND_STYLE,
     xLabel: i => { const d = new Date(t0 + (i - 1) * DAY); return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`; },
+    valFmt: NORM === "share" ? v => fmtR(v) + "%" : NORM === "day" ? v => fmtR(v) : null,
+    events: chartEventsFor(dateOf(1), dateOf(displayN), top.map(u => String(u.k))), dateOf,
+    shares: NORM === "abs",
   });
 }
 
@@ -4248,24 +4173,35 @@ async function renderCharts(){
     }).catch(e => { leftFilterError = e.message || String(e); });
   }
 
-  $("trend-count-field").hidden = !["trend", "race", "pairs"].includes(requestedType);
+  $("trend-count-field").hidden = !["trend", "race", "pairs", "bump", "spread", "multiples"].includes(requestedType);
   $("y-ceil-field").hidden = !["trend", "years"].includes(requestedType);
   $("bars-top-field").hidden = !["bars", "donut"].includes(requestedType);
   { const bl = document.querySelector('label[for="bars-top"]'); if (bl) bl.textContent = chartEntity === "chats" ? "Количество чатов" : "Количество участников"; }
-  $("heatrows-custom-top-field").hidden = requestedType !== "heatrows-custom" || chartEntity !== "users";
+  const isHeatRows = requestedType === "heatrows" || requestedType === "heatrows-custom";
+  $("heatrows-custom-top-field").hidden = !isHeatRows;
   const heatTopSelect = $("heatrows-custom-top");
-  if (heatTopSelect) heatTopSelect.value = String(chartPrefs("heatrows-custom").heatRowsTop ?? 10);
-  $("stack-mode-field").hidden = requestedType !== "stacked";
+  if (heatTopSelect && isHeatRows) {
+    const autoOpt = heatTopSelect.querySelector('option[value="auto"]');
+    if (autoOpt) autoOpt.hidden = requestedType !== "heatrows";
+    heatTopSelect.value = String(heatRowsTopSetting(requestedType));
+    const hl = document.querySelector('label[for="heatrows-custom-top"]'); if (hl) hl.textContent = chartEntity === "chats" ? "Чаты на карте" : "Участники на карте";
+  }
+  $("bump-mode-field").hidden = requestedType !== "bump";
+  $("spread-zero-field").hidden = requestedType !== "spread" || chartEntity !== "users";
+  $("spread-scale-field").hidden = requestedType !== "spread";
+  $("mult-scale-field").hidden = requestedType !== "multiples";
+  $("chart-events-field").hidden = !["trend", "heat", "multiples", "bump"].includes(requestedType);
+  syncChartNormField(requestedType);
   // Threshold-colour mode uses absolute cell values, so the normalized heat scale is irrelevant there.
   $("heat-scale-field").hidden = requestedType !== "heatrows";
-  $("people").hidden = chartEntity !== "users";
+  $("people").hidden = chartEntity !== "users" || requestedType === "gini";
   $("f-chat").hidden = chartEntity === "chats";
   const trendLabel = document.querySelector('label[for="trend-top"]');
   if (trendLabel) trendLabel.textContent = chartEntity === "chats" ? "Количество чатов" : "Количество пользователей";
   const topSelect = $("trend-top");
-  if (topSelect) [...topSelect.options].forEach(o => { o.textContent = `Топ-${o.value} ${chartEntity === "chats" ? "чатов" : "пользователей"}`; });
+  if (topSelect) [...topSelect.options].forEach(o => { o.textContent = o.value === "all" ? (chartEntity === "chats" ? "Все чаты" : "Все пользователи") : `Топ-${o.value} ${chartEntity === "chats" ? "чатов" : "пользователей"}`; });
   const out = $("c-out");
-  stackMeta = null; dayTipCtx = null;
+  dayTipCtx = null; CHART_HOVER = null;
   if (chartQuick && !allRows) {
     out.innerHTML = `<div class="sk sk-block"></div>`;
     try { await getHistory(); }
@@ -4277,6 +4213,11 @@ async function renderCharts(){
   }
   if (!cRange()) { out.innerHTML = note("Выберите период"); applyChartTextStyles(); return; }
   setTipCtx();
+  if (!allRows && !$("chart-events-field").hidden && $("chart-events").value === "all") {
+    out.innerHTML = `<div class="sk sk-block"></div>`;
+    try { await getHistory(); } catch (e) {}
+    if (renderSeq !== chartRenderSequence || requestedType !== cType) return;
+  }
   if (requestedType === "years" || requestedType === "spiral" || requestedType === "season") {
     if (!allRows) {
       out.innerHTML = `<div class="sk sk-block"></div>`;
@@ -4289,7 +4230,7 @@ async function renderCharts(){
     }
     out.innerHTML = requestedType === "years" ? yearsChart() : requestedType === "season" ? seasonChart() : spiralChart(); applyChartTextStyles(); return;
   }
-  const renderer = {bars: barsChart, donut: donutChart, trend: trendChart, stacked: stackedChart, heat: calendarChart, heatrows: heatRowsChart, "heatrows-custom": () => heatRowsChart(true), race: raceChart, pairs: pairsChart}[requestedType];
+  const renderer = {bars: barsChart, donut: donutChart, trend: trendChart, bump: bumpChart, spread: spreadChart, gini: giniChart, multiples: multiplesChart, heat: calendarChart, heatrows: heatRowsChart, "heatrows-custom": () => heatRowsChart(true), race: raceChart, pairs: pairsChart}[requestedType];
   out.innerHTML = renderer ? renderer() : note("Неизвестный тип графика");
   applyChartTextStyles();
   if (requestedType === "race") raceMount();
@@ -4312,7 +4253,7 @@ function displayedUserKeys(){
     const cap = barsCap(SEL_ACTIVE ? 14 : 8);
     return usersAgg(metric).slice(0, cap).map(u => String(u.k));
   }
-  if (cType === "trend" || cType === "stacked") {
+  if (cType === "trend" || cType === "bump" || cType === "multiples" || cType === "spread") {
     if (cMode() === "day") return [];
     const src = cScoped();
     let r = cRange(); if (!r) return [];
@@ -4331,7 +4272,7 @@ function displayedUserKeys(){
       u.v += Number(g(x, metric)) || 0;
       totals.set(k, u);
     });
-    return [...totals.values()].filter(u => u.v > 0).sort((a,b) => b.v-a.v).slice(0, Number($("trend-top").value) || 5).map(u => String(u.k));
+    return [...totals.values()].filter(u => u.v > 0).sort((a,b) => b.v-a.v).slice(0, trendTop()).map(u => String(u.k));
   }
   // В режиме «По годам» участники объединяются в годовые линии. Отметим тех,
   // кто вносит вклад в график за выбранный календарный месяц.
@@ -4472,10 +4413,6 @@ function readCellTextRuns(cell, baseColor){
     }
   }
   return runs;
-}
-function rowBackground(row, fallback){
-  const cs = getComputedStyle(row);
-  return canvasColor(cs.backgroundColor, fallback);
 }
 function drawCanvasCellText(ctx, cell, rect, tableRect, xOffset, yOffset, fallbackColor){
   const cs = getComputedStyle(cell);
@@ -4782,8 +4719,9 @@ function copyTop(kind, n){
   const status = $(kind === "months" ? "months-copy-status" : "days-copy-status");
   if (!allRows) { if (status) status.textContent = "История ещё загружается, попробуй через пару секунд"; ensureMonthDayHistory().catch(() => {}); return; }
   const chat = $(kind === "months" ? "m-chat" : "d-chat").value || "Все чаты", y = kind === "months" ? mYear : dYear;
-  const title = `Топ-${n} ${kind === "months" ? "месяцев" : "дней"} — ${chat}${y ? ` · ${y}` : ""}`;
-  copyPngToStatus(() => tableImageBlob(buildTopTable(kind, n), title), status, `Топ-${n} скопирован`);
+  const all = !Number.isFinite(n), what = kind === "months" ? "месяцев" : "дней";
+  const title = `${all ? `Все ${kind === "months" ? "месяцы" : "дни"}` : `Топ-${n} ${what}`} — ${chat}${y ? ` · ${y}` : ""}`;
+  copyPngToStatus(() => tableImageBlob(buildTopTable(kind, n), title), status, all ? "Таблица скопирована" : `Топ-${n} скопирован`);
 }
 function ensureMonthDayHistory(){
   return getHistory().then(data => {
@@ -4798,6 +4736,8 @@ $("copy-months-top10").onclick = () => copyTop("months", 10);
 $("copy-months-top20").onclick = () => copyTop("months", 20);
 $("copy-days-top10").onclick = () => copyTop("days", 10);
 $("copy-days-top20").onclick = () => copyTop("days", 20);
+$("copy-months-all").onclick = () => copyTop("months", Infinity);
+$("copy-days-all").onclick = () => copyTop("days", Infinity);
 $("copy-milestones-image").onclick = () => copyTableImage("milestone-table", "Ближайшие юбилеи участия", "copy-milestones-status");
 
 $("copy-participants-image").onclick = () => copyTableImage("participants-table", () => $("participants-period-title").textContent, "copy-participants-status");
@@ -4856,15 +4796,6 @@ function hsl2hex(h, s, l){
   const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
   return "#" + [f(0), f(8), f(4)].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
 }
-function hex2hsl(hex){
-  const r = parseInt(hex.slice(1,3),16)/255, gg = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
-  const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), d = mx - mn;
-  let h = 0;
-  if (d) { h = (mx === r ? ((gg - b) / d) % 6 : mx === gg ? (b - r) / d + 2 : (r - gg) / d + 4) * 60; if (h < 0) h += 360; }
-  const l = (mx + mn) / 2;
-  return [h, d ? d / (1 - Math.abs(2 * l - 1)) * 100 : 0, l * 100];
-}
-const shiftHue = (hex, deg) => { const [h, sat, l] = hex2hsl(hex); return hsl2hex((h + deg) % 360, Math.max(sat, 35), l); };
 
 const SKEY = "chatstats.styles.v1";
 let STYLE = {u:{}, y:{}, c:{}};
@@ -4873,6 +4804,7 @@ const saveStyle = () => { try { localStorage.setItem(SKEY, JSON.stringify(STYLE)
 
 function defColor(kind, key){
   if (kind === "special") return "#555a68";
+  if (kind === "g") return {main:"#7aa2f7", top:"#e0af68"}[key] || "#7aa2f7";
   if (kind === "c" && (String(key) === "ultimate" || key === "Colony Ultimate")) return "#f5c542";
   if (kind === "y") { const y = Number(key); return y === now.getFullYear() ? CUR : (YPAL[y] || hsl2hex((y * 47) % 360, 30, 42)); }
   let n = kind === "c" ? 0 : Number(key);
@@ -4955,7 +4887,6 @@ const HEAT_PRESETS = {
 };
 let HEAT = {z: "#2a2e39", c: [...HEAT_PRESETS["Розовый"]]};
 try { const j = JSON.parse(localStorage.getItem(HEAT_KEY) || "null"); if (j && j.z && Array.isArray(j.c) && j.c.length === 3) HEAT = j; } catch (e) {}
-const saveHeat = () => { try { localStorage.setItem(HEAT_KEY, JSON.stringify(HEAT)); } catch (e) {} };
 const heatRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const heatMix = (a, b, t) => { const A = heatRgb(a), B = heatRgb(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join(""); };
 const heatColor = (v, max) => {
@@ -4984,6 +4915,13 @@ function calendarChart(){
   const calZ = anomalyScores(calDates.map(d => by.get(d) || 0));
   const zByDate = new Map(calZ ? calDates.map((d, i) => [d, calZ[i]]) : []);
   setDayTipCtx(by, from, to, metric, zByDate);
+  // События на календаре: точка в углу клетки (марафон — цвет марафона, событие хроники — жёлтая).
+  const calEvents = chartEventsFor(from, to, chartEntity === "users" && SEL_ACTIVE ? [...SEL] : null), calEv = new Map();
+  if (calEvents) {
+    calEvents.bands.forEach(b => { for (let d = b.from; d <= b.to; d = addDaysIso(d, 1)) if (!calEv.has(d)) calEv.set(d, b.color); });
+    calEvents.flags.forEach(f => calEv.set(f.d, EV_FLAG));
+    dayTipCtx.evNote = d => chartEventNote(calEvents, d);
+  }
   const fy = +from.slice(0, 4), ty = +to.slice(0, 4), multi = fy !== ty, blocks = [];
   for (let y = fy; y <= ty; y++) blocks.push([y === fy ? from : `${y}-01-01`, y === ty ? to : `${y}-12-31`]);
   const SM = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"], WD = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
@@ -4998,7 +4936,9 @@ function calendarChart(){
       const d = new Date(t), wd = (d.getUTCDay() + 6) % 7, w = Math.floor((t - mon) / (7 * DAY));
       const x = x0 + w * step, y = gy + wd * step, key = d.toISOString().slice(0, 10), v = by.get(key) || 0;
       const label = `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}, ${WD[wd]}`;
+      const evm = calEv.get(key);
       o += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" rx="3" fill="${heatColor(v, max)}"${anomStroke(zByDate.get(key))} data-day="${key}"/>`;
+      if (evm) o += `<circle cx="${x + cs - (big ? 5 : 2.5)}" cy="${y + (big ? 5 : 2.5)}" r="${big ? 3.6 : 2}" fill="${evm}" stroke="#0f1117" stroke-width="${big ? 1.2 : .6}" pointer-events="none"/>`;
       if (big) o += `<text class="chart-axis chart-day" x="${x + cs / 2}" y="${y + (cs + 11) / 2}" text-anchor="middle" font-size="11" fill="#ffffffb0" pointer-events="none">${d.getUTCDate()}</text>`;
       else if (d.getUTCDate() <= 7 && wd === 0) o += `<text class="chart-axis" x="${x}" y="${gy - 6}" font-size="12" fill="#aab0c0">${SM[d.getUTCMonth()]}</text>`;
     }
@@ -5008,7 +4948,13 @@ function calendarChart(){
   for (let k = 0; k <= 4; k++) o += `<rect x="${100 + k * 20}" y="${yy + 2}" width="16" height="16" rx="3" fill="${heatColor(k / 4 * max, max)}"/>`;
   o += `<text class="chart-legend" x="210" y="${yy + 14}" font-size="14" fill="#7d8190">Больше</text><text class="chart-value" x="290" y="${yy + 14}" font-size="14" fill="#7d8190">максимум за день: ${fmt(max)}</text>`;
   if (ANOM.on) o += anomLegend(40, yy + 44);
-  return `<svg viewBox="0 0 900 ${yy + 34 + (ANOM.on ? 30 : 0)}" role="img">${o}</svg>`;
+  let evH = 0;
+  if (calEvents && (calEvents.bands.length || calEvents.flags.length)) {
+    const ey = yy + 44 + (ANOM.on ? 30 : 0);
+    o += `<circle cx="48" cy="${ey - 5}" r="5" fill="${calEvents.bands[0]?.color || "#9ece6a"}"/><text class="chart-legend" x="60" y="${ey}" font-size="14" fill="#7d8190">марафон</text><circle cx="150" cy="${ey - 5}" r="5" fill="${EV_FLAG}"/><text class="chart-legend" x="162" y="${ey}" font-size="14" fill="#7d8190">событие хроники (подробности — при наведении)</text>`;
+    evH = 30;
+  }
+  return `<svg viewBox="0 0 900 ${yy + 34 + (ANOM.on ? 30 : 0) + evH}" role="img">${o}</svg>`;
 }
 /* <<< heat */
 
@@ -5023,7 +4969,7 @@ function showTip(html, e){
   if (y + h > innerHeight - 8) y = e.clientY - h - 14;
   tipEl.style.left = Math.max(4, x) + "px"; tipEl.style.top = Math.max(4, y) + "px";
 }
-function hideCrosshairs(){ ["xh", "sxh"].forEach(id => { const h = $(id); if (h) h.setAttribute("visibility", "hidden"); }); }
+function hideCrosshairs(){ ["xh", "mxh"].forEach(id => { const h = $(id); if (h) h.setAttribute("visibility", "hidden"); }); }
 function hideTip(){ tipEl.style.display = "none"; hideCrosshairs(); }
 function highlightDonut(seg){
   document.querySelectorAll("#c-out .donut-seg").forEach(g => g.classList.toggle("hl", seg != null && g.dataset.seg === String(seg)));
@@ -5033,15 +4979,7 @@ function highlightDonut(seg){
   const svgPoint = (t, e) => { const svg = t.ownerSVGElement, pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); };
   const move = e => {
     const t = e.target;
-    if (t.id === "stack-hov" && stackMeta) {
-      const M = stackMeta, p = svgPoint(t, e);
-      const i = Math.max(0, Math.min(M.n - 1, Math.round((p.x - M.x0) / M.step)));
-      const xh = $("sxh"); xh.setAttribute("x1", M.xs[i]); xh.setAttribute("x2", M.xs[i]); xh.setAttribute("visibility", "visible");
-      const total = M.totals[i];
-      const items = M.series.map(s => ({s, v: s.vals[i]})).filter(q => q.v > 0).sort((a, b) => b.v - a.v);
-      showTip(`<b>${escH(M.label(i))}</b>` + (items.length ? items.map((q, k) => tipRow(`<i style="background:${q.s.c}"></i>${k + 1}. ${escH(q.s.name)}`, `${fmt(q.v)} · ${pctStr(q.v / total)}`)).join("") + tipRow("Всего", fmt(total)) : tipRow("Нет активности", "")), e);
-      return;
-    }
+    if (t.dataset && t.dataset.hover && CHART_HOVER) { CHART_HOVER(t, svgPoint(t, e), e); return; }
     if (t.id === "hov" && lineMeta) {
       const p = svgPoint(t, e), M = lineMeta, span = (M.xMax - M.xMin) || 1;
       const x = Math.max(M.xMin, Math.min(M.xMax, Math.round(M.xMin + (p.x - M.L) / M.span * span)));
@@ -5049,7 +4987,8 @@ function highlightDonut(seg){
       xh.setAttribute("x1", px); xh.setAttribute("x2", px); xh.setAttribute("visibility", "visible");
       const items = M.series.map(s => ({s, v: s.v.get(x)})).filter(q => q.v !== undefined).sort((a, b) => b.v - a.v);
       const sum = items.reduce((a, q) => a + q.v, 0);
-      showTip(`<b>${escH(M.xLabel(x))}</b>` + items.map((q, k) => tipRow(`<i style="background:${q.s.c}"></i>${M.shares ? `${k + 1}. ` : ""}${escH(q.s.name)}`, `${fmt(Math.round(q.v))}${M.shares && sum ? ` · ${pctStr(q.v / sum)}` : ""}`)).join("") + (M.shares && items.length > 1 ? tipRow("Всего", fmt(Math.round(sum))) : ""), e);
+      const vf = M.valFmt || (v => fmt(Math.round(v)));
+      showTip(`<b>${escH(M.xLabel(x))}</b>` + items.map((q, k) => tipRow(`<i style="background:${q.s.c}"></i>${M.shares || M.valFmt ? `${k + 1}. ` : ""}${escH(q.s.name)}`, `${vf(q.v)}${M.shares && sum ? ` · ${pctStr(q.v / sum)}` : ""}`)).join("") + (M.shares && items.length > 1 ? tipRow("Всего", fmt(Math.round(sum))) : "") + (M.evNote ? M.evNote(x) : ""), e);
       return;
     }
     hideCrosshairs();
@@ -5126,6 +5065,12 @@ function customHeatBandLabel(bands, index){
   if (next) return `${band.min}–${next.min - 1}`;
   return `${band.min}+`;
 }
+// Сколько строк показывать на карте: «auto» (25, при ручном выборе — до 40), 5/10/20 или «all».
+function heatRowsTopSetting(type){
+  const v = chartPrefs(type).heatRowsTop;
+  if (v === "all" || v === "auto" || [5, 10, 20].includes(Number(v))) return v === "all" || v === "auto" ? v : Number(v);
+  return type === "heatrows-custom" ? 10 : "auto";
+}
 function heatRowsChart(customRanges = false){
   const r = cRange(); if (!r) return note("Выберите период");
   const metric = $("metric").value, DAY = 864e5, chats = chartEntity === "chats";
@@ -5150,10 +5095,8 @@ function heatRowsChart(customRanges = false){
   });
   const lim = chats ? 25 : (SEL_ACTIVE ? 40 : 25);
   const rankedList = [...groups.values()].filter(e => e.tot > 0).sort((a, b) => b.tot - a.tot);
-  const topSetting = customRanges && !chats ? chartPrefs("heatrows-custom").heatRowsTop : null;
-  const list = customRanges && !chats
-    ? (String(topSetting) === "all" ? rankedList : rankedList.slice(0, Math.max(1, Number(topSetting) || 10)))
-    : rankedList.slice(0, lim);
+  const topSetting = heatRowsTopSetting(customRanges ? "heatrows-custom" : "heatrows");
+  const list = String(topSetting) === "all" ? rankedList : rankedList.slice(0, topSetting === "auto" ? lim : Math.max(1, Number(topSetting) || 10));
   if (!list.length) return note("Нет данных за выбранный период");
   const perRow = $("heat-scale").value === "row";
   let gmax = 0; list.forEach(e => e.a.forEach(v => { if (v > gmax) gmax = v; }));
@@ -5200,7 +5143,7 @@ function heatRowsChart(customRanges = false){
   const W = Math.ceil(Math.max(gridRight + 8 + maxTotalWidth + 14, legendGroupW + 20, LBL + 160));
   const legendX = Math.max(0, Math.round((W - legendGroupW) / 2));
   const legendSwatchX = Math.ceil(legendX + lessW + 12), legendMoreX = legendSwatchX + 5 * 20 + 10;
-  const topLabel = customRanges && !chats && String(topSetting) === "all" ? `все участники (${list.length})` : `топ-${list.length}`;
+  const topLabel = String(topSetting) === "all" ? `${chats ? "все чаты" : "все участники"} (${list.length})` : `топ-${list.length}`;
   let o = head(cPeriodLabel(), sub() + `, ${chats ? "чаты" : "участники"} × ${kind === "d" ? "дни" : kind === "w" ? "недели" : "месяцы"}, ${topLabel}`, W, showSubtitle);
   let prevM = -1;
   for (let c = 0; c < ncols; c++) {
@@ -5349,6 +5292,7 @@ function decorateTables(){
 function chartColorTargets(){
   const type = currentChartType(), metric = $("metric").value;
   if (type === "heat" || type === "spiral" || type === "heatrows" || type === "heatrows-custom" || type === "pairs" || type === "season") return [];
+  if (type === "gini") return [{kind:"g", key:"main", name:"Кривая и доля", v:1}, {kind:"g", key:"top", name:"Доля топ-3", v:1}];
   if (type === "years") {
     const src = chartEntity === "chats" ? chatRowsForChart(allRows || rows)
       : pick(allRows || rows, $("chat").value).filter(x => { const k = String(x[F.userId] ?? x[F.name]); return isVisibleUser(k) && (!SEL_ACTIVE || SEL.has(k)); });
@@ -5369,13 +5313,7 @@ function chartColorTargets(){
     if (rest > 0) list.push({kind:"special", key:"other", name:"Остальные", v:rest});
     return list;
   }
-  if (type === "stacked") {
-    const n = Number($("trend-top").value) || 5, hasRest = list.length > n;
-    const out = list.slice(0, n).map(u => ({kind:chartStyleKind(), key:String(u.k), name:u.n, v:u.v}));
-    if (hasRest) out.push({kind:"special", key:"other", name:"Остальные", v:0});
-    return out;
-  }
-  if (type === "trend") list = list.slice(0, Number($("trend-top").value)||5);
+  if (type === "trend" || type === "bump" || type === "spread" || type === "multiples") list = list.slice(0, trendTop());
   else list = list.slice(0, type === "bars" ? barsCap(chartEntity === "users" && SEL_ACTIVE ? 40 : 20) : (chartEntity === "users" && SEL_ACTIVE ? 40 : 20));
   return list.map(u=>({kind:chartStyleKind(),key:String(u.k),name:u.n,v:u.v}));
 }
@@ -5438,8 +5376,6 @@ function renderChartSettingsPanel(){
     html += `<div class="chart-setting-group"><h3>Линии и наконечники</h3>${trange("Толщина линий","line",1,8,.5)}${trange("Размер точек","point",1,10,.5)}${trange("Длина наконечников","arrowLength",6,32,1)}${trange("Ширина наконечников","arrowSize",6,28,1)}</div>`;
   }
   if (type === "heat" || type === "heatrows" || type === "spiral") {
-    const presetOptions = Object.keys(HEAT_PRESETS).map(n => `<option value="${escH(n)}">${escH(n)}</option>`).join("");
-    const activePreset = Object.keys(HEAT_PRESETS).find(n => JSON.stringify(HEAT_PRESETS[n]) === JSON.stringify(p.heat.c)) || "";
     html += `<div class="chart-setting-group"><h3>Свои цвета</h3><div class="chart-palette-fields">${field("Нет активности","heatZ",p.heat.z)}${field("Мало","heatC0",p.heat.c[0])}${field("Средне","heatC1",p.heat.c[1])}${field("Много","heatC2",p.heat.c[2])}</div></div>` + mainPaletteGroupHtml(type, p);
   }
   if (type !== "heat" && type !== "heatrows" && type !== "heatrows-custom" && type !== "spiral" && type !== "pairs" && type !== "season") {
@@ -5448,15 +5384,10 @@ function renderChartSettingsPanel(){
       const key = `${u.kind}:${String(u.key)}`, base = getStyle(u.kind,u.key).c[0], chosen = p.seriesColors[key] || base;
       return `<div class="chart-setting-series"><span class="chart-setting-series-name" title="${escH(u.name)}">${escH(u.name)}</span>${type === "trend" ? `<label class="trend-series-opacity" title="Непрозрачность линии: ${escH(u.name)}"><input type="range" min="0" max="100" step="5" value="${Math.max(0,Math.min(100,Number(p.trendStyle?.seriesOpacity?.[key] ?? 100)))}" data-trend-series-opacity="${escH(key)}" aria-label="Непрозрачность: ${escH(u.name)}"><output>${Math.max(0,Math.min(100,Number(p.trendStyle?.seriesOpacity?.[key] ?? 100)))}%</output></label>` : ""}<input type="color" data-chart-series-color="1" data-series-kind="${escH(u.kind)}" data-series-key="${escH(u.key)}" value="${chosen}" aria-label="Цвет: ${escH(u.name)}"><button class="mini" data-chart-series-reset="1" data-series-kind="${escH(u.kind)}" data-series-key="${escH(u.key)}" type="button" title="Вернуть общий цвет">↺</button></div>`;
     }).join("")}</div>` : `<p class="hint">Нет серий для настройки за выбранный период.</p>`;
-    html += `<div class="chart-setting-group"><h3>Цвета ${chartEntity === "chats" ? "чатов" : type === "years" ? "лет" : "участников"}</h3><p class="hint">Цвета сохраняются отдельно для «${escH(titleName)}».</p>${rowsHtml}</div>` + (targets.some(t => t.kind !== "special") ? mainPaletteGroupHtml(type, p) : "");
+    html += `<div class="chart-setting-group"><h3>Цвета ${type === "gini" ? "линий" : chartEntity === "chats" ? "чатов" : type === "years" ? "лет" : "участников"}</h3><p class="hint">Цвета сохраняются отдельно для «${escH(titleName)}».</p>${rowsHtml}</div>` + (targets.some(t => t.kind !== "special") ? mainPaletteGroupHtml(type, p) : "");
   }
   html += resetButton;
   content.innerHTML = html;
-}
-function persistChartAppearance(type, patch){
-  CHART_PREFS[type] = {...(CHART_PREFS[type] || {}), ...patch};
-  saveChartPrefs();
-  applyChartAppearance(type);
 }
 function openChartSettings(open){
   const panel = $("chart-settings-panel"), btn = $("chart-settings-toggle");
@@ -5680,7 +5611,6 @@ function applyTableOuterWidth(table, width, marginLeft, marginRight){
   if (!table || !Number.isFinite(width)) return;
   const minWidth = 80;
   const bounded = Math.max(minWidth, Math.min(12000, Math.round(width)));
-  const outerLeft = Math.max(0, Math.round(Number(marginLeft) || 0));
   table.classList.add("resizable-table-width");
   table.style.setProperty("width", `${bounded}px`, "important");
   table.style.setProperty("min-width", "0px", "important");
@@ -6117,7 +6047,6 @@ $("fc-copy-table").onclick = () => {
   copyPngToStatus(() => tableImageBlob("forecast-table", title), $("fc-copy-status"), "Таблица скопирована");
 };
 $("fc-metric").onchange = renderForecast;
-$("stack-mode").onchange = () => renderCharts();
 
 /* ---------- Настройки аномалий ---------- */
 (function(){
@@ -6265,7 +6194,6 @@ try {
 
 const sFmtDate = d => formatDateRu(parseDate(d));
 const sShort = d => `${d.slice(8)}.${d.slice(5, 7)}`;
-const sDayW = n => wordForm(n, ["день","дня","дней"]);
 const sFriW = n => wordForm(n, ["пятница","пятницы","пятниц"]);
 function fridayOf(d){
   const [y, m, dd] = d.split("-").map(Number), t = new Date(Date.UTC(y, m - 1, dd));
@@ -7152,7 +7080,6 @@ const PAIR_PALETTES = [
 ];
 const palMap = groups => new Map(groups.flatMap(([, items]) => items));
 const SEQ_MAP = palMap(SEQ_PALETTES), CAT_MAP = palMap(CAT_PALETTES), PAIR_MAP = palMap(PAIR_PALETTES);
-SEQ_MAP.forEach((c, n) => { HEAT_PRESETS[n] = [...c]; });
 const sameColors = (a, b) => a.length === b.length && a.every((c, i) => String(c).toLowerCase() === String(b[i]).toLowerCase());
 function palStrip(kind, cols){
   if (kind === "seq") return `linear-gradient(90deg,${cols.join(",")})`;
@@ -7963,7 +7890,6 @@ const REDUCED_MOTION = window.matchMedia?.("(prefers-reduced-motion: reduce)").m
 
 /* ===================== Участники: редактирование на сайте ===================== */
 const PEOPLE_KEY = "chatstats.people.v1";
-const PEOPLE_DEFAULT = Object.entries(NAMES).map(([pk, name]) => ({pk:String(pk), name, joined:(MEMBERSHIP_STARTS.find(([, id]) => String(id) === String(pk)) || [""])[0]}));
 function applyPeople(list){
   Object.keys(NAMES).forEach(k => delete NAMES[k]);
   MEMBERSHIP_STARTS.length = 0;
@@ -8258,6 +8184,14 @@ try { const j = JSON.parse(localStorage.getItem(CMP_KEY) || "null"); if (j) CMP 
 if (!["user", "chat", "month", "year"].includes(CMP.mode)) CMP.mode = "user";
 const CMP_MODES = [["user", "Участники"], ["chat", "Чаты"], ["month", "Месяцы"], ["year", "Годы"]];
 let cmpLast = null;
+// Цвета пары в сравнении: свои цвета участников, а если они почти совпадают — второй заменяется на контрастный.
+// Используется и в карточке сравнения, и на радарах, чтобы цвета везде совпадали.
+function cmpPairColors(cA, cB){
+  const cDist = (x, y) => { const p = h => [1, 3, 5].map(i => parseInt(String(h).slice(i, i + 2), 16) || 0); const a = p(x), b = p(y); return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); };
+  if (/^#[0-9a-f]{6}$/i.test(cA) && /^#[0-9a-f]{6}$/i.test(cB) && cDist(cA, cB) < 90) cB = ["#7aa2f7", "#ff9e64", "#bb9af7", "#9ece6a"].find(c => cDist(cA, c) >= 90) || "#7aa2f7";
+  else if (String(cA).toLowerCase() === String(cB).toLowerCase()) cB = "#7aa2f7";
+  return [cA, cB];
+}
 function cmpSave(){ try { localStorage.setItem(CMP_KEY, JSON.stringify(CMP)); } catch (e) {} updateRoute(); }
 function cmpRange(){
   const today = iso(new Date());
@@ -8358,9 +8292,7 @@ function cmpModel(){
     const cut = rA[1].slice(5) !== "12-31" && CMP.same ? ` · по ${yrDayRu(rA[1])}` : "";
     scope = `${chatTxt}${cut}`;
   }
-  const cDist = (x, y) => { const p = h => [1, 3, 5].map(i => parseInt(String(h).slice(i, i + 2), 16) || 0); const a = p(x), b = p(y); return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); };
-  if (/^#[0-9a-f]{6}$/i.test(cA) && /^#[0-9a-f]{6}$/i.test(cB) && cDist(cA, cB) < 90) cB = ["#7aa2f7", "#ff9e64", "#bb9af7", "#9ece6a"].find(c => cDist(cA, c) >= 90) || "#7aa2f7";
-  else if (String(cA).toLowerCase() === String(cB).toLowerCase()) cB = "#7aa2f7";
+  [cA, cB] = cmpPairColors(cA, cB);
   title = `${nA} и ${nB}`;
   const metrics = [["Сообщения", A.t.msgs, B.t.msgs, fmt, "", "", "сообщений"], ["Стикеры", A.t.stick, B.t.stick, fmt, "", "", "стикеров"], ["Голосовые", A.t.voice, B.t.voice, fmt, "", "", "голосовых"], ["Видеосообщения", A.t.video, B.t.video, fmt, "", "", "видеосообщений"]];
   if (mode === "user") {
@@ -8655,7 +8587,6 @@ $("cmp-filters").addEventListener("click", e => {
 /* ===================== Визуализация вкладки «Время» ===================== */
 const TM_FONT = `font-family="Samsung Sans, SamsungOne, Segoe UI, system-ui, sans-serif"`;
 function tmTheme(){ return {tx:cmpThemeVar("--text", "#e8eaf1"), mu:cmpThemeVar("--muted", "#8a90a2"), ln:cmpThemeVar("--line", "#272b36"), acc:cmpThemeVar("--accent", "#7aa2f7"), acc2:cmpThemeVar("--accent-2", "#bb9af7")}; }
-const tmIso = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 const tmYears = d => d / 365.2425;
 // Лента участия: полоса от даты прихода до сегодня.
 function tmGanttSvg(list){
@@ -8947,7 +8878,7 @@ function raceData(){
   const list = [...per.values()];
   if (!list.length) return {err:"Нет данных за выбранный период"};
   list.forEach(e => { let s2 = 0; for (let i = 0; i < FR; i++) { s2 += e.a[i]; e.a[i] = s2; } });
-  const topN = Math.min(20, Number($("trend-top").value) || 10), cand = new Set();
+  const topN = Math.min(40, trendTop(10)), cand = new Set();
   for (let i = 0; i < FR && cand.size < 60; i++) list.filter(e => e.a[i] > 0).sort((a, b) => b.a[i] - a.a[i]).slice(0, topN).forEach(e => cand.add(e));
   const labels = Array.from({length:FR}, (_, i) => addDaysIso(from, Math.min(N - 1, (i + 1) * step - 1)));
   return {ents:[...cand], FR, labels, topN, step, from, to};
@@ -9027,7 +8958,7 @@ function pairsChart(){
     let s2 = act.get(k); if (!s2) { s2 = new Set(); act.set(k, s2); names.set(k, who(x)); }
     s2.add(String(x[F.date] ?? "").slice(0, 10)); tot.set(k, (tot.get(k) || 0) + v);
   });
-  const n0 = Math.min(25, Number($("trend-top").value) || 10);
+  const n0 = Math.min(40, trendTop(10));
   const U = [...act.keys()].sort((a, b) => act.get(b).size - act.get(a).size || tot.get(b) - tot.get(a)).slice(0, n0), n = U.length;
   if (n < 2) return note("Нужно минимум два участника с активностью за выбранный период");
   const J = U.map(a => U.map(b => { if (a === b) return null; const A = act.get(a), B = act.get(b); let both = 0; A.forEach(d => { if (B.has(d)) both++; }); const uni = A.size + B.size - both; return {j:uni ? both / uni : 0, both, uni}; }));
@@ -9924,6 +9855,394 @@ function liveApply(){
   liveApply();
 })();
 
+/* ===================== Новые графики: места, разброс, концентрация, маленькие графики ===================== */
+// Всё объявлено через function/var: renderCharts может вызваться раньше, чем исполнится этот блок.
+var CHART_HOVER = null;
+var CHART_NORM_TYPES = ["bars", "trend", "bump", "multiples"];
+var EV_FLAG = "#ffd166", EV_MAR_PAL = ["#9ece6a", "#2ac3de", "#bb9af7", "#ff9e64", "#73daca", "#f7768e"];
+function syncChartNormField(type){
+  const f = $("f-norm"); if (!f) return;
+  f.hidden = $("tab-charts").classList.contains("active") && !CHART_NORM_TYPES.includes(type || cType);
+}
+["bump-mode", "spread-zero", "spread-scale", "mult-scale", "chart-events"].forEach(id => { const el = $(id); if (el) el.addEventListener("change", () => renderCharts()); });
+document.querySelectorAll("nav button[data-tab]").forEach(b => b.addEventListener("click", () => {
+  const f = $("f-norm"); if (f) f.hidden = b.dataset.tab === "charts" && !CHART_NORM_TYPES.includes(cType);
+}));
+
+/* ---------- Общие данные: значения по дням для каждого участника или чата ---------- */
+function chartDaily(ignoreSel = false){
+  const r = cRange(); if (!r) return {err:"Выберите период"};
+  const chats = chartEntity === "chats", metric = $("metric").value;
+  const src = chats ? chatRowsForChart(cRows()) : cScoped();
+  let dmin = "9999-99-99";
+  src.forEach(x => { const d = String(x[F.date] ?? "").slice(0, 10); if (d.length === 10 && d >= r[0] && d <= r[1] && d < dmin) dmin = d; });
+  if (dmin === "9999-99-99") return {err:"Нет данных за выбранный период"};
+  const todayIso = iso(now), from = r[0] > dmin ? r[0] : dmin, to = r[1] < todayIso ? r[1] : todayIso;
+  const n = dayIdx(to) - dayIdx(from) + 1; if (n < 1) return {err:"Этот период ещё не начался"};
+  const d0 = dayIdx(from), ents = new Map();
+  src.forEach(x => {
+    const d = String(x[F.date] ?? "").slice(0, 10); if (d.length !== 10 || d < from || d > to) return;
+    const k = chats ? String(x[F.chatPk] ?? x[F.chat]) : String(x[F.userId] ?? x[F.name]);
+    if (!chats && (!isVisibleUser(k) || (!ignoreSel && SEL_ACTIVE && !SEL.has(k)))) return;
+    let e = ents.get(k); if (!e) ents.set(k, e = {k, n: chats ? String(x[F.chat] || `Чат ${k}`) : who(x), a:new Float64Array(n), tot:0});
+    const v = Number(g(x, metric)) || 0; e.a[dayIdx(d) - d0] += v; e.tot += v;
+  });
+  const list = [...ents.values()].filter(e => e.tot > 0).sort((a, b) => b.tot - a.tot);
+  if (!list.length) return {err:"Нет данных за выбранный период"};
+  return {from, to, n, d0, list, metric, chats, date:i => addDaysIso(from, i)};
+}
+// Деление периода на отрезки: дни, недели или месяцы.
+function chartBuckets(from, n, maxBuckets = 40){
+  const kind = n <= Math.min(maxBuckets, 45) ? "d" : n <= maxBuckets * 7 ? "w" : "m";
+  const d0 = dayIdx(from), y0 = +from.slice(0, 4), m0 = +from.slice(5, 7) - 1;
+  const of = i => kind === "d" ? i : kind === "w" ? Math.floor(i / 7) : (() => { const d = addDaysIso(from, i); return (+d.slice(0, 4) - y0) * 12 + (+d.slice(5, 7) - 1 - m0); })();
+  const count = of(n - 1) + 1;
+  const start = b => kind === "d" ? addDaysIso(from, b) : kind === "w" ? addDaysIso(from, b * 7) : (() => { const t = new Date(Date.UTC(y0, m0 + b, 1)); const s = t.toISOString().slice(0, 10); return s < from ? from : s; })();
+  const end = b => b >= count - 1 ? addDaysIso(from, n - 1) : addDaysIso(start(b + 1), -1);
+  const dShort = d => `${+d.slice(8, 10)} ${MONTHS_SHORT_RU[+d.slice(5, 7) - 1]}`;
+  const label = b => { const s = start(b); return kind === "m" ? (s.slice(5, 7) === "01" || b === 0 ? `${MONTHS_SHORT_RU[+s.slice(5, 7) - 1]} ${s.slice(0, 4)}` : MONTHS_SHORT_RU[+s.slice(5, 7) - 1]) : dShort(s); };
+  const full = b => { const s = start(b), e = end(b); return kind === "d" ? formatDateRu(parseDate(s)) : kind === "w" ? `${dShort(s)} — ${dShort(e)} ${e.slice(0, 4)}` : `${MONTHS[+s.slice(5, 7) - 1]} ${s.slice(0, 4)}`; };
+  const idx = new Int32Array(n); for (let i = 0; i < n; i++) idx[i] = of(i);
+  return {kind, count, idx, start, end, label, full, word: kind === "d" ? "дням" : kind === "w" ? "неделям" : "месяцам"};
+}
+function bucketSums(a, B){
+  const s = new Float64Array(B.count), act = new Int32Array(B.count);
+  for (let i = 0; i < a.length; i++) { s[B.idx[i]] += a[i]; if (a[i] > 0) act[B.idx[i]]++; }
+  return {s, act};
+}
+function shortName(n, max = 16){ n = String(n); return n.length > max ? n.slice(0, max - 1) + "…" : n; }
+function axisEvery(count, px, need = 64){ return Math.max(1, Math.ceil(need / Math.max(1, px / Math.max(1, count)))); }
+
+/* ---------- События на оси времени: марафоны и хроника ---------- */
+function chartEventsFor(from, to, pks){
+  const modeE = $("chart-events") && !$("chart-events-field")?.hidden ? $("chart-events").value : "none";
+  if (modeE === "none" || !from || !to) return null;
+  const bands = (typeof MARATHONS !== "undefined" ? MARATHONS : []).map((m, i) => ({name:m.name, from:m.from > from ? m.from : from, to:m.to < to ? m.to : to, rf:m.from, rt:m.to, color:EV_MAR_PAL[i % EV_MAR_PAL.length]}))
+    .filter(b => b.from <= b.to && /^\d{4}-\d{2}-\d{2}$/.test(b.from));
+  let flags = [];
+  if (modeE === "all" && allRows && window.__chron) {
+    try {
+      const PR = {chat:0, lead:1, streak:2, rec:3, join:4, ach:5};
+      const want = pks ? new Set(pks.map(String)) : null, chats = chartEntity === "chats";
+      const ev = window.__chron.chronicle(window.__chron.model())
+        .filter(e => e.date >= from && e.date <= to && (e.pk == null || (!chats && (want ? want.has(String(e.pk)) : e.type === "lead"))))
+        .sort((a, b) => (PR[a.type] ?? 9) - (PR[b.type] ?? 9) || a.date.localeCompare(b.date));
+      const byDay = new Map();
+      ev.forEach(e => { let f = byDay.get(e.date); if (!f) { if (byDay.size >= 24) return; byDay.set(e.date, f = {d:e.date, items:[]}); } if (f.items.length < 4) f.items.push(`${e.ic || "•"} ${e.name ? e.name + " — " : ""}${e.text}`); });
+      flags = [...byDay.values()].sort((a, b) => a.d.localeCompare(b.d));
+    } catch (e) { console.error(e); }
+  }
+  return {bands, flags};
+}
+function chartEventNote(evs, d, d2 = d){
+  if (!evs) return "";
+  let h = "";
+  evs.bands.forEach(b => { if (d2 >= b.from && d <= b.to) h += tipRow(`<i style="background:${b.color}"></i>${escH(b.name)}`, `${+b.rf.slice(8)}.${b.rf.slice(5, 7)} — ${+b.rt.slice(8)}.${b.rt.slice(5, 7)}`); });
+  evs.flags.filter(x => x.d >= d && x.d <= d2).forEach(f => f.items.forEach(t => { h += `<div class="tr"><em>${escH(t)}</em><span></span></div>`; }));
+  return h;
+}
+// Рисует полосы марафонов и флажки событий. xOf(date) → координата; T..B — высота области.
+function chartEventsSvg(evs, xOf, T, B, R, opts = {}){
+  if (!evs) return {svg:"", notes:() => ""};
+  let o = "";
+  const dayW = Math.max(2, opts.dayW || 0);
+  evs.bands.forEach(b => {
+    const x0 = xOf(b.from), x1 = Math.max(x0 + 3, xOf(b.to) + dayW);
+    o += `<rect x="${x0.toFixed(1)}" y="${T}" width="${(x1 - x0).toFixed(1)}" height="${B - T}" fill="${b.color}" fill-opacity=".10" pointer-events="none"/><line x1="${x0.toFixed(1)}" y1="${T}" x2="${x1.toFixed(1)}" y2="${T}" stroke="${b.color}" stroke-width="3" stroke-opacity=".8" pointer-events="none"/>`;
+    if (!opts.noLabels && x1 - x0 > 46) o += `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${T + 16}" text-anchor="middle" font-size="12" fill="${b.color}" pointer-events="none">${escH(shortName(b.name.replace(/^Марафон\s*/i, "").replace(/\s*марафон/i, ""), Math.max(4, Math.floor((x1 - x0) / 7))))}</text>`;
+  });
+  if (!opts.noFlags) evs.flags.forEach(f => {
+    const x = xOf(f.d) + dayW / 2;
+    o += `<line x1="${x.toFixed(1)}" y1="${T}" x2="${x.toFixed(1)}" y2="${B}" stroke="${EV_FLAG}" stroke-opacity=".45" stroke-width="1.2" stroke-dasharray="3 4" pointer-events="none"/><path d="M${x.toFixed(1)},${T - 2} l5,-6 l-5,-6 l-5,6 z" fill="${EV_FLAG}" data-tip="${escH(formatDateRu(parseDate(f.d)))}|${escH(f.items.join(" · "))}" style="cursor:help"/>`;
+  });
+  return {svg:o, notes:d => chartEventNote(evs, d)};
+}
+
+/* ---------- График мест (bump chart) ---------- */
+function bumpChart(){
+  const D = chartDaily(); if (D.err) return note(D.err);
+  const B = chartBuckets(D.from, D.n, 30);
+  if (B.count < 2) return note("Для графика мест нужен период хотя бы из двух дней");
+  const cum = $("bump-mode").value === "cum", kindKey = chartStyleKind();
+  // Значение каждого в каждом отрезке (сумма или накопленное; в режиме «на активный день» — среднее за активный день).
+  const vals = D.list.map(e => {
+    const {s, act} = bucketSums(e.a, B), v = new Float64Array(B.count), raw = new Float64Array(B.count);
+    let cs = 0, ca = 0;
+    for (let b = 0; b < B.count; b++) {
+      cs += s[b]; ca += act[b];
+      const sum = cum ? cs : s[b], days = cum ? ca : act[b];
+      raw[b] = sum; v[b] = NORM === "day" ? (days ? sum / days : 0) : sum;
+    }
+    return {e, v, raw};
+  });
+  // Места — среди всех, у кого было значение в отрезке; одинаковые значения делят место.
+  const ranks = vals.map(() => new Array(B.count).fill(null)), totals = new Float64Array(B.count);
+  for (let b = 0; b < B.count; b++) {
+    const order = vals.map((x, i) => [i, x.v[b]]).filter(q => q[1] > 0).sort((p, q) => q[1] - p[1]);
+    order.forEach(([i, v], k) => { ranks[i][b] = k > 0 && v === order[k - 1][1] ? ranks[order[k - 1][0]][b] : k + 1; });
+    vals.forEach(x => totals[b] += x.raw[b]);
+  }
+  const shownAll = vals.slice(0, trendTop());
+  const shown = shownAll.filter(x => !hiddenSeries.has(x.e.n));
+  lineSeriesInfo = shownAll.map(x => ({name:x.e.n, color:chartSeriesStyle(kindKey, x.e.k).c[0]}));
+  const nShown = shownAll.length;
+  let maxSeen = 1; shownAll.forEach(x => ranks[vals.indexOf(x)].forEach(r => { if (r && r > maxSeen) maxSeen = r; }));
+  const maxRank = Math.max(nShown, Math.min(maxSeen, nShown + 8, 40));
+  const W = 1100, L = 70, Rr = W - 210, T = 104, rowH = Math.max(22, Math.min(44, Math.floor(560 / maxRank))), Bt = T + (maxRank - 1) * rowH;
+  const xs = b => L + (B.count === 1 ? 0 : b / (B.count - 1) * (Rr - L)), ys = r => T + (r - 1) * rowH;
+  const modeWord = cum ? "накопительно" : `за каждый отрезок`;
+  let o = head(cPeriodLabel(), `${sub()} · места по ${B.word}, ${modeWord}${NORM === "day" ? ", по среднему за активный день" : ""}`, W);
+  // Сетка мест
+  for (let r = 1; r <= maxRank; r++) {
+    const y = ys(r), medal = ["#ffd166", "#c0c6d4", "#e3a36b"][r - 1];
+    o += `<line x1="${L}" y1="${y}" x2="${Rr}" y2="${y}" stroke="#ffffff" stroke-opacity="${r <= 3 ? .09 : .05}" stroke-width="1"/>`;
+    if (maxRank <= 24 || r === 1 || r % 5 === 0) o += medal
+      ? `<circle cx="${L - 34}" cy="${y}" r="11" fill="${medal}" fill-opacity=".2" stroke="${medal}" stroke-opacity=".7"/><text class="chart-axis" x="${L - 34}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="${medal}">${r}</text>`
+      : `<text class="chart-axis" x="${L - 34}" y="${y + 5}" text-anchor="middle" font-size="14" fill="#aab0c0">${r}</text>`;
+  }
+  const every = axisEvery(B.count, Rr - L, B.kind === "m" ? 58 : 52);
+  for (let b = 0; b < B.count; b++) if (b % every === 0 || b === B.count - 1 && (B.count - 1) % every > every / 2)
+    o += `<text class="chart-axis" x="${xs(b).toFixed(1)}" y="${Bt + 34}" text-anchor="middle" font-size="14" fill="#aab0c0">${escH(B.label(b))}</text>`;
+  const evs = chartEventsFor(D.from, D.to, shownAll.map(x => x.e.k));
+  if (evs) {
+    const xOfDate = d => { const i = Math.max(0, Math.min(D.n - 1, dayIdx(d) - D.d0)), b = B.idx[i]; return xs(b) - (B.count > 1 ? (Rr - L) / (B.count - 1) / 2 : 0); };
+    const ev = chartEventsSvg({bands:evs.bands, flags:evs.flags}, xOfDate, T - 18, Bt + 14, Rr, {dayW:B.count > 1 ? (Rr - L) / (B.count - 1) : 10});
+    o += ev.svg;
+  }
+  const many = B.count > 36, pr = many ? 3.5 : 6;
+  const vfmt = v => NORM === "day" ? fmtR(v) : fmt(Math.round(v));
+  // Линии — снизу вверх, чтобы лидеры были поверх.
+  [...shown].reverse().forEach(x => {
+    const i = vals.indexOf(x), rk = ranks[i], c = chartSeriesStyle(kindKey, x.e.k).c[0];
+    let d = "", prev = null;
+    for (let b = 0; b < B.count; b++) {
+      const r = rk[b]; if (!r || r > maxRank) { prev = null; continue; }
+      const px = xs(b), py = ys(r);
+      if (!prev) d += `M${px.toFixed(1)},${py.toFixed(1)}`;
+      else { const mx = (prev[0] + px) / 2; d += ` C${mx.toFixed(1)},${prev[1].toFixed(1)} ${mx.toFixed(1)},${py.toFixed(1)} ${px.toFixed(1)},${py.toFixed(1)}`; }
+      prev = [px, py];
+    }
+    o += `<path class="anim-line" pathLength="1" data-n="${escH(x.e.n)}" d="${d}" fill="none" stroke="${c}" stroke-width="${many ? 2.6 : 3.4}" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".9"/>`;
+    for (let b = 0; b < B.count; b++) {
+      const r = rk[b]; if (!r || r > maxRank) continue;
+      const share = totals[b] ? x.raw[b] / totals[b] : 0;
+      const tip = `${x.e.n} · ${B.full(b)}|${r} место · ${vfmt(x.v[b])}${NORM === "day" ? " в активный день" : ""} · ${pctStr(share)} всех`;
+      o += `<circle data-n="${escH(x.e.n)}" cx="${xs(b).toFixed(1)}" cy="${ys(r).toFixed(1)}" r="${pr}" fill="${c}" stroke="#12141b" stroke-width="2" data-tip="${escH(tip)}"/>`;
+    }
+  });
+  // Подписи справа: последнее место (или «вне топ-N»), клик скрывает линию.
+  const ends = shownAll.map(x => {
+    const i = vals.indexOf(x), rk = ranks[i]; let lb = B.count - 1; while (lb >= 0 && (!rk[lb] || rk[lb] > maxRank)) lb--;
+    return {x, r: lb >= 0 ? rk[lb] : null, last: rk[B.count - 1], y: lb >= 0 ? ys(rk[lb]) : Bt + rowH, lb};
+  }).sort((a, b) => a.y - b.y);
+  const gap = Math.max(15, Math.min(rowH, 24)); let prevY = -1e9;
+  ends.forEach(e => { e.ly = Math.max(e.y, prevY + gap); prevY = e.ly; });
+  ends.forEach(e => {
+    const c = chartSeriesStyle(kindKey, e.x.e.k).c[0], off = hiddenSeries.has(e.x.e.n);
+    const place = e.last ? `${e.last}-е` : "—";
+    o += `<g class="lg-item" data-name="${escH(e.x.e.n)}" data-ek="${escH(e.x.e.k)}" opacity="${off ? .35 : 1}" style="cursor:pointer"><rect x="${Rr + 14}" y="${(e.ly - gap / 2).toFixed(1)}" width="190" height="${gap}" fill="transparent"/>`
+      + (e.lb >= 0 && !off ? `<path d="M${(xs(e.lb) + pr + 2).toFixed(1)},${e.y.toFixed(1)} L${(Rr + 20).toFixed(1)},${e.ly.toFixed(1)}" stroke="${c}" stroke-opacity=".35" stroke-width="1.2" fill="none"/>` : "")
+      + `<circle cx="${Rr + 26}" cy="${e.ly.toFixed(1)}" r="5" fill="${c}"/><text class="chart-legend" x="${Rr + 38}" y="${(e.ly + 5).toFixed(1)}" font-size="15" fill="#f2f3f7">${escH(shortName(e.x.e.n, 15))}<tspan class="chart-value" font-size="13" fill="#9aa0b0"> ${place}</tspan></text></g>`;
+  });
+  const H = Bt + 70;
+  o += `<text class="chart-legend" x="${L - 34}" y="${H - 8}" font-size="13" fill="#7d8190">Место — среди всех ${D.chats ? "чатов" : "участников"} ${cum ? "по сумме с начала периода" : "с активностью в этом отрезке"}. Наведи на точку, чтобы увидеть значение; клик по имени скрывает линию.</text>`;
+  return `<svg class="wide-svg" viewBox="0 0 ${W} ${H}" role="img">${o}</svg>`;
+}
+
+/* ---------- Разброс по дням (box plot) ---------- */
+function quantile(sorted, q){
+  if (!sorted.length) return 0;
+  const pos = (sorted.length - 1) * q, lo = Math.floor(pos), hi = Math.ceil(pos);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+}
+function spreadChart(){
+  const D = chartDaily(); if (D.err) return note(D.err);
+  const withZero = !D.chats && $("spread-zero").value === "all", logS = $("spread-scale").value === "log";
+  const stats = D.list.slice(0, trendTop(10)).filter(e => !hiddenSeries.has(e.n)).map(e => {
+    let first = 0; while (first < D.n && !(e.a[first] > 0)) first++;
+    const days = [];
+    for (let i = first; i < D.n; i++) if (withZero || e.a[i] > 0) days.push([i, e.a[i]]);
+    const v = days.map(d => d[1]).sort((a, b) => a - b);
+    const q1 = quantile(v, .25), med = quantile(v, .5), q3 = quantile(v, .75), iqr = q3 - q1;
+    const loF = q1 - 1.5 * iqr, hiF = q3 + 1.5 * iqr;
+    const inside = v.filter(x => x >= loF && x <= hiF);
+    const mean = v.reduce((a, b) => a + b, 0) / Math.max(1, v.length);
+    const outl = days.filter(d => d[1] < loF || d[1] > hiF).sort((a, b) => b[1] - a[1]);
+    return {e, n:v.length, q1, med, q3, lo:inside.length ? inside[0] : v[0], hi:inside.length ? inside[inside.length - 1] : v[v.length - 1], mean, max:v[v.length - 1], outl, best:days.reduce((m, d) => d[1] > m[1] ? d : m, [0, 0])};
+  }).filter(s => s.n > 0).sort((a, b) => b.med - a.med || b.mean - a.mean);
+  lineSeriesInfo = D.list.slice(0, trendTop(10)).map(e => ({name:e.n, color:chartSeriesStyle(chartStyleKind(), e.k).c[0]}));
+  if (!stats.length) return note("Все строки скрыты — верни их кнопкой «Показать все»");
+  const vmax = Math.max(1, ...stats.map(s => s.max));
+  const W = 900, LBL = Math.min(190, Math.max(90, Math.max(...stats.map(s => shortName(s.e.n, 18).length)) * 8.6 + 16)), X0 = LBL + 14, X1 = W - 30;
+  const rowH = stats.length > 20 ? 26 : 34, T = 112, Bt = T + stats.length * rowH;
+  const lsc = axisScale(vmax, 0), dom = logS ? vmax : lsc.max;
+  const tf = v => logS ? Math.log1p(v) : v, sx = v => X0 + tf(v) / tf(dom) * (X1 - X0);
+  const metricW = MLBL[D.metric].toLowerCase();
+  let o = head(cPeriodLabel(), `${sub()} · ${metricW} в день, ${withZero ? "включая дни без активности" : "только активные дни"}${logS ? ", логарифмическая шкала" : ""}`);
+  // шкала
+  const ticks = logS ? [0, 1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000].filter(v => v <= vmax * 1.001) : axisTicks(lsc);
+  if (!ticks.includes(0)) ticks.unshift(0);
+  ticks.forEach(v => {
+    const x = sx(v);
+    o += `<line x1="${x.toFixed(1)}" y1="${T - 6}" x2="${x.toFixed(1)}" y2="${Bt}" stroke="#ffffff" stroke-opacity=".06"/><text class="chart-axis" x="${x.toFixed(1)}" y="${Bt + 24}" text-anchor="middle" font-size="14" fill="#aab0c0">${axisLabel(v)}</text>`;
+  });
+  stats.forEach((s, i) => {
+    const y = T + i * rowH + rowH / 2, c = chartSeriesStyle(chartStyleKind(), s.e.k).c[0], bh = Math.min(18, rowH - 10);
+    const tip = `${s.e.n}|медиана ${fmtR(s.med)} · среднее ${fmtR(s.mean)} · половина дней от ${fmtR(s.q1)} до ${fmtR(s.q3)} · максимум ${fmt(s.max)} (${formatDateRu(parseDate(D.date(s.best[0])))}) · дней: ${s.n}`;
+    o += `<rect x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}" fill="transparent" data-tip="${escH(tip)}"/>`;
+    o += `<text class="chart-label" x="${LBL}" y="${y + 5}" text-anchor="end" font-size="16" fill="#e6e8ee" data-tip="${escH(tip)}">${escH(shortName(s.e.n, 18))}</text>`;
+    o += `<line x1="${sx(s.lo).toFixed(1)}" y1="${y}" x2="${sx(s.hi).toFixed(1)}" y2="${y}" stroke="${c}" stroke-opacity=".7" stroke-width="2" pointer-events="none"/>`;
+    [s.lo, s.hi].forEach(v => { o += `<line x1="${sx(v).toFixed(1)}" y1="${y - bh / 3}" x2="${sx(v).toFixed(1)}" y2="${y + bh / 3}" stroke="${c}" stroke-opacity=".7" stroke-width="2" pointer-events="none"/>`; });
+    o += `<rect class="anim-bar-x" style="animation-delay:${i * 30}ms" x="${sx(s.q1).toFixed(1)}" y="${y - bh / 2}" width="${Math.max(3, sx(s.q3) - sx(s.q1)).toFixed(1)}" height="${bh}" rx="4" fill="${c}" fill-opacity=".38" stroke="${c}" stroke-width="1.6" data-tip="${escH(tip)}"/>`;
+    o += `<line x1="${sx(s.med).toFixed(1)}" y1="${y - bh / 2}" x2="${sx(s.med).toFixed(1)}" y2="${y + bh / 2}" stroke="#ffffff" stroke-width="2.6" pointer-events="none"/>`;
+    const mx = sx(s.mean); o += `<path d="M${mx.toFixed(1)},${y - 5} l5,5 l-5,5 l-5,-5 z" fill="#12141b" stroke="#ffffff" stroke-width="1.5" pointer-events="none"/>`;
+    s.outl.slice(0, 80).forEach(([di, v]) => {
+      o += `<circle cx="${sx(v).toFixed(1)}" cy="${y}" r="3.2" fill="${c}" fill-opacity=".55" stroke="${c}" data-tip="${escH(`${s.e.n} · ${formatDateRu(parseDate(D.date(di)))}`)}|${escH(`${fmt(v)} — необычный день`)}"/>`;
+    });
+    o += `<text class="chart-value" x="${Math.min(W - 4, sx(s.hi) + 8).toFixed(1)}" y="${y + 4}" font-size="12" fill="#9aa0b0" text-anchor="${sx(s.hi) > W - 80 ? "end" : "start"}" pointer-events="none">${s.outl.length ? "" : "макс " + fmt(s.max)}</text>`;
+  });
+  // Пояснение
+  const ly = Bt + 48;
+  o += `<rect x="${X0}" y="${ly - 9}" width="34" height="14" rx="3" fill="#7aa2f7" fill-opacity=".38" stroke="#7aa2f7"/><line x1="${X0 + 15}" y1="${ly - 9}" x2="${X0 + 15}" y2="${ly + 5}" stroke="#fff" stroke-width="2.4"/><text class="chart-legend" x="${X0 + 44}" y="${ly + 3}" font-size="14" fill="#9aa0b0">коробка — половина дней, белая черта — медиана (типичный день)</text>`;
+  o += `<path d="M${X0 + 17},${ly + 17} l5,5 l-5,5 l-5,-5 z" fill="#12141b" stroke="#fff" stroke-width="1.5"/><text class="chart-legend" x="${X0 + 44}" y="${ly + 27}" font-size="14" fill="#9aa0b0">ромб — среднее, усы — обычный разброс, точки — необычно активные или тихие дни</text>`;
+  o += `<text class="chart-legend" x="${X0}" y="${ly + 52}" font-size="13" fill="#7d8190">Отсортировано по медиане: сверху те, у кого типичный день самый насыщенный.</text><text class="chart-legend" x="${X0}" y="${ly + 70}" font-size="13" fill="#7d8190">Ромб правее белой черты — бывают редкие очень активные дни, которые тянут среднее вверх.</text>`;
+  return `<svg viewBox="0 0 ${W} ${ly + 84}" role="img">${o}</svg>`;
+}
+
+/* ---------- Концентрация активности (кривая Лоренца и Джини) ---------- */
+function giniOf(values){
+  const v = values.filter(x => x > 0).sort((a, b) => a - b), n = v.length;
+  if (n < 2) return {g:0, n};
+  const sum = v.reduce((a, b) => a + b, 0); let acc = 0;
+  v.forEach((x, i) => { acc += (i + 1) * x; });
+  return {g:(2 * acc) / (n * sum) - (n + 1) / n, n, sum, v};
+}
+function giniWord(g){ return g < .3 ? "почти поровну" : g < .5 ? "умеренная концентрация" : g < .7 ? "высокая концентрация" : "очень высокая концентрация"; }
+function giniChart(){
+  const D = chartDaily(true); if (D.err) return note(D.err);
+  const totals = D.list.map(e => e.tot), G = giniOf(totals), n = G.n;
+  if (n < 2) return note(`Для концентрации нужно хотя бы два ${D.chats ? "чата" : "участника"} с активностью`);
+  const cMain = chartSeriesStyle("g", "main").c[0], cTop = chartSeriesStyle("g", "top").c[0];
+  const sum = G.sum, desc = [...G.v].reverse(), share = k => desc.slice(0, k).reduce((a, b) => a + b, 0) / sum;
+  let half = 0, acc = 0; while (acc < sum / 2) acc += desc[half++];
+  const W = 900, who = D.chats ? "чатов" : "участников", mGen = {msgs:"сообщений", stick:"стикеров", voice:"голосовых", video:"видеосообщений"}[D.metric];
+  let o = head(cPeriodLabel(), `${MLBL[D.metric]} · насколько активность сосредоточена у немногих ${who}${!D.chats && $("chat").value ? " · " + $("chat").value : ""}`);
+  // Кривая Лоренца
+  const PX = 70, PY = 110, PS = 360, sx = f => PX + f * PS, sy = f => PY + PS - f * PS;
+  o += `<rect x="${PX}" y="${PY}" width="${PS}" height="${PS}" fill="#ffffff" fill-opacity=".02" stroke="#ffffff" stroke-opacity=".12"/>`;
+  [.25, .5, .75].forEach(f => { o += `<line x1="${sx(f)}" y1="${PY}" x2="${sx(f)}" y2="${PY + PS}" stroke="#fff" stroke-opacity=".05"/><line x1="${PX}" y1="${sy(f)}" x2="${PX + PS}" y2="${sy(f)}" stroke="#fff" stroke-opacity=".05"/>`; });
+  [0, .5, 1].forEach(f => { o += `<text class="chart-axis" x="${sx(f)}" y="${PY + PS + 22}" text-anchor="middle" font-size="13" fill="#aab0c0">${Math.round(f * 100)}%</text><text class="chart-axis" x="${PX - 8}" y="${sy(f) + 4}" text-anchor="end" font-size="13" fill="#aab0c0">${Math.round(f * 100)}%</text>`; });
+  o += `<text class="chart-axis" x="${PX + PS / 2}" y="${PY + PS + 44}" text-anchor="middle" font-size="13" fill="#7d8190">доля ${who} (от самых тихих к самым активным)</text>`;
+  o += `<text class="chart-axis" x="${PX - 46}" y="${PY + PS / 2}" text-anchor="middle" font-size="13" fill="#7d8190" transform="rotate(-90 ${PX - 46} ${PY + PS / 2})">доля ${mGen}</text>`;
+  const pts = [[0, 0]]; let cs = 0;
+  G.v.forEach((x, i) => { cs += x; pts.push([(i + 1) / n, cs / sum]); });
+  const path = pts.map((p, i) => `${i ? "L" : "M"}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ");
+  o += `<path d="M${sx(0)},${sy(0)} L${sx(1)},${sy(1)} ${[...pts].reverse().map(p => `L${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(" ")} Z" fill="${cMain}" fill-opacity=".16" pointer-events="none"/>`;
+  o += `<line x1="${sx(0)}" y1="${sy(0)}" x2="${sx(1)}" y2="${sy(1)}" stroke="#ffffff" stroke-opacity=".45" stroke-width="1.5" stroke-dasharray="6 5"/><text class="chart-legend" x="${sx(.52)}" y="${sy(.6)}" font-size="12" fill="#9aa0b0" transform="rotate(-45 ${sx(.52)} ${sy(.6)})" text-anchor="middle">все поровну</text>`;
+  o += `<path class="anim-line" pathLength="1" d="${path}" fill="none" stroke="${cMain}" stroke-width="3" stroke-linejoin="round"/>`;
+  const names = [...D.list].reverse();
+  pts.slice(1).forEach((p, i) => { if (n <= 60) o += `<circle cx="${sx(p[0]).toFixed(1)}" cy="${sy(p[1]).toFixed(1)}" r="${n > 30 ? 2.5 : 3.5}" fill="${cMain}" data-tip="${escH(`${names[i].n}`)}|${escH(`${fmt(names[i].tot)} · ${pctStr(names[i].tot / sum)} · вместе с более тихими: ${Math.round(p[0] * 100)}% ${who} дают ${Math.round(p[1] * 100)}%`)}"/>`; });
+  // Сводка справа
+  const RX = 500;
+  o += `<text class="chart-legend" x="${RX}" y="${PY + 14}" font-size="15" fill="#9aa0b0">Индекс Джини</text><text class="chart-value" x="${RX}" y="${PY + 62}" font-size="52" font-weight="700" fill="${cMain}">${G.g.toFixed(2).replace(".", ",")}</text><text class="chart-label" x="${RX + 128}" y="${PY + 58}" font-size="17" fill="#e6e8ee">${escH(giniWord(G.g))}</text>`;
+  o += `<text class="chart-legend" x="${RX}" y="${PY + 86}" font-size="13" fill="#7d8190">${D.chats ? "0 — во всех чатах поровну, 1 — всё в одном чате" : "0 — все пишут одинаково, 1 — пишет кто-то один"}</text>`;
+  const rows = [["Лидер", share(1), D.list[0].n, 1], ["Топ-3", share(Math.min(3, n)), "", 3], ["Топ-5", share(Math.min(5, n)), "", 5], [`Топ-10%`, share(Math.max(1, Math.round(n * .1))), `${Math.max(1, Math.round(n * .1))} из ${n}`, n >= 10 ? 0 : n]].filter(r => r[3] < n);
+  rows.forEach(([lab, f, extra], i) => {
+    const y = PY + 128 + i * 46, bw = 300;
+    o += `<text class="chart-label" x="${RX}" y="${y}" font-size="15" fill="#e6e8ee">${escH(lab)}${extra ? `<tspan fill="#7d8190" font-size="13"> · ${escH(shortName(extra, 22))}</tspan>` : ""}</text><text class="chart-label" x="${RX + bw}" y="${y}" text-anchor="end" font-size="15" fill="#eceef3">${pctStr(f)}</text>`;
+    o += `<rect x="${RX}" y="${y + 8}" width="${bw}" height="8" rx="4" fill="#ffffff" fill-opacity=".07"/><rect class="anim-bar-x" x="${RX}" y="${y + 8}" width="${(bw * f).toFixed(1)}" height="8" rx="4" fill="${i === 1 ? cTop : cMain}"/>`;
+  });
+  o += `<text class="chart-label" x="${RX}" y="${PY + 330}" font-size="16" fill="#e6e8ee">Половину всех ${mGen} дают</text><text class="chart-value" x="${RX}" y="${PY + 358}" font-size="22" font-weight="700" fill="#eceef3">${half} из ${n} ${who}<tspan font-size="15" font-weight="400" fill="#9aa0b0"> (${pctStr(half / n)})</tspan></text>`;
+  // Динамика во времени
+  const Bk = chartBuckets(D.from, D.n, 36);
+  let H = PY + PS + 70;
+  if (Bk.count >= 2) {
+    const series = [];
+    for (let b = 0; b < Bk.count; b++) {
+      const vals = D.list.map(e => { let s = 0; for (let i = 0; i < D.n; i++) if (Bk.idx[i] === b) s += e.a[i]; return s; });
+      const gg = giniOf(vals), tot = vals.reduce((a, c) => a + c, 0), top3 = [...vals].sort((a, c) => c - a).slice(0, 3).reduce((a, c) => a + c, 0);
+      series.push(gg.n >= 2 ? {b, g:gg.g * 100, t:tot ? top3 / tot * 100 : 0, n:gg.n} : null);
+    }
+    const TY = H + 20, TH = 190, TL = 70, TR = W - 40;
+    const tx = b => TL + b / (Bk.count - 1) * (TR - TL), ty = v => TY + TH - v / 100 * TH;
+    o += `<text class="chart-label" x="${TL}" y="${TY - 14}" font-size="16" fill="#e6e8ee">Как менялось по ${Bk.word}</text>`;
+    o += `<g class="chart-legend"><circle cx="${TL + 260}" cy="${TY - 19}" r="5" fill="${cMain}"/><text x="${TL + 270}" y="${TY - 14}" font-size="14" fill="#9aa0b0">Джини × 100</text><circle cx="${TL + 380}" cy="${TY - 19}" r="5" fill="${cTop}"/><text x="${TL + 390}" y="${TY - 14}" font-size="14" fill="#9aa0b0">доля топ-3, %</text></g>`;
+    [0, 25, 50, 75, 100].forEach(v => { o += `<line x1="${TL}" y1="${ty(v)}" x2="${TR}" y2="${ty(v)}" stroke="#fff" stroke-opacity="${v ? .05 : .15}"/><text class="chart-axis" x="${TL - 8}" y="${ty(v) + 4}" text-anchor="end" font-size="12" fill="#aab0c0">${v}</text>`; });
+    const every = axisEvery(Bk.count, TR - TL, 60);
+    for (let b = 0; b < Bk.count; b++) if (b % every === 0) o += `<text class="chart-axis" x="${tx(b).toFixed(1)}" y="${TY + TH + 20}" text-anchor="middle" font-size="12" fill="#aab0c0">${escH(Bk.label(b))}</text>`;
+    const evs = chartEventsFor(D.from, D.to, null);
+    if (evs) o += chartEventsSvg({bands:evs.bands, flags:[]}, d => tx(Bk.idx[Math.max(0, Math.min(D.n - 1, dayIdx(d) - D.d0))]), TY, TY + TH, TR, {noLabels:true}).svg;
+    [["g", cMain], ["t", cTop]].forEach(([key, c]) => {
+      let d = "", started = false;
+      series.forEach((p, b) => { if (!p) { started = false; return; } d += `${started ? "L" : "M"}${tx(b).toFixed(1)},${ty(p[key]).toFixed(1)}`; started = true; });
+      o += `<path d="${d}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round"/>`;
+      series.forEach((p, b) => { if (p && Bk.count <= 60) o += `<circle cx="${tx(b).toFixed(1)}" cy="${ty(p[key]).toFixed(1)}" r="3.2" fill="${c}" data-tip="${escH(Bk.full(b))}|${escH(`Джини ${(p.g / 100).toFixed(2).replace(".", ",")} · топ-3: ${fmtR(p.t)}% · активных ${who}: ${p.n}`)}"/>`; });
+    });
+    H = TY + TH + 52;
+  }
+  o += `<text class="chart-legend" x="70" y="${H}" font-size="13" fill="#7d8190">Чем дальше кривая от диагонали, тем сильнее активность держится на немногих.</text><text class="chart-legend" x="70" y="${H + 18}" font-size="13" fill="#7d8190">Выбор участников здесь не учитывается — считается ${D.chats ? "весь список чатов" : "весь чат (без вышедших, если они скрыты)"}.</text>`;
+  return `<svg viewBox="0 0 ${W} ${H + 34}" role="img">${o}</svg>`;
+}
+
+/* ---------- Маленькие графики (small multiples) ---------- */
+function multiplesChart(){
+  const D = chartDaily(); if (D.err) return note(D.err);
+  const Bk = chartBuckets(D.from, D.n, 92), kindKey = chartStyleKind();
+  if (Bk.count < 2) return note("Для маленьких графиков нужен период хотя бы из двух дней");
+  const all = D.list.slice(0, trendTop(12));
+  lineSeriesInfo = all.map(e => ({name:e.n, color:chartSeriesStyle(kindKey, e.k).c[0]}));
+  const list = all.filter(e => !hiddenSeries.has(e.n));
+  if (!list.length) return note("Все графики скрыты — верни их кнопкой «Показать все»");
+  // Сумма всех в каждом отрезке — для режима «доля».
+  const totAll = new Float64Array(Bk.count); D.list.forEach(e => { for (let i = 0; i < D.n; i++) totAll[Bk.idx[i]] += e.a[i]; });
+  const P = list.map(e => {
+    const {s, act} = bucketSums(e.a, Bk), v = Array.from(s, (x, b) => NORM === "share" ? (totAll[b] ? x / totAll[b] * 100 : 0) : NORM === "day" ? (act[b] ? x / act[b] : 0) : x);
+    const mean = v.reduce((a, b) => a + b, 0) / v.length; let mi = 0; v.forEach((x, b) => { if (x > v[mi]) mi = b; });
+    return {e, v, s, act, mean, mi};
+  });
+  const shared = $("mult-scale").value !== "own", gmax = Math.max(1e-9, ...P.map(p => p.v[p.mi]));
+  const W = 1100, cols = list.length >= 9 ? 4 : list.length >= 3 ? 3 : list.length, gapX = 26, gapY = 30, padX = 24;
+  const pw = (W - padX * 2 - gapX * (cols - 1)) / cols, ph = cols >= 4 ? 120 : 140, top = 104;
+  const rowsN = Math.ceil(list.length / cols);
+  const vfmt = v => NORM === "share" ? fmtR(v) + "%" : NORM === "day" ? fmtR(v) : fmt(Math.round(v));
+  const normWord = NORM === "share" ? ", доля от всех в отрезке" : NORM === "day" ? ", на активный день" : "";
+  let o = head(cPeriodLabel(), `${sub()} · по ${Bk.word}${normWord} · шкала ${shared ? "общая" : "своя у каждого"}`, W);
+  const evs = chartEventsFor(D.from, D.to, list.map(e => e.k));
+  const meta = [];
+  P.forEach((p, i) => {
+    const cx = padX + (i % cols) * (pw + gapX), cy = top + Math.floor(i / cols) * (ph + gapY + 26);
+    const x0 = cx, x1 = cx + pw, y0 = cy + 26, y1 = cy + 26 + ph - 18, max = shared ? gmax : Math.max(1e-9, p.v[p.mi]);
+    const X = b => x0 + b / (Bk.count - 1) * (x1 - x0), Y = v => y1 - v / max * (y1 - y0 - 6);
+    const c = chartSeriesStyle(kindKey, p.e.k).c[0];
+    o += `<g class="lg-item" data-name="${escH(p.e.n)}" style="cursor:pointer"><text class="chart-label" x="${x0}" y="${cy + 14}" font-size="15" fill="#f2f3f7" data-ek="${escH(p.e.k)}">${escH(shortName(p.e.n, Math.floor(pw / 10)))}</text></g><text class="chart-value" x="${x1}" y="${cy + 14}" text-anchor="end" font-size="13" fill="#aab0c0">${NORM === "abs" ? fmt(p.e.tot) : "ср. " + vfmt(p.mean)}</text>`;
+    o += `<rect x="${x0}" y="${y0}" width="${pw}" height="${y1 - y0}" rx="6" fill="#ffffff" fill-opacity=".025"/>`;
+    if (evs) o += chartEventsSvg({bands:evs.bands, flags:[]}, d => X(Bk.idx[Math.max(0, Math.min(D.n - 1, dayIdx(d) - D.d0))]), y0, y1, x1, {noLabels:true}).svg;
+    const line = p.v.map((v, b) => `${b ? "L" : "M"}${X(b).toFixed(1)},${Math.max(y0, Y(v)).toFixed(1)}`).join("");
+    o += `<path d="${line} L${x1.toFixed(1)},${y1} L${x0.toFixed(1)},${y1} Z" fill="${c}" fill-opacity=".22"/><path d="${line}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linejoin="round"/>`;
+    const my = Y(p.mean); if (my >= y0) o += `<line x1="${x0}" y1="${my.toFixed(1)}" x2="${x1}" y2="${my.toFixed(1)}" stroke="#ffffff" stroke-opacity=".35" stroke-dasharray="3 4"/>`;
+    const mxv = p.v[p.mi], mxX = X(p.mi), mxY = Math.max(y0, Y(mxv));
+    o += `<circle cx="${mxX.toFixed(1)}" cy="${mxY.toFixed(1)}" r="3.5" fill="${c}" stroke="#12141b" stroke-width="1.5"/><text class="chart-value" x="${Math.min(x1 - 2, Math.max(x0 + 2, mxX)).toFixed(1)}" y="${(mxY - 6).toFixed(1)}" text-anchor="${mxX > x1 - 40 ? "end" : mxX < x0 + 40 ? "start" : "middle"}" font-size="11" fill="#cfd3dc">${vfmt(mxv)}</text>`;
+    o += `<text class="chart-axis" x="${x0}" y="${y1 + 14}" font-size="11" fill="#7d8190">${escH(Bk.label(0))}</text><text class="chart-axis" x="${x1}" y="${y1 + 14}" text-anchor="end" font-size="11" fill="#7d8190">${escH(Bk.label(Bk.count - 1))}</text>`;
+    o += `<rect x="${x0}" y="${y0}" width="${pw}" height="${y1 - y0}" fill="transparent" data-hover="mult" data-i="${i}" style="touch-action:pan-y"/>`;
+    meta.push({x0, x1, y0, y1, X, Y, p, c});
+  });
+  const H = top + rowsN * (ph + gapY + 26) + 20;
+  o += `<line id="mxh" x1="0" y1="0" x2="0" y2="0" stroke="#ffffff99" stroke-width="1.2" stroke-dasharray="3 3" visibility="hidden" pointer-events="none"/>`;
+  o += `<text class="chart-legend" x="${padX}" y="${H - 6}" font-size="13" fill="#7d8190">Пунктир — среднее, точка — пик. ${shared ? "Общая шкала: высоту можно сравнивать между графиками." : "Своя шкала: видна форма каждого, но высоты между графиками не сравниваются."} Клик по имени скрывает график.</text>`;
+  CHART_HOVER = (t, pt, e) => {
+    const m = meta[Number(t.dataset.i)]; if (!m) return;
+    const b = Math.max(0, Math.min(Bk.count - 1, Math.round((pt.x - m.x0) / (m.x1 - m.x0) * (Bk.count - 1))));
+    const xh = $("mxh"); if (xh) { const x = m.X(b); xh.setAttribute("x1", x); xh.setAttribute("x2", x); xh.setAttribute("y1", m.y0); xh.setAttribute("y2", m.y1); xh.setAttribute("visibility", "visible"); }
+    let h = `<b><i style="background:${m.c}"></i>${escH(m.p.e.n)}</b>` + tipRow(Bk.full(b), vfmt(m.p.v[b]));
+    if (NORM !== "abs") h += tipRow("Всего", fmt(Math.round(m.p.s[b])));
+    if (Bk.kind !== "d") h += tipRow("Активных дней", String(m.p.act[b]));
+    h += tipRow("Среднее за отрезок", vfmt(m.p.mean));
+    if (evs) h += chartEventNote(evs, Bk.start(b), Bk.end(b));
+    showTip(h, e);
+  };
+  return `<svg class="wide-svg" viewBox="0 0 ${W} ${H}" role="img">${o}</svg>`;
+}
+
 </script>
 
 <script>
@@ -10121,8 +10440,7 @@ function liveApply(){
     const all = radarStats();
     const ma = all.find(x => x.k === String(CMP.a)), mb = all.find(x => x.k === String(CMP.b));
     const nA = NAMES[CMP.a] || `ID ${CMP.a}`, nB = NAMES[CMP.b] || `ID ${CMP.b}`;
-    let cA = getStyle("u", CMP.a).c[0], cB = getStyle("u", CMP.b).c[0];
-    if (String(cA).toLowerCase() === String(cB).toLowerCase()) cB = "#ff9e64";
+    const [cA, cB] = cmpPairColors(getStyle("u", CMP.a).c[0], getStyle("u", CMP.b).c[0]);
     if (!ma || !mb || all.length < 3) return {ok:false, nA, nB, missing:[!ma ? nA : "", !mb ? nB : ""].filter(Boolean), n:all.length};
     const pct = (me, ax) => { const v = me[ax], others = all.filter(x => x.k !== me.k); if (!others.length) return .5; const lo = others.filter(x => x[ax] < v).length, eq = others.filter(x => x[ax] === v).length; return (lo + eq * .5) / others.length; };
     const P = RADAR_AXES.map(a => ({...a, va:ma[a.k], vb:mb[a.k], pa:pct(ma, a.k), pb:pct(mb, a.k)}));
@@ -10486,7 +10804,7 @@ function liveApply(){
     const W = 1240, pad = 36, cw = (W - pad * 2 - 16) / 2, ch = 166, gap = 14, r = rankOf(res.score);
     let o = "";
     // шапка
-    o += LAST.avData ? `<defs><clipPath id="ach-av-clip"><rect x="${pad}" y="30" width="72" height="72" rx="22"/></clipPath></defs><rect x="${pad}" y="30" width="72" height="72" rx="22" fill="${color}"/><image href="${LAST.avData}" x="${pad}" y="30" width="72" height="72" preserveAspectRatio="xMidYMid slice" clip-path="url(#ach-av-clip)"/>` : `<rect x="${pad}" y="30" width="72" height="72" rx="22" fill="${color}"/><text x="${pad + 36}" y="80" text-anchor="middle" font-size="36" font-weight="700" fill="#10131a">${escH(String(name).replace(/^[«"]/, "").slice(0, 1).toUpperCase())}</text>`;
+    o += LAST.avData ? `<defs><clipPath id="ach-av-clip"><rect x="${pad}" y="30" width="72" height="72" rx="36"/></clipPath></defs><rect x="${pad}" y="30" width="72" height="72" rx="36" fill="${color}"/><image href="${LAST.avData}" x="${pad}" y="30" width="72" height="72" preserveAspectRatio="xMidYMid slice" clip-path="url(#ach-av-clip)"/>` : `<rect x="${pad}" y="30" width="72" height="72" rx="36" fill="${color}"/><text x="${pad + 36}" y="80" text-anchor="middle" font-size="36" font-weight="700" fill="#10131a">${escH(String(name).replace(/^[«"]/, "").slice(0, 1).toUpperCase())}</text>`;
     o += `<text x="${pad + 92}" y="62" font-size="34" font-weight="700" fill="${tx}">${escH(cmpFit(name, 26))}</text><text x="${pad + 92}" y="92" font-size="18" fill="${mu}">Достижения · ${r[1]} · ${formatMetricDate(iso(new Date()))}</text>`;
     const stat = (x, big, lbl) => `<rect x="${x}" y="34" width="120" height="68" rx="14" fill="${tx}" fill-opacity=".06" stroke="${ln}"/><text x="${x + 60}" y="70" text-anchor="middle" font-size="30" font-weight="700" fill="${tx}">${big}</text><text x="${x + 60}" y="90" text-anchor="middle" font-size="13" fill="${mu}">${lbl}</text>`;
     o += stat(W - pad - 384, res.score, "очков из 100") + stat(W - pad - 256, `${res.got}/${ACH.length}`, "получено") + stat(W - pad - 128, res.maxCnt, "максимум");
@@ -11254,7 +11572,6 @@ function liveApply(){
   }
 
   // ---- кнопки ----
-  let uid = 0;
   function findTitle(el, root){
     let n = el;
     while (n && n !== root) {
@@ -11669,12 +11986,12 @@ function liveApply(){
 </script>
 
 <script>
-/* Список серий под графиком («Динамика», «По годам»): скрыть и вернуть любой год или участника */
+/* Список серий под графиком («Динамика», «По годам», «График мест», «Разброс», «Маленькие графики»): скрыть и вернуть любой год или участника */
 (function(){
   const host = $("c-chips"), out = $("c-out"); if (!host || !out) return;
   function render(){
     const info = typeof lineSeriesInfo !== "undefined" ? lineSeriesInfo : null;
-    if (!info || !info.length || !["trend", "years"].includes(cType)) { host.hidden = true; host.innerHTML = ""; return; }
+    if (!info || !info.length || !["trend", "years", "bump", "spread", "multiples"].includes(cType)) { host.hidden = true; host.innerHTML = ""; return; }
     const word = cType === "years" ? "Годы" : (chartEntity === "chats" ? "Чаты" : "Участники");
     host.innerHTML = `<span class="lbl">${word}:</span>` + info.map(s => `<button type="button" class="chip${hiddenSeries.has(s.name) ? " off" : ""}" style="--c:${escH(s.color)}" data-series="${escH(s.name)}" aria-pressed="${!hiddenSeries.has(s.name)}" title="${hiddenSeries.has(s.name) ? "Показать" : "Скрыть"}"><i></i>${escH(s.name)}</button>`).join("")
       + `<button type="button" class="mini" data-series-all="1">Показать все</button>` + (info.length > 1 ? `<button type="button" class="mini" data-series-none="1">Скрыть все</button>` : "");
