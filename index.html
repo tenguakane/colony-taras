@@ -688,6 +688,9 @@ h1::before{background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w
 .dm-table .dm-grand,.dm-table .dm-totcol,.dm-table td.dm-total{border-left:2px solid var(--line)}
 
 svg.dimming [data-n]:not(.hl){opacity:.1!important;transition:opacity .15s}
+svg.dimming [data-n].hl{opacity:1!important}
+/* Анимация появления не должна перебивать затемнение фильтра «Выделить» */
+#c-out svg [data-n][style*="opacity"],#c-out svg [data-n][style*="opacity"] *{animation:none!important}
 svg [data-n].hl{transition:opacity .15s}
 
 .nav-hidden{display:none!important}
@@ -1214,6 +1217,12 @@ body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-togg
   body.fr-collapsed .fd-rail{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:12px;color:var(--muted);font-size:12px;cursor:pointer;writing-mode:vertical-rl;letter-spacing:.08em}
   body.fr-collapsed .fd-rail:hover{color:var(--text)}
 }
+/* Цветные метки фильтров: линия сверху, как у блоков профиля; цвет — по смыслу фильтра */
+body.filter-colors .filters .field[data-fcat],body.filter-colors .filters .checkline[data-fcat],body.filter-colors .filters .opt-pop[data-fcat] > summary,body.filter-colors .filters .table-export-actions[data-fcat] .mini{position:relative;box-shadow:inset 0 2px 0 color-mix(in srgb,var(--fc) 75%,transparent)}
+body.filter-colors .filters .field[data-fcat] > label{background:color-mix(in srgb,var(--fc) 9%,transparent);color:color-mix(in srgb,var(--fc) 45%,var(--muted))}
+[data-fcat="period"]{--fc:#7aa2f7}[data-fcat="scope"]{--fc:#9ece6a}[data-fcat="what"]{--fc:#bb9af7}[data-fcat="amount"]{--fc:#e0af68}[data-fcat="look"]{--fc:#2ac3de}[data-fcat="export"]{--fc:#8a90a2}[data-fcat="opts"]{--fc:#f7768e}[data-fcat="data"]{--fc:#ff9e64}
+.fcat-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 0;font-size:12.5px;color:var(--muted)}
+.fcat-legend i{display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--fc);margin-right:6px;vertical-align:3px}
 .hub-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .hub-hero h2{margin:0;font-size:26px}.hub-hero .hint{margin:4px 0 0}
 .hub-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 6px}
@@ -1474,6 +1483,9 @@ body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-togg
           <option value="20">Топ-20</option>
           <option value="all">Все</option>
         </select>
+      </div>
+      <div class="field" id="c-focus-field" hidden><label for="c-focus" title="Выделенная линия или строка остаётся яркой, остальные затемняются — и на экране, и в картинке">Выделить</label>
+        <select id="c-focus"><option value="">— никого —</option></select>
       </div>
       <div class="field" id="trend-fc-field" hidden><label for="trend-forecast" title="Пунктир от сегодняшнего дня до конца месяца: куда придёт каждый при нынешнем темпе">Прогноз</label>
         <select id="trend-forecast"><option value="off">Не показывать</option><option value="month">До конца месяца</option></select>
@@ -1774,9 +1786,11 @@ body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-togg
     <p class="hint">Как выглядят панели фильтров над таблицами и графиками.</p>
     <div class="filters">
       <label class="checkline" title="Галочки вроде «Убрать вышедших», «Сравнение», «Тепловая заливка» собираются в одно выпадающее меню"><input type="checkbox" id="set-compact-filters">Компактные фильтры: галочки в меню «Параметры»</label>
+      <label class="checkline" title="Тонкая цветная линия у каждого фильтра: цвет зависит от смысла (период, чат, показатель, количество, вид, экспорт)"><input type="checkbox" id="set-filter-colors">Цветные метки у фильтров</label>
       <label class="checkline"><input type="checkbox" id="set-statrows">Строки «Среднее» и «Медиана» в итогах таблиц</label>
       <label class="checkline"><input type="checkbox" id="set-statrows-toggle">Показывать переключатель «Среднее и медиана» над таблицами</label>
     </div>
+    <div class="fcat-legend" id="fcat-legend"><span data-fcat="period"><i></i>период и даты</span><span data-fcat="scope"><i></i>чат и кто</span><span data-fcat="what"><i></i>что показывать</span><span data-fcat="amount"><i></i>количество и шкала</span><span data-fcat="look"><i></i>оформление</span><span data-fcat="opts"><i></i>параметры-галочки</span><span data-fcat="export"><i></i>экспорт</span><span data-fcat="data"><i></i>данные и импорт</span></div>
     <h2>Участники</h2>
     <p class="hint">Имена, user_pk из API, даты вступления и цвета участников. Цвет используется на всех графиках, где участник не перекрашен в настройке графика. После сохранения страница обновится.</p>
     <div class="pbtn" style="margin-bottom:10px"><button class="mini" id="people-add" type="button">+ Добавить участника</button><button class="mini" id="people-find" type="button">Найти новых в данных</button><button class="mini" id="people-save" type="button">Сохранить</button><button class="mini" id="people-reset" type="button">Отменить изменения</button><button class="mini" id="people-default" type="button">Вернуть исходный список</button><span class="hint" id="people-msg" role="status" aria-live="polite"></span></div>
@@ -4113,9 +4127,9 @@ function barsChart(){
   list.forEach((u, i) => {
     const y = 94 + i * 32, w = Math.max(3, u.v / max * (x1 - x0));
     const pa = paint(chartSeriesStyle(chartStyleKind(), u.k), x0, 0, x0 + w, 0); defs.push(pa.defs);
-    o += `<rect x="0" y="${y - 4}" width="${W}" height="30" fill="transparent" data-ek="${escH(u.k)}"/><text class="chart-label" x="${labelX}" y="${y + 17}" text-anchor="end" font-size="18" fill="#e6e8ee" data-ek="${escH(u.k)}">${escH(u.n)}</text>
+    o += `<g data-n="${escH(u.n)}"><rect x="0" y="${y - 4}" width="${W}" height="30" fill="transparent" data-ek="${escH(u.k)}"/><text class="chart-label" x="${labelX}" y="${y + 17}" text-anchor="end" font-size="18" fill="#e6e8ee" data-ek="${escH(u.k)}">${escH(u.n)}</text>
       <rect class="anim-bar-x" style="animation-delay:${i * 25}ms" x="${x0}" y="${y}" width="${w.toFixed(1)}" height="22" rx="5" fill="${pa.p}" data-ek="${escH(u.k)}"/>
-      <text class="chart-value" x="${(x0 + w + 8).toFixed(1)}" y="${y + 17}" font-size="18" fill="#eceef3" data-ek="${escH(u.k)}">${fmtN(u.v)}</text>`;
+      <text class="chart-value" x="${(x0 + w + 8).toFixed(1)}" y="${y + 17}" font-size="18" fill="#eceef3" data-ek="${escH(u.k)}">${fmtN(u.v)}</text></g>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" role="img"><defs>${defs.join("")}</defs>${o}</svg>`;
 }
@@ -4155,14 +4169,14 @@ function donutChart(){
     const attrs = u.others
       ? ` data-donut-toggle="1" data-tip="${escH(`Остальные · ${u.count}`)}|${escH(`${fmt(u.v)} · ${pct}% — нажми, чтобы раскрыть`)}"`
       : ` data-ek="${escH(u.k)}"`;
-    segs += `<g class="donut-seg" data-seg="${i}"${attrs} style="--dx:${(Math.cos(mid) * push).toFixed(1)}px;--dy:${(Math.sin(mid) * push).toFixed(1)}px"><path d="${arc(a0, a1)}" fill="${pa.p}"/></g>`;
+    segs += `<g class="donut-seg" data-seg="${i}" data-n="${escH(u.n)}"${attrs} style="--dx:${(Math.cos(mid) * push).toFixed(1)}px;--dy:${(Math.sin(mid) * push).toFixed(1)}px"><path d="${arc(a0, a1)}" fill="${pa.p}"/></g>`;
     const y = 130 + i * rowH, fs = rowH < 30 ? 15 : 18;
-    legend += `<g class="donut-leg" data-seg="${i}"${attrs}><rect x="360" y="${y - rowH / 2}" width="450" height="${rowH}" fill="transparent"/><circle cx="372" cy="${y}" r="7" fill="${pa.a}"/><text class="chart-label" x="392" y="${y + 6}" font-size="${fs}" fill="#f2f3f7">${escH(u.n)}${u.others ? " ▾" : ""}</text>
+    legend += `<g class="donut-leg" data-seg="${i}" data-n="${escH(u.n)}"${attrs}><rect x="360" y="${y - rowH / 2}" width="450" height="${rowH}" fill="transparent"/><circle cx="372" cy="${y}" r="7" fill="${pa.a}"/><text class="chart-label" x="392" y="${y + 6}" font-size="${fs}" fill="#f2f3f7">${escH(u.n)}${u.others ? `<tspan data-no-export="1"> ▾</tspan>` : ""}</text>
       <text class="chart-value" x="800" y="${y + 6}" text-anchor="end" font-size="${fs}"><tspan class="chart-value-main" fill="#f2f3f7">${fmt(u.v)}</tspan><tspan class="chart-value-separator" fill="#707789"> • </tspan><tspan class="chart-value-percent" fill="#aab0c0">${pct}%</tspan></text></g>`;
   });
   if (canCollapse) {
     const y = 130 + list.length * rowH;
-    legend += `<g class="donut-leg" data-donut-toggle="1"><rect x="360" y="${y - rowH / 2}" width="450" height="${rowH}" fill="transparent"/><text class="chart-legend" x="392" y="${y + 6}" font-size="15" fill="#aab0c0">▴ Свернуть в «Остальные»</text></g>`;
+    legend += `<g class="donut-leg" data-donut-toggle="1" data-no-export="1"><rect x="360" y="${y - rowH / 2}" width="450" height="${rowH}" fill="transparent"/><text class="chart-legend" x="392" y="${y + 6}" font-size="15" fill="#aab0c0">▴ Свернуть в «Остальные»</text></g>`;
   }
   o += segs + legend;
   o += `<text class="chart-value" x="${cx}" y="${cy + 6}" text-anchor="middle" font-size="36" fill="#eceef3">${fmt(total)}</text><text class="chart-subtitle" x="${cx}" y="${cy + 34}" text-anchor="middle" font-size="17" fill="#7d8190">всего</text>`;
@@ -4438,11 +4452,11 @@ async function renderCharts(){
       }
       if (renderSeq !== chartRenderSequence || requestedType !== cType) return;
     }
-    out.innerHTML = requestedType === "years" ? yearsChart() : requestedType === "season" ? seasonChart() : spiralChart(); applyChartTextStyles(); return;
+    out.innerHTML = requestedType === "years" ? yearsChart() : requestedType === "season" ? seasonChart() : spiralChart(); applyChartTextStyles(); syncChartFocus(); return;
   }
   const renderer = {bars: barsChart, donut: donutChart, trend: trendChart, bump: bumpChart, spread: spreadChart, gini: giniChart, multiples: multiplesChart, heat: calendarChart, heatrows: heatRowsChart, "heatrows-custom": () => heatRowsChart(true), race: raceChart, pairs: pairsChart}[requestedType];
   out.innerHTML = renderer ? renderer() : note("Неизвестный тип графика");
-  applyChartTextStyles();
+  applyChartTextStyles(); syncChartFocus();
   if (requestedType === "race") raceMount();
 }
 
@@ -4552,10 +4566,19 @@ async function chartBlob(){
   if (!svg) throw new Error("Сейчас нет графика");
   return svgToPngBlob(svg, chartPrefs(currentChartType()));
 }
+// В картинке и видео не нужны подсказки «наведи / кликни» и слои для наведения — они там не работают.
+function stripInteractive(c){
+  c.querySelectorAll('[data-no-export], #hov, #xh, #mxh, [data-hover]').forEach(el => el.remove());
+  // Скрытые кликом по легенде серии (полупрозрачные подписи) в картинке не показываем.
+  c.querySelectorAll('.lg-item').forEach(el => { if (Number(el.getAttribute("opacity")) < 1) el.remove(); });
+  c.querySelectorAll('[style*="cursor"]').forEach(el => { el.style.cursor = ""; });
+  c.classList.remove("dimming"); c.querySelectorAll(".hl").forEach(el => el.classList.remove("hl"));
+  return c;
+}
 async function svgToPngBlob(svg, exportPrefs){
   if (!svg) throw new Error("Сейчас нет графика");
   const vb = svg.viewBox.baseVal, W = vb.width, H = vb.height, K = 2;
-  const c = svg.cloneNode(true);
+  const c = stripInteractive(svg.cloneNode(true));
   c.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   c.setAttribute("width", W * K); c.setAttribute("height", H * K);
   c.setAttribute("font-family", "'Samsung Sans','SamsungOne','Segoe UI',system-ui,sans-serif");
@@ -5161,7 +5184,7 @@ function calendarChart(){
   let evH = 0;
   if (calEvents && (calEvents.bands.length || calEvents.flags.length)) {
     const ey = yy + 44 + (ANOM.on ? 30 : 0);
-    o += `<circle cx="48" cy="${ey - 5}" r="5" fill="${calEvents.bands[0]?.color || "#9ece6a"}"/><text class="chart-legend" x="60" y="${ey}" font-size="14" fill="#7d8190">марафон</text><circle cx="150" cy="${ey - 5}" r="5" fill="${EV_FLAG}"/><text class="chart-legend" x="162" y="${ey}" font-size="14" fill="#7d8190">событие хроники (подробности — при наведении)</text>`;
+    o += `<circle cx="48" cy="${ey - 5}" r="5" fill="${calEvents.bands[0]?.color || "#9ece6a"}"/><text class="chart-legend" x="60" y="${ey}" font-size="14" fill="#7d8190">марафон</text><circle cx="150" cy="${ey - 5}" r="5" fill="${EV_FLAG}"/><text class="chart-legend" x="162" y="${ey}" font-size="14" fill="#7d8190">событие хроники<tspan data-no-export="1"> (подробности — при наведении)</tspan></text>`;
     evH = 30;
   }
   return `<svg viewBox="0 0 900 ${yy + 34 + (ANOM.on ? 30 : 0) + evH}" role="img">${o}</svg>`;
@@ -9958,7 +9981,7 @@ async function svgFrameKit(svg, prefs, outW){
   }
   const color = prefs.fontColor || chartFontColor;
   const extra = `<defs>${bgDefs}</defs><style>${await fontCss()}${prefs.keepTextColors ? "" : `text,tspan{fill:${color}!important}`}</style><rect width="${W}" height="${H}" fill="${bgPaint}"/>`;
-  const c = svg.cloneNode(true);
+  const c = stripInteractive(svg.cloneNode(true));
   c.setAttribute("xmlns", "http://www.w3.org/2000/svg"); c.setAttribute("width", CW); c.setAttribute("height", CH);
   c.setAttribute("font-family", "'Samsung Sans','SamsungOne','Segoe UI',system-ui,sans-serif");
   c.querySelectorAll(".anim-bar-x,.anim-bar-y").forEach(e => e.classList.remove("anim-bar-x", "anim-bar-y"));
@@ -10305,6 +10328,32 @@ document.querySelectorAll("nav button[data-tab]").forEach(b => b.addEventListene
   const f = $("f-norm"); if (f) f.hidden = b.dataset.tab === "charts" && !CHART_NORM_TYPES.includes(cType);
 }));
 
+/* ---------- «Выделить»: одна линия / строка яркая, остальные затемнены ---------- */
+var CHART_FOCUS = "";
+try { CHART_FOCUS = localStorage.getItem("chatstats.chartFocus.v1") || ""; } catch (e) {}
+function applyChartFocus(){
+  const svg = $("c-out")?.querySelector("svg"); if (!svg) return;
+  // Инлайн-прозрачность (а не класс), чтобы выделение попадало и в скачанную картинку.
+  svg.querySelectorAll("[data-n]").forEach(x => { if (CHART_FOCUS && x.dataset.n !== CHART_FOCUS) x.style.opacity = ".13"; else x.style.removeProperty("opacity"); });
+}
+function syncChartFocus(){
+  const sel = $("c-focus"), field = $("c-focus-field"), svg = $("c-out")?.querySelector("svg");
+  if (!sel || !field) return;
+  const names = svg ? [...new Set([...svg.querySelectorAll("[data-n]")].map(x => x.dataset.n).filter(Boolean))] : [];
+  field.hidden = names.length < 2;
+  const word = cType === "years" ? "год" : chartEntity === "chats" ? "чат" : "участника";
+  sel.innerHTML = `<option value="">— никого —</option>` + names.map(n => `<option value="${escH(n)}">${escH(n)}</option>`).join("");
+  sel.title = `Выделить ${word}`;
+  // Если выделенного нет на этом графике — выделение не применяется, но запоминается.
+  sel.value = names.includes(CHART_FOCUS) ? CHART_FOCUS : "";
+  if (names.includes(CHART_FOCUS)) applyChartFocus();
+}
+$("c-focus")?.addEventListener("change", e => {
+  CHART_FOCUS = e.target.value;
+  try { localStorage.setItem("chatstats.chartFocus.v1", CHART_FOCUS); } catch (err) {}
+  applyChartFocus();
+});
+
 /* ---------- Общие данные: значения по дням для каждого участника или чата ---------- */
 function chartDaily(ignoreSel = false){
   const r = cRange(); if (!r) return {err:"Выберите период"};
@@ -10481,7 +10530,7 @@ function bumpChart(){
       + `<circle cx="${Rr + 26}" cy="${e.ly.toFixed(1)}" r="5" fill="${c}"/><text class="chart-legend" x="${Rr + 38}" y="${(e.ly + 5).toFixed(1)}" font-size="15" fill="#f2f3f7">${escH(shortName(e.x.e.n, 15))}<tspan class="chart-value" font-size="13" fill="#9aa0b0"> ${place}</tspan></text></g>`;
   });
   const H = Bt + 70;
-  o += `<text class="chart-legend" x="${L - 34}" y="${H - 8}" font-size="13" fill="#7d8190">Место — среди всех ${D.chats ? "чатов" : "участников"} ${cum ? "по сумме с начала периода" : "с активностью в этом отрезке"}. Наведи на точку, чтобы увидеть значение; клик по имени скрывает линию.</text>`;
+  o += `<text class="chart-legend" x="${L - 34}" y="${H - 8}" font-size="13" fill="#7d8190">Место — среди всех ${D.chats ? "чатов" : "участников"} ${cum ? "по сумме с начала периода" : "с активностью в этом отрезке"}.<tspan data-no-export="1"> Наведи на точку, чтобы увидеть значение; клик по имени скрывает линию.</tspan></text>`;
   return `<svg class="wide-svg" viewBox="0 0 ${W} ${H}" role="img">${o}</svg>`;
 }
 
@@ -10525,7 +10574,7 @@ function spreadChart(){
   stats.forEach((s, i) => {
     const y = T + i * rowH + rowH / 2, c = chartSeriesStyle(chartStyleKind(), s.e.k).c[0], bh = Math.min(18, rowH - 10);
     const tip = `${s.e.n}|медиана ${fmtR(s.med)} · среднее ${fmtR(s.mean)} · половина дней от ${fmtR(s.q1)} до ${fmtR(s.q3)} · максимум ${fmt(s.max)} (${formatDateRu(parseDate(D.date(s.best[0])))}) · дней: ${s.n}`;
-    o += `<rect x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}" fill="transparent" data-tip="${escH(tip)}"/>`;
+    o += `<g data-n="${escH(s.e.n)}"><rect x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}" fill="transparent" data-tip="${escH(tip)}"/>`;
     o += `<text class="chart-label" x="${LBL}" y="${y + 5}" text-anchor="end" font-size="16" fill="#e6e8ee" data-tip="${escH(tip)}">${escH(shortName(s.e.n, 18))}</text>`;
     o += `<line x1="${sx(s.lo).toFixed(1)}" y1="${y}" x2="${sx(s.hi).toFixed(1)}" y2="${y}" stroke="${c}" stroke-opacity=".7" stroke-width="2" pointer-events="none"/>`;
     [s.lo, s.hi].forEach(v => { o += `<line x1="${sx(v).toFixed(1)}" y1="${y - bh / 3}" x2="${sx(v).toFixed(1)}" y2="${y + bh / 3}" stroke="${c}" stroke-opacity=".7" stroke-width="2" pointer-events="none"/>`; });
@@ -10535,7 +10584,7 @@ function spreadChart(){
     s.outl.slice(0, 80).forEach(([di, v]) => {
       o += `<circle cx="${sx(v).toFixed(1)}" cy="${y}" r="3.2" fill="${c}" fill-opacity=".55" stroke="${c}" data-tip="${escH(`${s.e.n} · ${formatDateRu(parseDate(D.date(di)))}`)}|${escH(`${fmt(v)} — необычный день`)}"/>`;
     });
-    o += `<text class="chart-value" x="${Math.min(W - 4, sx(s.hi) + 8).toFixed(1)}" y="${y + 4}" font-size="12" fill="#9aa0b0" text-anchor="${sx(s.hi) > W - 80 ? "end" : "start"}" pointer-events="none">${s.outl.length ? "" : "макс " + fmt(s.max)}</text>`;
+    o += `<text class="chart-value" x="${Math.min(W - 4, sx(s.hi) + 8).toFixed(1)}" y="${y + 4}" font-size="12" fill="#9aa0b0" text-anchor="${sx(s.hi) > W - 80 ? "end" : "start"}" pointer-events="none">${s.outl.length ? "" : "макс " + fmt(s.max)}</text></g>`;
   });
   // Пояснение
   const ly = Bt + 48;
@@ -10650,6 +10699,7 @@ function multiplesChart(){
     const x0 = cx, x1 = cx + pw, y0 = cy + 26, y1 = cy + 26 + ph - 18, max = shared ? gmax : Math.max(1e-9, p.v[p.mi]);
     const X = b => x0 + b / (Bk.count - 1) * (x1 - x0), Y = v => y1 - v / max * (y1 - y0 - 6);
     const c = chartSeriesStyle(kindKey, p.e.k).c[0];
+    o += `<g data-n="${escH(p.e.n)}">`;
     o += `<g class="lg-item" data-name="${escH(p.e.n)}" style="cursor:pointer"><text class="chart-label" x="${x0}" y="${cy + 14}" font-size="15" fill="#f2f3f7" data-ek="${escH(p.e.k)}">${escH(shortName(p.e.n, Math.floor(pw / 10)))}</text></g><text class="chart-value" x="${x1}" y="${cy + 14}" text-anchor="end" font-size="13" fill="#aab0c0">${NORM === "abs" ? fmt(p.e.tot) : "ср. " + vfmt(p.mean)}</text>`;
     o += `<rect x="${x0}" y="${y0}" width="${pw}" height="${y1 - y0}" rx="6" fill="#ffffff" fill-opacity=".025"/>`;
     if (evs) o += chartEventsSvg({bands:evs.bands, flags:[]}, d => X(Bk.idx[Math.max(0, Math.min(D.n - 1, dayIdx(d) - D.d0))]), y0, y1, x1, {noLabels:true}).svg;
@@ -10659,12 +10709,12 @@ function multiplesChart(){
     const mxv = p.v[p.mi], mxX = X(p.mi), mxY = Math.max(y0, Y(mxv));
     o += `<circle cx="${mxX.toFixed(1)}" cy="${mxY.toFixed(1)}" r="3.5" fill="${c}" stroke="#12141b" stroke-width="1.5"/><text class="chart-value" x="${Math.min(x1 - 2, Math.max(x0 + 2, mxX)).toFixed(1)}" y="${(mxY - 6).toFixed(1)}" text-anchor="${mxX > x1 - 40 ? "end" : mxX < x0 + 40 ? "start" : "middle"}" font-size="11" fill="#cfd3dc">${vfmt(mxv)}</text>`;
     o += `<text class="chart-axis" x="${x0}" y="${y1 + 14}" font-size="11" fill="#7d8190">${escH(Bk.label(0))}</text><text class="chart-axis" x="${x1}" y="${y1 + 14}" text-anchor="end" font-size="11" fill="#7d8190">${escH(Bk.label(Bk.count - 1))}</text>`;
-    o += `<rect x="${x0}" y="${y0}" width="${pw}" height="${y1 - y0}" fill="transparent" data-hover="mult" data-i="${i}" style="touch-action:pan-y"/>`;
+    o += `</g><rect x="${x0}" y="${y0}" width="${pw}" height="${y1 - y0}" fill="transparent" data-hover="mult" data-i="${i}" style="touch-action:pan-y"/>`;
     meta.push({x0, x1, y0, y1, X, Y, p, c});
   });
   const H = top + rowsN * (ph + gapY + 26) + 20;
   o += `<line id="mxh" x1="0" y1="0" x2="0" y2="0" stroke="#ffffff99" stroke-width="1.2" stroke-dasharray="3 3" visibility="hidden" pointer-events="none"/>`;
-  o += `<text class="chart-legend" x="${padX}" y="${H - 6}" font-size="13" fill="#7d8190">Пунктир — среднее, точка — пик. ${shared ? "Общая шкала: высоту можно сравнивать между графиками." : "Своя шкала: видна форма каждого, но высоты между графиками не сравниваются."} Клик по имени скрывает график.</text>`;
+  o += `<text class="chart-legend" x="${padX}" y="${H - 6}" font-size="13" fill="#7d8190">Пунктир — среднее, точка — пик. ${shared ? "Общая шкала: высоту можно сравнивать между графиками." : "Своя шкала: видна форма каждого, но высоты между графиками не сравниваются."} <tspan data-no-export="1">Клик по имени скрывает график.</tspan></text>`;
   CHART_HOVER = (t, pt, e) => {
     const m = meta[Number(t.dataset.i)]; if (!m) return;
     const b = Math.max(0, Math.min(Bk.count - 1, Math.round((pt.x - m.x0) / (m.x1 - m.x0) * (Bk.count - 1))));
@@ -12734,9 +12784,57 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== Цветные метки фильтров ===================== */
+(function(){
+  const KEY = "chatstats.filterColors.v1";
+  const RULES = [
+    ["amount", /^участники на карте/],
+    ["period", /^(режим|дата$|месяц|месяцы|год$|с$|по$|быстрый выбор|период|итоги|начало|конец|сторис|обновлять)/],
+    ["scope", /^(выделить|чат$|группировать|строки|участник$|участники на графике|рекорды|что сравниваем|сравнить|марафон|добавить|поиск)/],
+    ["what", /^(показатель|вид|значения|места|прогноз|события|сортировка|порядок|дни)/],
+    ["amount", /^(количество|участники|чаты|топ|малоактивные|шкала|потолок|порог|тихий)/],
+    ["look", /^(оформление|цвет|форма|тип фона|заливка|лучший результат)/],
+    ["export", /^(изображение|экспорт|копировать)/],
+    ["data", /^(импорт|база|адрес|управление|название|дата внесения)/],
+  ];
+  let on = true;
+  try { on = localStorage.getItem(KEY) !== "0"; } catch (e) {}
+  const catOf = t => { t = String(t || "").trim().toLowerCase(); for (const [c, re] of RULES) if (re.test(t)) return c; return ""; };
+  function tag(root){
+    (root || document).querySelectorAll(".filters .field:not([data-fcat])").forEach(f => {
+      const lab = f.querySelector(":scope > label"); const c = catOf(lab ? lab.textContent : "") || (f.querySelector(".seg") ? "what" : "");
+      if (c) f.dataset.fcat = c;
+    });
+    (root || document).querySelectorAll(".filters .checkline:not([data-fcat])").forEach(l => { l.dataset.fcat = "opts"; });
+    (root || document).querySelectorAll(".filters .opt-pop:not([data-fcat])").forEach(p => { p.dataset.fcat = "opts"; });
+    (root || document).querySelectorAll(".filters .table-export-actions:not([data-fcat])").forEach(p => { p.dataset.fcat = "export"; });
+  }
+  function apply(){
+    document.body.classList.toggle("filter-colors", on);
+    const c = document.getElementById("set-filter-colors"); if (c) c.checked = on;
+    const lg = document.getElementById("fcat-legend"); if (lg) lg.hidden = !on;
+    if (on) tag();
+  }
+  document.addEventListener("change", e => { if (e.target.id === "set-filter-colors") { on = e.target.checked; try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (err) {} apply(); } });
+  // Фильтры, которые дорисовываются позже (профиль, марафоны, селфи…), тоже получают метки.
+  let t = 0;
+  new MutationObserver(() => { if (!on) return; clearTimeout(t); t = setTimeout(() => tag(), 120); }).observe(document.body, {childList:true, subtree:true});
+  apply();
+})();
+</script>
+<script>
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.22-10", date:"2026-10-22", title:"Фильтр «Выделить»", items:[
+    {tag:"new", area:"Графики", text:"Поле «Выделить» на «Графиках»: выбери участника, чат или год — его линия, столбец или сегмент остаётся ярким, остальные затемняются. Работает на «Динамике», «По годам», «Графике мест», «Столбцах», «Кольце», «Разбросе» и «Маленьких графиках», выделение сохраняется и в скачанной картинке."},
+  ]},
+  {v:"2026.10.22-9", date:"2026-10-22", title:"Чистые картинки графиков", items:[
+    {tag:"imp", area:"Графики", text:"При копировании и скачивании графика картинкой или видео убираются подсказки вида «наведи на точку», «клик по имени скрывает линию», стрелка «▾» у «Остальных» в кольце и скрытые кликом серии — в картинке они не работают."},
+  ]},
+  {v:"2026.10.22-8", date:"2026-10-22", title:"Цветные метки фильтров", items:[
+    {tag:"imp", area:"Везде", text:"У каждого фильтра тонкая цветная линия сверху, как у блоков профиля. Цвет зависит от смысла: синий — период и даты, зелёный — чат и кто, фиолетовый — что показывать, жёлтый — количество и шкала, бирюзовый — оформление, розовый — галочки-параметры, серый — экспорт. Выключается в Настройках → «Фильтры», там же расшифровка цветов."},
+  ]},
   {v:"2026.10.22-7", date:"2026-10-22", title:"Прогноз на «Динамике»", items:[
     {tag:"new", area:"Графики", text:"На «Динамике» появилось поле «Прогноз: До конца месяца». От сегодняшнего дня к последнему дню месяца идёт пунктир с полосой вероятного диапазона, у конца линий — ожидаемый итог (≈). Подсказка в зоне прогноза показывает ожидаемые места (▲▼ — кто кого обгонит) и итог за месяц."},
   ]},
