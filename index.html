@@ -294,7 +294,9 @@ h3{font-size:15px;font-weight:600;margin:18px 0 6px}
   --radius:14px; --shadow:0 12px 30px -20px #000;
 }
 body{background:radial-gradient(1100px 560px at 8% -12%,#1a2444 0%,transparent 62%),radial-gradient(900px 520px at 108% -6%,#2b1d40 0%,transparent 58%),var(--bg);background-attachment:fixed;min-height:100vh}
-header{background:rgba(15,17,23,.84);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+/* Стеклянная шапка: размытие на псевдоэлементе, чтобы сама шапка не становилась контейнером для fixed-элементов */
+header{background:transparent!important}
+header::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--header-bg);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);box-shadow:inset 0 -1px 0 #ffffff10}
 h1{display:flex;align-items:center;gap:10px;font-size:24px;letter-spacing:-.01em}
 h1::before{content:"";width:12px;height:12px;border-radius:4px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:0 0 14px #7aa2f799}
 nav{gap:6px;box-shadow:none;padding:2px 0 10px}
@@ -419,7 +421,7 @@ tbody tr.ytint:hover td{filter:brightness(1.18)}
 .dm-table .dm-grand{font-size:20px;color:var(--text);padding-bottom:10px!important}
 .dm-table .dm-barcell svg{display:block;margin:0 auto}
 .dm-table .dm-gap{width:14px;min-width:14px;padding:0;background:var(--bg)!important;border-bottom:0;box-shadow:none}
-.dm-table .dm-weekend{color:var(--accent-2)}
+.dm-table .dm-weekend{color:var(--dm-we,var(--accent-2))}
 .dm-table td.dm-empty{color:#4a5060}
 .dm-table td.dm-top{color:#fff}
 .dm-table .dm-total{color:var(--text)}
@@ -522,9 +524,9 @@ tr.yr-row-cmp td{border-top:1px dashed #ffffff33;border-bottom:1px dashed #fffff
 @media(max-width:900px){.yr-charts,.yr-grid3{grid-template-columns:1fr}}
 
 /* ===================== Темы оформления ===================== */
-:root{--hover:#1e2331;--foot:#1b1f2a;--glow1:#1a2444;--glow2:#2b1d40;--header-bg:rgba(15,17,23,.84);--tip-bg:#14161cf2;--nav-bg:rgba(17,20,27,.96)}
+:root{--hover:#1e2331;--foot:#1b1f2a;--glow1:#1a2444;--glow2:#2b1d40;--header-bg:rgba(15,17,23,.62);--tip-bg:#14161cf2;--nav-bg:rgba(17,20,27,.96)}
 body{background:radial-gradient(1100px 560px at 8% -12%,var(--glow1) 0%,transparent 62%),radial-gradient(900px 520px at 108% -6%,var(--glow2) 0%,transparent 58%),var(--bg);background-attachment:fixed}
-header{background:var(--header-bg)}
+
 @media(max-width:720px){nav{background:var(--nav-bg)}}
 tbody tr:hover,.wrap tbody tr:hover td:first-child,.dm-table tbody tr:hover .dm-name{background:var(--hover)}
 tfoot td,.wrap tfoot td:first-child{background:var(--foot)}
@@ -1123,7 +1125,6 @@ body:not(.side-nav) .in-sidenav-only{display:none}
 @media (min-width:721px){
   body.side-nav{--side-w:228px;padding-left:var(--side-w);transition:padding-left .2s}
   /* backdrop-filter у шапки делает её «контейнером» для fixed-элементов — в боковом режиме отключаем */
-  body.side-nav header{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg)}
   body.side-nav.side-collapsed{--side-w:68px}
   body.side-nav nav{position:fixed;left:0;top:0;bottom:0;width:var(--side-w);z-index:55;flex-direction:column;flex-wrap:nowrap;gap:2px;padding:12px 10px 16px;overflow-y:auto;overflow-x:hidden;background:var(--panel);border-right:1px solid var(--line);box-shadow:none;scrollbar-width:thin;transition:width .2s}
   body.side-nav nav button{display:flex!important;align-items:center;gap:12px;width:100%;flex:0 0 auto;text-align:left;padding:8px 12px;border-radius:10px;border:1px solid transparent;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1133,8 +1134,8 @@ body:not(.side-nav) .in-sidenav-only{display:none}
   body.side-nav nav button.active,body.side-nav nav button.side-active{background:var(--accent-bg);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
   body.side-nav nav button.nav-hidden:not(.side-active){background:none;color:var(--muted);border-color:transparent}
   body.side-nav nav button.nav-hidden:not(.side-active):hover{color:var(--text);background:#ffffff0a}
-  body.side-nav .side-sep{display:block;margin:12px 12px 4px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);opacity:.8;white-space:nowrap;overflow:hidden}
-  body.side-nav .side-toggle{display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:6px 8px 10px 12px;border:0;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:none!important;color:var(--text)!important;font-weight:600}
+  body.side-nav .side-sep{display:block;flex:0 0 auto;line-height:1.4;margin:12px 12px 4px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);opacity:.8;white-space:nowrap;overflow:hidden}
+  body.side-nav .side-toggle{flex:0 0 auto!important;display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:6px 8px 10px 12px;border:0;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:none!important;color:var(--text)!important;font-weight:600}
   body.side-nav .side-toggle::before{content:none!important}
   body.side-nav .side-toggle i{font-style:normal;color:var(--muted);font-size:16px}
   body.side-nav [data-group-seg="other"]{display:none!important}
@@ -1144,6 +1145,64 @@ body:not(.side-nav) .in-sidenav-only{display:none}
   body.side-nav.side-collapsed .side-toggle{justify-content:center;padding:6px 0 10px}
   body.side-nav.side-collapsed .side-toggle span{display:none}
   body.side-nav.side-collapsed .side-toggle i{font-size:18px}
+}
+/* Переключатели «таблица / график» на вкладках Рекорды и Время */
+#tab-records.rec-view-table .rec-chart-only,#tab-records.rec-view-chart .rec-table-only{display:none!important}
+#tab-records .rec-card{max-width:820px;margin:0 auto 18px}
+#tab-records .rec-card svg{max-height:62vh;width:auto;max-width:100%;margin:0 auto;display:block}
+#tab-time.tm-view-tables .tm-charts-only,#tab-time.tm-view-charts .tm-tables-only{display:none!important}
+#time-view{margin:0 0 12px}
+/* Компактные фильтры: галочки в выпадающем меню «Параметры» */
+.opt-pop{position:relative;flex:0 0 auto}
+.filters .opt-pop>summary{height:var(--control-height,34px);min-height:0}
+.opt-pop>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;height:100%;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--ctrl);color:var(--text);font-size:13.5px;white-space:nowrap;user-select:none}
+.opt-pop>summary::-webkit-details-marker{display:none}
+.opt-pop>summary::after{content:"▾";color:var(--muted);font-size:11px}
+.opt-pop[open]>summary,.opt-pop>summary:hover{border-color:var(--accent)}
+.opt-pop .opt-n{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--accent-bg);color:var(--accent);font-size:11.5px;line-height:18px;text-align:center;font-weight:600}
+.opt-pop .opt-n:empty{display:none}
+.opt-pop .opt-list{position:absolute;z-index:40;top:calc(100% + 6px);left:0;min-width:240px;display:flex;flex-direction:column;gap:4px;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px #0009}
+.opt-pop .opt-list .checkline{width:100%;justify-content:flex-start;border-color:transparent;background:none}
+.opt-pop .opt-list .checkline:hover{background:var(--hover)}
+body.hide-statrows-toggle #stats-participants,body.hide-statrows-toggle #stats-chats{display:none}
+body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-toggle label:has(#stats-chats){display:none!important}
+/* ===================== Экспериментально: фильтры в правой шторке (только ПК) ===================== */
+#filter-drawer{display:none}
+@media (min-width:721px){
+  body.filters-right{--fr-w:316px;padding-right:var(--fr-w)}
+  body.filters-right.fr-collapsed{--fr-w:52px}
+  body.filters-right #filter-drawer{display:flex;flex-direction:column;position:fixed;right:0;top:0;bottom:0;width:var(--fr-w);z-index:55;background:var(--panel);border-left:1px solid var(--line);transition:width .2s}
+  body.filters-right #filters-visibility-toggle,body.filters-right #filters-summary{display:none!important}
+  .fd-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 10px 10px 16px;border-bottom:1px solid var(--line);font-weight:600;flex:0 0 auto}
+  .fd-head button{background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px}
+  .fd-head button:hover{color:var(--text);background:var(--hover)}
+  .fd-top{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .fd-top .ult-btn{flex:1 1 0;justify-content:center}
+  #fd-body{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:12px;scrollbar-width:thin}
+  #fd-body:empty::before{content:"У этой вкладки нет фильтров";color:var(--muted);font-size:13px}
+  #fd-body .filters,#fd-body .quick-ranges{display:flex;flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:8px;margin:0 0 14px;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+  #fd-body .filters + .filters{padding-top:14px!important;border-top:1px solid var(--line)!important}
+  #fd-body .filters-user-hidden{display:flex!important}
+  #fd-body .filters .field{flex-direction:column;align-items:stretch;height:auto;overflow:visible;width:100%;max-width:none}
+  #fd-body .filters > *{flex:0 0 auto}
+  #fd-body .filters .field > .pbtn > .mini,#fd-body .filters .field > button.mini,#fd-body .filters .field .pick summary{min-height:34px;display:flex;align-items:center;justify-content:center}
+  #fd-body .filters .field .pick summary{justify-content:flex-start;padding:0 10px}
+  #fd-body .filters .field > label{border-right:0;border-bottom:1px solid var(--line);padding:5px 10px;justify-content:flex-start}
+  #fd-body .filters .field select,#fd-body .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){width:100%!important;max-width:none;height:34px}
+  #fd-body .filters .field > .seg{flex-wrap:wrap}
+  #fd-body .filters .field > .seg button{flex:1 1 auto;height:34px}
+  #fd-body .filters .field > .pbtn{flex-wrap:wrap}
+  #fd-body .filters .field > .pbtn > .mini{flex:1 1 auto;height:34px}
+  #fd-body .checkline{width:100%}
+  #fd-body .table-export-actions{display:flex;flex-wrap:wrap;gap:6px}
+  #fd-body .opt-pop .opt-list{position:static;box-shadow:none;margin-top:6px;min-width:0}
+  #fd-body .quick-ranges{flex-direction:row;flex-wrap:wrap}
+  #fd-body .pick .pop{left:auto;right:0}
+  .fd-rail{display:none}
+  body.fr-collapsed .fd-head span,body.fr-collapsed .fd-top,body.fr-collapsed #fd-body{display:none}
+  body.fr-collapsed .fd-head{justify-content:center;padding:12px 0 10px}
+  body.fr-collapsed .fd-rail{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:12px;color:var(--muted);font-size:12px;cursor:pointer;writing-mode:vertical-rl;letter-spacing:.08em}
+  body.fr-collapsed .fd-rail:hover{color:var(--text)}
 }
 .hub-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .hub-hero h2{margin:0;font-size:26px}.hub-hero .hint{margin:4px 0 0}
@@ -1531,16 +1590,19 @@ body:not(.side-nav) .in-sidenav-only{display:none}
           <button data-record-entity="chats">Чаты</button>
         </div>
       </div>
+      <div class="field"><label>Вид</label>
+        <div class="seg" id="record-view"><button type="button" data-rec-view="table">Таблица</button><button type="button" data-rec-view="chart">График</button></div>
+      </div>
       <label class="checkline"><input type="checkbox" id="hide-left-records">Убрать вышедших</label>
-      <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="copy-records-image">Копировать как изображение</button><span class="hint" id="copy-records-status"></span></div>
+      <div class="table-export-actions filters-export-actions rec-table-only"><button class="mini copy-btn" id="copy-records-image">Копировать как изображение</button><span class="hint" id="copy-records-status"></span></div>
     </div>
     <div class="table-export-row">
       <h2 id="records-title">Рекорды участников</h2>
     </div>
     <p class="status" id="records-status"></p>
-    <div class="yr-chart-card rec-card"><div class="yr-chart" id="rec-chart"></div><div class="pbtn"><button class="mini copy-btn" type="button" id="rec-chart-copy">Копировать график</button><span class="hint" id="rec-chart-msg"></span></div></div>
-    <div class="excluded-rows-host" id="records-excluded-controls" hidden></div>
-    <div class="wrap"><table id="records-table">
+    <div class="yr-chart-card rec-card rec-chart-only"><div class="yr-chart" id="rec-chart"></div><div class="pbtn"><button class="mini copy-btn" type="button" id="rec-chart-copy">Копировать график</button><span class="hint" id="rec-chart-msg"></span></div></div>
+    <div class="excluded-rows-host rec-table-only" id="records-excluded-controls" hidden></div>
+    <div class="wrap rec-table-only"><table id="records-table">
       <thead><tr id="records-head"></tr></thead>
       <tbody id="records-body"><tr><td colspan="3" style="text-align:center;color:var(--muted)">Откройте вкладку, чтобы загрузить рекорды</td></tr></tbody>
     </table></div>
@@ -1590,14 +1652,16 @@ body:not(.side-nav) .in-sidenav-only{display:none}
 
   <section class="tab" id="tab-time">
     <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="active">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
+    <div class="seg group-tabs" id="time-view"><button type="button" data-time-view="tables">Таблицы</button><button type="button" data-time-view="charts">Визуализация</button></div>
     <div class="filters"><label class="checkline"><input type="checkbox" id="hide-left-time">Убрать вышедших</label></div>
     <div class="table-export-row">
       <h2 id="time-title">Время участия в чате</h2>
-      <div class="table-export-actions"><button class="mini copy-btn" id="copy-time-image">Копировать как изображение</button><span class="hint" id="copy-time-status"></span></div>
+      <div class="table-export-actions tm-tables-only"><button class="mini copy-btn" id="copy-time-image">Копировать как изображение</button><span class="hint" id="copy-time-status"></span></div>
     </div>
-    <p class="hint">Продолжительность участия каждого человека в календарных днях и в формате лет, месяцев и дней.</p>
+    <p class="hint tm-tables-only">Продолжительность участия каждого человека в календарных днях и в формате лет, месяцев и дней.</p>
     <p class="status" id="time-status"></p>
-    <div class="time-charts" id="time-charts"></div>
+    <div class="time-charts tm-charts-only" id="time-charts"></div>
+    <div class="tm-tables-only">
     <div class="wrap"><table id="time-table">
       <thead><tr><th>Участник</th><th>Дней участия</th><th>Срок участия</th></tr></thead>
       <tbody id="time-body"><tr><td colspan="3" style="text-align:center;color:var(--muted)">Откройте вкладку, чтобы загрузить данные</td></tr></tbody>
@@ -1608,6 +1672,7 @@ body:not(.side-nav) .in-sidenav-only{display:none}
       <thead><tr><th>Участник</th><th>Юбилей</th><th>Дата</th><th>Осталось</th></tr></thead>
       <tbody id="milestone-body"><tr><td colspan="4" style="text-align:center;color:var(--muted)">Ожидание данных…</td></tr></tbody>
     </table></div>
+    </div>
   </section>
   <section class="tab" id="tab-forecast">
     <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="active">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
@@ -1692,6 +1757,13 @@ body:not(.side-nav) .in-sidenav-only{display:none}
     <div class="theme-grid" id="theme-grid"></div>
     <h2>Шрифт</h2>
     <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label></div>
+    <h2>Фильтры</h2>
+    <p class="hint">Как выглядят панели фильтров над таблицами и графиками.</p>
+    <div class="filters">
+      <label class="checkline" title="Галочки вроде «Убрать вышедших», «Сравнение», «Тепловая заливка» собираются в одно выпадающее меню"><input type="checkbox" id="set-compact-filters">Компактные фильтры: галочки в меню «Параметры»</label>
+      <label class="checkline"><input type="checkbox" id="set-statrows">Строки «Среднее» и «Медиана» в итогах таблиц</label>
+      <label class="checkline"><input type="checkbox" id="set-statrows-toggle">Показывать переключатель «Среднее и медиана» над таблицами</label>
+    </div>
     <h2>Участники</h2>
     <p class="hint">Имена, user_pk из API, даты вступления и цвета участников. Цвет используется на всех графиках, где участник не перекрашен в настройке графика. После сохранения страница обновится.</p>
     <div class="pbtn" style="margin-bottom:10px"><button class="mini" id="people-add" type="button">+ Добавить участника</button><button class="mini" id="people-find" type="button">Найти новых в данных</button><button class="mini" id="people-save" type="button">Сохранить</button><button class="mini" id="people-reset" type="button">Отменить изменения</button><button class="mini" id="people-default" type="button">Вернуть исходный список</button><span class="hint" id="people-msg" role="status" aria-live="polite"></span></div>
@@ -1730,6 +1802,7 @@ body:not(.side-nav) .in-sidenav-only{display:none}
     <div class="filters">
       <label class="checkline" title="Только для компьютера: на телефоне остаётся нижняя навигация"><input type="checkbox" id="exp-sidenav">Вкладки слева (только ПК)</label>
       <label class="checkline in-sidenav-only"><input type="checkbox" id="exp-sidenav-icons">Боковая панель — только иконки</label>
+      <label class="checkline" title="Вкладки слева, фильтры, Ultimate и VK — в шторке справа, по центру только таблица или график"><input type="checkbox" id="exp-filters-right">Фильтры справа (только ПК)</label>
       <label class="checkline"><input type="checkbox" id="exp-spark">Мини-графики в строках таблиц</label>
       <label class="checkline"><input type="checkbox" id="exp-bars">Полоски-заливки в ячейках</label>
       <label class="checkline"><input type="checkbox" id="exp-hist">Мини-гистограммы в ячейках всех таблиц</label>
@@ -7121,6 +7194,7 @@ function renderDayMatrix(from = DM.from, to = DM.to){
     return sth("c" + i, label, weekend ? "dm-weekend" : "", ` data-col="${i}"`);
   }).join("")}${sth("tot", "Всего", "dm-totcol")}${sth("share", "%")}${showDelta ? sth("delta", "Δ места", "", ` title="Изменение места по сравнению с прошлым периодом"`) : ""}</tr>`;
   $("dm-head").innerHTML = head1 + head2;
+  $("dm-table").style.setProperty("--dm-we", dmHl());
   const colSpanAll = ncol + 2 + tailCols;
   $("dm-body").innerHTML = shown.length ? shown.map(u => {
     const prior = priorPer.get(u.k), rank = rankOf.get(u.k);
@@ -8103,7 +8177,7 @@ function applySiteTheme(id){
   siteThemeId = t.id;
   const vars = {"--bg":t.bg, "--panel":t.panel, "--panel-2":t.panel2, "--line":t.line, "--text":t.text, "--muted":t.muted, "--accent":t.accent, "--accent-2":t.accent2,
     "--accent-bg":t.accentBg, "--th-bg":t.th, "--ctrl":t.ctrl, "--hover":t.hover, "--foot":t.foot, "--glow1":t.glow1, "--glow2":t.glow2,
-    "--header-bg":hexA(t.bg, .84), "--tip-bg":hexA(t.bg, .95), "--nav-bg":hexA(t.ctrl, .96)};
+    "--header-bg":hexA(t.bg, .62), "--tip-bg":hexA(t.bg, .95), "--nav-bg":hexA(t.ctrl, .96)};
   Object.entries(vars).forEach(([k, v]) => r.setProperty(k, v));
   ROW_BASE = t.panel;
   document.querySelectorAll(".spark-td,.spark-th").forEach(x => x.remove());
@@ -9610,12 +9684,12 @@ document.addEventListener("click", e => {
 const STATROWS_KEY = "chatstats.statRows.v1";
 var SHOW_STATROWS = true;
 try { SHOW_STATROWS = localStorage.getItem(STATROWS_KEY) !== "0"; } catch (e) {}
-["stats-participants", "stats-chats"].forEach(id => { const c = $(id); if (c) c.checked = SHOW_STATROWS; });
+["stats-participants", "stats-chats", "set-statrows"].forEach(id => { const c = $(id); if (c) c.checked = SHOW_STATROWS; });
 document.addEventListener("change", e => {
-  if (e.target.id !== "stats-participants" && e.target.id !== "stats-chats") return;
+  if (e.target.id !== "stats-participants" && e.target.id !== "stats-chats" && e.target.id !== "set-statrows") return;
   SHOW_STATROWS = e.target.checked;
   try { localStorage.setItem(STATROWS_KEY, SHOW_STATROWS ? "1" : "0"); } catch (err) {}
-  ["stats-participants", "stats-chats"].forEach(id => { const c = $(id); if (c) c.checked = SHOW_STATROWS; });
+  ["stats-participants", "stats-chats", "set-statrows"].forEach(id => { const c = $(id); if (c) c.checked = SHOW_STATROWS; });
   try { render(); } catch (err) {}
   try { renderChatRank(); } catch (err) {}
 });
@@ -10567,9 +10641,12 @@ function multiplesChart(){
   let applying = false, saveTimer = 0;
   const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(STORE)); } catch (e) {} }, 150); };
   const tabEl = key => document.getElementById("tab-" + key);
-  const hasHL = key => { const t = tabEl(key); return !!t && HIDE_LEFT_CONTROLS.some(id => t.querySelector("#" + id)); };
+  // В режиме «Фильтры справа» фильтры вкладки живут в правой шторке.
+  const drawerFor = key => { const d = document.getElementById("fd-body"); return d && d.dataset.tab === key ? d : null; };
+  const hasHL = key => scopes(key).some(t => HIDE_LEFT_CONTROLS.some(id => t.querySelector("#" + id)));
   const scopes = key => {
     const out = []; const t = tabEl(key); if (t) out.push(t);
+    const dr = drawerFor(key); if (dr) out.push(dr);
     if (SHARED.includes(key)) document.querySelectorAll("#shared > .filters").forEach(f => { if (f.id !== "chats-toolbar-controls" || key === "chats") out.push(f); });
     return out;
   };
@@ -10579,6 +10656,7 @@ function multiplesChart(){
     scopes(key).forEach(sc => sc.querySelectorAll("input[id],select[id],.seg[id]").forEach(el => {
       if (SPECIAL.has(el.id) || SKIP_IDS.has(el.id) || el.id.startsWith("mr-f-")) return;
       if (!el.closest(".filters") && !sc.classList.contains("filters")) return;
+      if (sc.id !== "fd-body" && el.closest("#fd-body")) return;
       if (el.closest(".pop,.chart-settings-panel,.pick")) return;
       if (el.matches("input") && !["checkbox", "date", "month", "number"].includes(el.type)) return;
       out.push(el);
@@ -12375,6 +12453,70 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== Компактные фильтры ===================== */
+(function(){
+  const K_COMPACT = "chatstats.compactFilters.v1", K_STT = "chatstats.statRowsToggle.v1";
+  // Режимы, которые лучше держать на виду, а не в меню.
+  const KEEP = new Set(["dm-year", "dm-week"]);
+  let compact = true, sttShow = true;
+  try { compact = localStorage.getItem(K_COMPACT) !== "0"; sttShow = localStorage.getItem(K_STT) !== "0"; } catch (e) {}
+  const pops = [];
+  function count(pop){ const n = [...pop.querySelectorAll(".opt-list input[type=checkbox]")].filter(i => i.checked && !i.closest("[hidden]") && getComputedStyle(i.closest("label")).display !== "none").length; pop.querySelector(".opt-n").textContent = n ? String(n) : ""; }
+  function build(){
+    document.querySelectorAll(".filters").forEach(f => {
+      if (f.closest("#tab-settings") || f.querySelector(":scope > .opt-pop")) return;
+      const items = [...f.querySelectorAll(":scope > .checkline")].filter(l => { const i = l.querySelector("input"); return i && !KEEP.has(i.id); });
+      if (items.length < 2) return;
+      const pop = document.createElement("details"); pop.className = "opt-pop";
+      pop.innerHTML = `<summary title="Дополнительные параметры">Параметры <b class="opt-n"></b></summary><div class="opt-list"></div>`;
+      items[0].before(pop);
+      const list = pop.querySelector(".opt-list");
+      items.forEach(l => { l.dataset.optHome = "1"; list.appendChild(l); });
+      pop._items = items; pops.push(pop); count(pop);
+    });
+  }
+  function unbuild(){
+    while (pops.length) { const pop = pops.pop(); pop._items.forEach(l => pop.before(l)); pop.remove(); }
+  }
+  function apply(){
+    document.body.classList.toggle("hide-statrows-toggle", !sttShow);
+    if (compact) build(); else unbuild();
+    const a = document.getElementById("set-compact-filters"), b = document.getElementById("set-statrows-toggle");
+    if (a) a.checked = compact; if (b) b.checked = sttShow;
+    pops.forEach(count);
+  }
+  document.addEventListener("change", e => {
+    if (e.target.id === "set-compact-filters") { compact = e.target.checked; try { localStorage.setItem(K_COMPACT, compact ? "1" : "0"); } catch (err) {} apply(); return; }
+    if (e.target.id === "set-statrows-toggle") { sttShow = e.target.checked; try { localStorage.setItem(K_STT, sttShow ? "1" : "0"); } catch (err) {} apply(); return; }
+    const pop = e.target.closest && e.target.closest(".opt-pop"); if (pop) count(pop);
+  });
+  document.addEventListener("click", e => { pops.forEach(p => { if (p.open && !p.contains(e.target)) p.open = false; }); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") pops.forEach(p => { p.open = false; }); });
+  // Галочки могут меняться из кода (синхронизация между вкладками) — обновляем счётчики при открытии вкладок.
+  document.addEventListener("click", e => { if (e.target.closest && e.target.closest("nav button,[data-gtab]")) setTimeout(() => pops.forEach(count), 300); });
+  window.__compactFilters = {apply, rebuild(){ unbuild(); apply(); }};
+  apply();
+})();
+</script>
+<script>
+/* Рекорды: таблица или график; Время: таблицы или визуализация */
+(function(){
+  const bind = (secId, segSel, attr, cls, key, def) => {
+    const sec = document.getElementById(secId); if (!sec) return;
+    let v = def; try { const x = localStorage.getItem(key); if (x) v = x; } catch (e) {}
+    const apply = () => {
+      Object.values(cls).forEach(c => sec.classList.remove(c)); sec.classList.add(cls[v] || cls[def]);
+      document.querySelectorAll(`${segSel} [${attr}]`).forEach(b => b.classList.toggle("active", b.getAttribute(attr) === v));
+      setTimeout(() => { try { window.dispatchEvent(new Event("resize")); } catch (e) {} }, 50);
+    };
+    document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(`${segSel} [${attr}]`); if (!b) return; v = b.getAttribute(attr); try { localStorage.setItem(key, v); } catch (err) {} apply(); });
+    apply();
+  };
+  bind("tab-records", "#record-view", "data-rec-view", {table:"rec-view-table", chart:"rec-view-chart"}, "chatstats.recView.v1", "table");
+  bind("tab-time", "#time-view", "data-time-view", {tables:"tm-view-tables", charts:"tm-view-charts"}, "chatstats.timeView.v1", "tables");
+})();
+</script>
+<script>
 /* ===================== Экспериментально: вкладки слева (только ПК) ===================== */
 (function(){
   const KEY = "chatstats.sideNav.v1", KEY_C = "chatstats.sideNavCollapsed.v1";
@@ -12431,9 +12573,89 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== Экспериментально: фильтры в правой шторке (только ПК) ===================== */
+(function(){
+  const KEY = "chatstats.filtersRight.v1", KEY_C = "chatstats.filtersRightCollapsed.v1";
+  const mq = window.matchMedia("(min-width:721px)");
+  const dr = document.createElement("aside");
+  dr.id = "filter-drawer"; dr.setAttribute("aria-label", "Фильтры");
+  dr.innerHTML = `<div class="fd-head"><span>Фильтры</span><button type="button" id="fd-toggle" title="Свернуть шторку">»</button></div><div class="fd-top" id="fd-top"></div><div id="fd-body"></div><div class="fd-rail" id="fd-rail" title="Развернуть фильтры">⚙ Фильтры</div>`;
+  document.body.appendChild(dr);
+  const body = dr.querySelector("#fd-body"), top = dr.querySelector("#fd-top");
+  const moved = []; // [узел, метка-место]
+  let on = false, collapsed = false;
+  try { on = localStorage.getItem(KEY) === "1"; collapsed = localStorage.getItem(KEY_C) === "1"; } catch (e) {}
+  const active = () => on && mq.matches;
+  function park(node, dest){ const mark = document.createComment("fd"); node.before(mark); moved.push([node, mark]); dest.appendChild(node); }
+  function restore(){
+    while (moved.length) { const [node, mark] = moved.pop(); if (mark.parentNode) mark.replaceWith(node); }
+    body.dataset.tab = "";
+  }
+  function candidates(){
+    const out = [];
+    document.querySelectorAll("main > .tab.active, main .tab.active .stat-content.active").forEach(sec => {
+      sec.querySelectorAll(":scope > .filters").forEach(f => out.push(f));
+    });
+    const sh = document.getElementById("shared");
+    if (sh && !sh.hidden) sh.querySelectorAll(":scope > .filters").forEach(f => { if (!f.hidden) out.unshift(f); });
+    ["c-quick", "ch-types"].forEach(id => { const q = document.getElementById(id); if (q && q.closest(".tab.active")) out.push(q); });
+    return [...new Set(out)];
+  }
+  function mount(){
+    restore();
+    if (!active()) return;
+    candidates().forEach(n => park(n, body));
+    body.dataset.tab = typeof activeDataTab === "function" ? activeDataTab() : "";
+    ["ult-toggle", "vk-toggle"].forEach(id => { const b = document.getElementById(id); if (b && b.parentNode !== top) park(b, top); });
+  }
+  function apply(){
+    const act = active();
+    document.body.classList.toggle("filters-right", act);
+    document.body.classList.toggle("fr-collapsed", act && collapsed);
+    dr.querySelector("#fd-toggle").textContent = collapsed ? "«" : "»";
+    dr.querySelector("#fd-toggle").title = collapsed ? "Развернуть фильтры" : "Свернуть шторку";
+    const c = document.getElementById("exp-filters-right"); if (c) c.checked = on;
+    if (act) mount(); else restore();
+    setTimeout(() => { try { window.dispatchEvent(new Event("resize")); } catch (e) {} }, 250);
+  }
+  const save = () => { try { localStorage.setItem(KEY, on ? "1" : "0"); localStorage.setItem(KEY_C, collapsed ? "1" : "0"); } catch (e) {} };
+  // Перед сменой вкладки возвращаем фильтры на место (до того, как сайт запомнит их состояние), потом забираем фильтры новой вкладки.
+  window.addEventListener("click", e => {
+    if (!active()) return;
+    const t = e.target.closest && e.target.closest("nav button, .nav-sheet button, [data-gtab], #stats-subnav [data-stats-view], [data-hub-go], [data-open-profile]");
+    if (!t) return;
+    restore();
+    setTimeout(mount, 60);
+  }, true);
+  window.addEventListener("popstate", () => { if (active()) { restore(); setTimeout(mount, 80); } });
+  dr.querySelector("#fd-toggle").addEventListener("click", () => { collapsed = !collapsed; save(); apply(); });
+  dr.querySelector("#fd-rail").addEventListener("click", () => { collapsed = false; save(); apply(); });
+  document.getElementById("exp-filters-right")?.addEventListener("change", e => {
+    on = e.target.checked; save();
+    // Фильтры справа подразумевают вкладки слева.
+    const sn = document.getElementById("exp-sidenav");
+    if (on && sn && !sn.checked) { sn.checked = true; sn.dispatchEvent(new Event("change", {bubbles:true})); }
+    apply();
+  });
+  mq.addEventListener ? mq.addEventListener("change", apply) : mq.addListener(apply);
+  window.__filterDrawer = {mount, restore, apply};
+  setTimeout(apply, 0);
+})();
+</script>
+<script>
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.22-5", date:"2026-10-22", title:"Компактные фильтры, шторка справа и стеклянная шапка", items:[
+    {tag:"new", area:"Везде", text:"Компактные фильтры: если на панели несколько галочек («Убрать вышедших», «Сравнение», «Тепловая заливка»…), они собраны в одно меню «Параметры» со счётчиком включённых. Выключается в Настройках → «Фильтры»."},
+    {tag:"new", area:"Настройки", text:"Раздел «Фильтры»: можно вовсе убрать переключатель «Среднее и медиана» с панелей и включать или выключать эти строки прямо из настроек."},
+    {tag:"new", area:"Настройки", text:"Экспериментально, только для ПК: «Фильтры справа». Вкладки слева, все фильтры вкладки и переключатели Ultimate и VK — в шторке справа, по центру только таблица или график. Шторка сворачивается в узкую полоску. Кнопка «Скрыть фильтры» в этом режиме не нужна."},
+    {tag:"new", area:"Рекорды", text:"Переключатель «Вид: Таблица / График» — показывается что-то одно. График стал компактнее."},
+    {tag:"new", area:"Время", text:"Две вкладки: «Таблицы» (время участия и юбилеи) и «Визуализация» (графики)."},
+    {tag:"imp", area:"Шапка", text:"Полупрозрачная «стеклянная» шапка с размытием того, что прокручивается под ней."},
+    {tag:"fix", area:"Матрица", text:"Даты выходных выделяются цветом выбранной палитры матрицы, а не цветом темы сайта."},
+    {tag:"fix", area:"Навигация", text:"В боковых вкладках подписи групп «Другое» и «Сервис» больше не обрезаются."},
+  ]},
   {v:"2026.10.22-4", date:"2026-10-22", title:"Матрица по чатам и вкладки слева", items:[
     {tag:"new", area:"Матрица", text:"Переключатель «Строки: Участники / Чаты». В режиме чатов строки — чаты, а клик по ячейке показывает, кто из участников писал в этом чате в этот день, неделю или месяц."},
     {tag:"imp", area:"Матрица", text:"Подробности ячейки участника показывают разбивку по всем чатам, даже если выбран один чат (выбранный подсвечен), с долями в процентах."},
