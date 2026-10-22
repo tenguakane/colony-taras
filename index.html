@@ -1123,26 +1123,28 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .side-sep,.side-toggle{display:none}
 body:not(.side-nav) .in-sidenav-only{display:none}
 @media (min-width:721px){
-  body.side-nav{--side-w:228px;padding-left:var(--side-w);transition:padding-left .2s}
+  body.side-nav{--side-w:var(--side-w-open,228px);padding-left:var(--side-w);transition:padding-left .2s}
   /* backdrop-filter у шапки делает её «контейнером» для fixed-элементов — в боковом режиме отключаем */
   body.side-nav.side-collapsed{--side-w:68px}
-  body.side-nav nav{position:fixed;left:0;top:0;bottom:0;width:var(--side-w);z-index:55;flex-direction:column;flex-wrap:nowrap;gap:2px;padding:12px 10px 16px;overflow-y:auto;overflow-x:hidden;background:var(--panel);border-right:1px solid var(--line);box-shadow:none;scrollbar-width:thin;transition:width .2s}
-  body.side-nav nav button{display:flex!important;align-items:center;gap:12px;width:100%;flex:0 0 auto;text-align:left;padding:8px 12px;border-radius:10px;border:1px solid transparent;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.side-nav nav{position:fixed;left:0;top:0;bottom:0;width:var(--side-w);z-index:55;flex-direction:column;flex-wrap:nowrap;gap:1px;padding:0 10px 10px;overflow-y:auto;overflow-x:hidden;background:var(--panel);border-right:1px solid var(--line);box-shadow:none;scrollbar-width:none;transition:width .2s}
+  body.side-nav nav::-webkit-scrollbar{display:none}
+  /* Высота пунктов подстраивается под высоту окна, чтобы панель помещалась без прокрутки */
+  body.side-nav nav button{display:flex!important;align-items:center;gap:12px;width:100%;flex:0 0 auto;text-align:left;padding:clamp(3px, calc((100vh - 620px) / 46), 8px) 12px;border-radius:10px;border:1px solid transparent;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   body.side-nav nav button::before{content:attr(data-ic);flex:0 0 22px;width:22px;text-align:center;font-size:17px;line-height:1;filter:none}
   body.side-nav nav button.nav-hidden{display:flex!important}
   body.side-nav nav button.side-skip,body.side-nav nav .nav-more-btn{display:none!important}
   body.side-nav nav button.active,body.side-nav nav button.side-active{background:var(--accent-bg);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
   body.side-nav nav button.nav-hidden:not(.side-active){background:none;color:var(--muted);border-color:transparent}
   body.side-nav nav button.nav-hidden:not(.side-active):hover{color:var(--text);background:#ffffff0a}
-  body.side-nav .side-sep{display:block;flex:0 0 auto;line-height:1.4;margin:12px 12px 4px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);opacity:.8;white-space:nowrap;overflow:hidden}
-  body.side-nav .side-toggle{flex:0 0 auto!important;display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px;padding:6px 8px 10px 12px;border:0;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:none!important;color:var(--text)!important;font-weight:600}
+  body.side-nav .side-sep{display:block;flex:0 0 auto;line-height:1.4;margin:clamp(4px, 1.1vh, 12px) 12px 2px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);opacity:.8;white-space:nowrap;overflow:hidden}
+  body.side-nav .side-toggle{flex:0 0 auto!important;display:flex!important;align-items:center;justify-content:space-between;gap:8px;margin:0 -10px 6px;height:calc(var(--hdr-h,57px) + 1px);padding:0 18px 0 22px;border:0;border-bottom:1px solid var(--line)!important;border-radius:0!important;background:none!important;color:var(--text)!important;font-weight:600}
   body.side-nav .side-toggle::before{content:none!important}
   body.side-nav .side-toggle i{font-style:normal;color:var(--muted);font-size:16px}
   body.side-nav [data-group-seg="other"]{display:none!important}
   body.side-nav.side-collapsed nav button{font-size:0;justify-content:center;padding:9px 0;gap:0}
   body.side-nav.side-collapsed nav button::before{font-size:19px}
   body.side-nav.side-collapsed .side-sep{font-size:0;margin:8px 10px;border-top:1px solid var(--line)}
-  body.side-nav.side-collapsed .side-toggle{justify-content:center;padding:6px 0 10px}
+  body.side-nav.side-collapsed .side-toggle{justify-content:center;padding:0}
   body.side-nav.side-collapsed .side-toggle span{display:none}
   body.side-nav.side-collapsed .side-toggle i{font-size:18px}
 }
@@ -1169,11 +1171,11 @@ body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-togg
 /* ===================== Экспериментально: фильтры в правой шторке (только ПК) ===================== */
 #filter-drawer{display:none}
 @media (min-width:721px){
-  body.filters-right{--fr-w:316px;padding-right:var(--fr-w)}
+  body.filters-right{--fr-w:var(--fr-w-open,316px);padding-right:var(--fr-w)}
   body.filters-right.fr-collapsed{--fr-w:52px}
   body.filters-right #filter-drawer{display:flex;flex-direction:column;position:fixed;right:0;top:0;bottom:0;width:var(--fr-w);z-index:55;background:var(--panel);border-left:1px solid var(--line);transition:width .2s}
   body.filters-right #filters-visibility-toggle,body.filters-right #filters-summary{display:none!important}
-  .fd-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 10px 10px 16px;border-bottom:1px solid var(--line);font-weight:600;flex:0 0 auto}
+  .fd-head{display:flex;align-items:center;justify-content:space-between;gap:8px;height:calc(var(--hdr-h,57px) + 1px);padding:0 10px 0 16px;border-bottom:1px solid var(--line);font-weight:600;flex:0 0 auto;box-sizing:border-box}
   .fd-head button{background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 6px;border-radius:6px}
   .fd-head button:hover{color:var(--text);background:var(--hover)}
   .fd-top{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line);flex:0 0 auto}
@@ -1200,7 +1202,15 @@ body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-togg
   #fd-body .pick .pop{left:auto;right:0}
   .fd-rail{display:none}
   body.fr-collapsed .fd-head span,body.fr-collapsed .fd-top,body.fr-collapsed #fd-body{display:none}
-  body.fr-collapsed .fd-head{justify-content:center;padding:12px 0 10px}
+  body.fr-collapsed .fd-head{justify-content:center;padding:0}
+  /* Перетаскиваемые границы панелей */
+  .pane-resizer{position:fixed;top:0;bottom:0;width:8px;z-index:58;cursor:col-resize;display:none}
+  .pane-resizer::after{content:"";position:absolute;top:0;bottom:0;left:3px;width:2px;background:var(--accent);opacity:0;transition:opacity .15s}
+  .pane-resizer:hover::after,.pane-resizer.drag::after{opacity:.7}
+  body.side-nav:not(.side-collapsed) #side-resizer{display:block;left:calc(var(--side-w) - 4px)}
+  body.filters-right:not(.fr-collapsed) #fr-resizer{display:block;right:calc(var(--fr-w) - 4px)}
+  body.pane-dragging,body.pane-dragging *{cursor:col-resize!important;user-select:none!important}
+  body.pane-dragging,body.pane-dragging nav,body.pane-dragging #filter-drawer{transition:none!important}
   body.fr-collapsed .fd-rail{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:12px;color:var(--muted);font-size:12px;cursor:pointer;writing-mode:vertical-rl;letter-spacing:.08em}
   body.fr-collapsed .fd-rail:hover{color:var(--text)}
 }
@@ -12643,9 +12653,47 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== Боковые панели: высота шапки и перетаскивание ширины ===================== */
+(function(){
+  const hdr = document.querySelector("header");
+  // Заголовки «Навигация» и «Фильтры» по высоте совпадают с шапкой сайта.
+  const syncH = () => { if (hdr) document.body.style.setProperty("--hdr-h", Math.round(hdr.getBoundingClientRect().height) + "px"); };
+  if (hdr && window.ResizeObserver) new ResizeObserver(syncH).observe(hdr);
+  addEventListener("resize", syncH); syncH();
+  const PANES = [
+    {id:"side-resizer", v:"--side-w-open", key:"chatstats.sideW.v1", min:170, max:380, def:228, dir:1},
+    {id:"fr-resizer", v:"--fr-w-open", key:"chatstats.frW.v1", min:250, max:560, def:316, dir:-1},
+  ];
+  PANES.forEach(P => {
+    const el = document.createElement("div"); el.id = P.id; el.className = "pane-resizer"; el.title = "Потяни, чтобы изменить ширину · двойной клик — по умолчанию";
+    document.body.appendChild(el);
+    const set = w => { w = Math.max(P.min, Math.min(P.max, Math.round(w))); document.body.style.setProperty(P.v, w + "px"); return w; };
+    try { const w = Number(localStorage.getItem(P.key)); if (w) set(w); } catch (e) {}
+    el.addEventListener("pointerdown", e => {
+      e.preventDefault(); el.setPointerCapture(e.pointerId); el.classList.add("drag"); document.body.classList.add("pane-dragging");
+      let last = null;
+      const move = ev => { last = set(P.dir > 0 ? ev.clientX : innerWidth - ev.clientX); };
+      const up = () => {
+        el.classList.remove("drag"); document.body.classList.remove("pane-dragging");
+        el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up);
+        if (last) { try { localStorage.setItem(P.key, String(last)); } catch (err) {} }
+        try { window.dispatchEvent(new Event("resize")); } catch (err) {}
+      };
+      el.addEventListener("pointermove", move); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    });
+    el.addEventListener("dblclick", () => { set(P.def); try { localStorage.removeItem(P.key); } catch (e) {} try { window.dispatchEvent(new Event("resize")); } catch (err) {} });
+  });
+})();
+</script>
+<script>
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.22-6", date:"2026-10-22", title:"Удобные боковые панели", items:[
+    {tag:"imp", area:"Навигация", text:"Левая панель помещается по высоте без прокрутки: отступы пунктов подстраиваются под высоту окна."},
+    {tag:"fix", area:"Навигация", text:"Заголовки «Навигация» и «Фильтры» стоят на одной линии с шапкой сайта."},
+    {tag:"new", area:"Навигация", text:"Ширину левой и правой панелей можно менять, перетаскивая их границу. Двойной клик по границе возвращает ширину по умолчанию."},
+  ]},
   {v:"2026.10.22-5", date:"2026-10-22", title:"Компактные фильтры, шторка справа и стеклянная шапка", items:[
     {tag:"new", area:"Везде", text:"Компактные фильтры: если на панели несколько галочек («Убрать вышедших», «Сравнение», «Тепловая заливка»…), они собраны в одно меню «Параметры» со счётчиком включённых. Выключается в Настройках → «Фильтры»."},
     {tag:"new", area:"Настройки", text:"Раздел «Фильтры»: можно вовсе убрать переключатель «Среднее и медиана» с панелей и включать или выключать эти строки прямо из настроек."},
