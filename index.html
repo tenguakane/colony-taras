@@ -1475,6 +1475,9 @@ body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-togg
           <option value="all">Все</option>
         </select>
       </div>
+      <div class="field" id="trend-fc-field" hidden><label for="trend-forecast" title="Пунктир от сегодняшнего дня до конца месяца: куда придёт каждый при нынешнем темпе">Прогноз</label>
+        <select id="trend-forecast"><option value="off">Не показывать</option><option value="month">До конца месяца</option></select>
+      </div>
       <div class="field" id="y-ceil-field" hidden><label for="y-ceil" title="Максимум вертикальной оси. Пусто — подбирается автоматически">Потолок оси</label><input type="number" id="y-ceil" min="1" step="any" placeholder="авто" inputmode="decimal" style="width:120px"></div>
       <div class="field" id="trend-count-field" hidden><label for="trend-top">Количество пользователей</label>
         <select id="trend-top">
@@ -3965,7 +3968,7 @@ function axisLabel(v){
 function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxIn, appearance = null, xLabel = null, valFmt = null, events = null, dateOf = null, shares = true}){
   // xLabel включает интерактивность: клик по легенде скрывает линию, при наведении появляется подсказка
   const series = xLabel ? allSeries.filter(s => !hiddenSeries.has(s.name)) : allSeries;
-  const yMax = (xLabel && series.length) ? Math.max(1, ...series.flatMap(s => s.pts.map(p => p[1]))) : yMaxIn;
+  const yMax = (xLabel && series.length) ? Math.max(1, ...series.flatMap(s => s.pts.map(p => p[1]).concat(s.fc ? [s.fc.y1, s.fc.hi] : []))) : yMaxIn;
   const gi = (s, html) => xLabel ? `<g class="lg-item" data-name="${escH(s.name)}"${s.ek ? ` data-ek="${escH(s.ek)}"` : ""} opacity="${hiddenSeries.has(s.name) ? 0.35 : 1}" style="cursor:pointer">${html}</g>` : html;
   // Сдвигаем область построения вправо, чтобы значения шкалы не отстояли далеко от графика.
   const endLbl = !!xLabel && series.length >= 3, many = series.length > 6;
@@ -4002,7 +4005,7 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
     const pa = paint(s.st, P[0][0], 0, xe === P[0][0] ? xe + 1 : xe, 0);
     defs.push(pa.defs);
 
-    const hasArrow = P.length > 1 && !many;
+    const hasArrow = P.length > 1 && !many && !s.fc;
     const dn = ` data-n="${escH(s.name)}"`;
     const lineOpacity = baseLineOpacity * seriesOpacity(s) * (s.op !== undefined ? s.op : 1);
     // Линия обрывается внутри наконечника (не доходя ~15% его длины до основания),
@@ -4011,6 +4014,13 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
     o += `<path${dn}${s.dash ? "" : ' class="anim-line" pathLength="1"'} d="${hasArrow ? tr.d : smooth(P)}" fill="none" stroke="${pa.p}" stroke-opacity="${lineOpacity}" stroke-width="${lineWidth}" stroke-linecap="butt" stroke-linejoin="round"${s.dash ? ` stroke-dasharray="${s.dash}"` : ""}/>`;
     if (!s.dash) o += `<circle${dn} cx="${P[0][0].toFixed(1)}" cy="${P[0][1].toFixed(1)}" r="${many ? pointRadius * .6 : pointRadius}" fill="${pa.a}" fill-opacity="${lineOpacity}"/>`;
     if (many && P.length > 1 && !s.dash) { const tip = P[P.length - 1]; o += `<circle${dn} class="anim-fade-late" cx="${tip[0].toFixed(1)}" cy="${tip[1].toFixed(1)}" r="${Math.max(4, pointRadius * .75)}" fill="${pa.z}" fill-opacity="${lineOpacity}"/>`; }
+    if (s.fc) {
+      // Прогноз: полоса вероятного диапазона, пунктир и точка на конце месяца.
+      const f = s.fc, X0 = sx(f.x0), Y0 = sy(f.y0), X1 = sx(f.x1);
+      o += `<path d="M${X0.toFixed(1)},${Y0.toFixed(1)} L${X1.toFixed(1)},${sy(f.hi).toFixed(1)} L${X1.toFixed(1)},${sy(f.lo).toFixed(1)} Z" fill="${pa.z}" fill-opacity="${(.12 * lineOpacity).toFixed(3)}" pointer-events="none"/>`;
+      o += `<line x1="${X0.toFixed(1)}" y1="${Y0.toFixed(1)}" x2="${X1.toFixed(1)}" y2="${sy(f.y1).toFixed(1)}" stroke="${pa.z}" stroke-opacity="${(.9 * lineOpacity).toFixed(3)}" stroke-width="${Math.max(1.5, lineWidth * .6)}" stroke-dasharray="6 5" stroke-linecap="round" data-n="${escH(s.name)}"/>`;
+      o += `<circle cx="${X1.toFixed(1)}" cy="${sy(f.y1).toFixed(1)}" r="${Math.max(3.5, pointRadius * .7)}" fill="none" stroke="${pa.z}" stroke-width="2" stroke-opacity="${lineOpacity}" data-n="${escH(s.name)}"/>`;
+    }
     if (hasArrow) {
       // Ось наконечника — от точки обрыва линии к последней точке данных.
       const tip = P[P.length - 1], e = tr.end;
@@ -4026,23 +4036,25 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
     }
   });
   o += `</g>`;
+  const fcAny = series.find(s => s.fc);
+  if (fcAny) { const X0 = sx(fcAny.fc.x0); o += `<line x1="${X0.toFixed(1)}" y1="${T}" x2="${X0.toFixed(1)}" y2="${B}" stroke="#ffffff" stroke-opacity=".28" stroke-dasharray="2 4" pointer-events="none"/><text class="chart-axis" x="${(X0 + 6).toFixed(1)}" y="${T + 14}" font-size="13" fill="#aab0c0">сегодня → прогноз</text>`; }
   lineSeriesInfo = xLabel ? allSeries.map(s => ({name:s.name, color:s.st.c[0]})) : null;
   if (endLbl) {
     // Подписи у концов линий: раздвигаем по вертикали, чтобы не налезали, и ведём к линиям тонкие выноски.
-    const ends = series.map(s => { const p = s.pts[s.pts.length - 1]; return p ? {s, x:sx(p[0]), y:Math.max(T, sy(p[1])), v:p[1]} : null; }).filter(Boolean).sort((a, b) => a.y - b.y || b.v - a.v);
+    const ends = series.map(s => { if (s.fc) return {s, x:sx(s.fc.x1), y:Math.max(T, sy(s.fc.y1)), v:s.fc.y1, fc:true}; const p = s.pts[s.pts.length - 1]; return p ? {s, x:sx(p[0]), y:Math.max(T, sy(p[1])), v:p[1]} : null; }).filter(Boolean).sort((a, b) => a.y - b.y || b.v - a.v);
     const gap = Math.max(14, Math.min(26, (B - T + 10) / Math.max(1, ends.length)));
     let prev = -1e9; ends.forEach(e => { e.ly = Math.max(e.y, prev + gap); prev = e.ly; });
     if (ends.length && ends[ends.length - 1].ly > B) { ends[ends.length - 1].ly = B; for (let i = ends.length - 2; i >= 0; i--) ends[i].ly = Math.min(ends[i].ly, ends[i + 1].ly - gap); }
     const fs = Math.max(12, Math.min(18, gap - 4)), lx = R + 26, short = v => v >= 1000 ? (Math.round(v / 100) / 10).toLocaleString("ru-RU") + "K" : fmt(Math.round(v));
     ends.forEach(e => {
       const c = e.s.st.c[0], nm = e.s.name.length > 15 ? e.s.name.slice(0, 14) + "…" : e.s.name;
-      o += gi(e.s, `<path data-n="${escH(e.s.name)}" d="M${(e.x + 6).toFixed(1)},${e.y.toFixed(1)} C${(R + 12).toFixed(1)},${e.y.toFixed(1)} ${(R + 8).toFixed(1)},${e.ly.toFixed(1)} ${(lx - 6).toFixed(1)},${e.ly.toFixed(1)}" fill="none" stroke="${c}" stroke-opacity=".55" stroke-width="1.6"/><circle data-n="${escH(e.s.name)}" cx="${lx - 4}" cy="${e.ly.toFixed(1)}" r="3.5" fill="${c}"/><text data-n="${escH(e.s.name)}" class="end-label" x="${lx + 4}" y="${(e.ly + fs * .35).toFixed(1)}" font-size="${fs.toFixed(0)}" fill="${chartFontColor || "#f2f3f7"}">${escH(nm)}<tspan fill-opacity=".6" font-size="${(fs * .82).toFixed(0)}"> ${short(e.v)}</tspan></text>`);
+      o += gi(e.s, `<path data-n="${escH(e.s.name)}" d="M${(e.x + 6).toFixed(1)},${e.y.toFixed(1)} C${(R + 12).toFixed(1)},${e.y.toFixed(1)} ${(R + 8).toFixed(1)},${e.ly.toFixed(1)} ${(lx - 6).toFixed(1)},${e.ly.toFixed(1)}" fill="none" stroke="${c}" stroke-opacity=".55" stroke-width="1.6"/><circle data-n="${escH(e.s.name)}" cx="${lx - 4}" cy="${e.ly.toFixed(1)}" r="3.5" fill="${c}"/><text data-n="${escH(e.s.name)}" class="end-label" x="${lx + 4}" y="${(e.ly + fs * .35).toFixed(1)}" font-size="${fs.toFixed(0)}" fill="${chartFontColor || "#f2f3f7"}">${escH(nm)}<tspan fill-opacity=".6" font-size="${(fs * .82).toFixed(0)}"> ${e.fc ? "≈" : ""}${short(e.v)}</tspan></text>`);
     });
   }
   let extra = "";
   if (xLabel) {
     lineMeta = {L, T, B, span: R - L - 20, xMin, xMax, xLabel, shares: shares && series.some(s => s.ek), valFmt, evNote: evNotes && dateOf ? x => evNotes(dateOf(x)) : null,
-      series: series.map(s => ({name: s.name, c: s.st.c[0], v: new Map(s.pts.map(p => [p[0], p[1]]))}))};
+      series: series.map(s => ({name: s.name, c: s.st.c[0], v: new Map(s.pts.map(p => [p[0], p[1]])), fc: s.fc || null}))};
     extra = `<line id="xh" x1="0" y1="${T}" x2="0" y2="${B}" stroke="#ffffff66" stroke-width="1.5" stroke-dasharray="4 4" visibility="hidden" pointer-events="none"/><rect id="hov" x="${L}" y="${T}" width="${R - L + 20}" height="${B - T}" fill="transparent" style="touch-action:pan-y"/>`;
   }
   return `<svg viewBox="0 0 ${W} ${H}" role="img"><defs>${defs.join("")}</defs>${o}${extra}</svg>`;
@@ -4186,7 +4198,13 @@ function trendChart(){
     if (availableLast > 0) last = Math.min(last, availableLast);
   }
   if (last < 1) return note("Нет данных за выбранный период");
-  const displayN = partialCurrentMonth ? last : N;
+  // Прогноз до конца текущего месяца: ось продлевается до последнего дня месяца.
+  const idxOf = d => Math.round((Date.parse(d + "T00:00:00Z") - t0) / DAY) + 1;
+  const todayIso = iso(now), monthEndIso = iso(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+  const fcWanted = $("trend-forecast")?.value === "month";
+  const fcEnd = idxOf(monthEndIso), fcOn = fcWanted && NORM === "abs" && r[0] <= todayIso && r[1] >= addDaysIso(todayIso, -1) && fcEnd > last && last >= 3;
+  let displayN = partialCurrentMonth ? last : N;
+  if (fcOn) displayN = Math.max(displayN, fcEnd);
   const trendTicks = makeTicks(t0, displayN, 600, true);
   const per = new Map();
   src.forEach(x => {
@@ -4215,8 +4233,26 @@ function trendChart(){
   if (NORM === "share") ranked.forEach(u => { for (let j = 1; j <= last; j++) totC[j] += u.c[j]; });
   const valAt = (u, j) => NORM === "share" ? (totC[j] ? u.c[j] / totC[j] * 100 : 0) : NORM === "day" ? (u.d[j] ? u.c[j] / u.d[j] : 0) : u.c[j];
   const series = top.map(u => ({name: u.n, ek: String(u.k), seriesKey: `${chartStyleKind()}:${String(u.k)}`, st: chartSeriesStyle(chartStyleKind(), u.k), pts: Array.from({length: last}, (_, j) => [j + 1, valAt(u, j + 1)]).filter(p => NORM !== "day" || u.d[p[0]] > 0), w: 4}));
-  const yMax = Math.max(1, ...series.flatMap(s => s.pts.map(p => p[1])));
-  const normWord = NORM === "share" ? ", доля от всех, %" : NORM === "day" ? ", в среднем на активный день" : "";
+  if (fcOn) {
+    // Темп: 60% — последние 14 дней, 40% — весь период; разброс — по дневным значениям последних 28 дней.
+    const rem = fcEnd - last, monthStartIdx = Math.max(1, idxOf(todayIso.slice(0, 8) + "01"));
+    top.forEach((u, i) => {
+      const n14 = Math.min(14, last), n28 = Math.min(28, last);
+      let s14 = 0; for (let j = last - n14 + 1; j <= last; j++) s14 += u.a[j];
+      const d28 = []; for (let j = last - n28 + 1; j <= last; j++) d28.push(u.a[j]);
+      const m28 = d28.reduce((a2, b2) => a2 + b2, 0) / n28, sd = Math.sqrt(d28.reduce((a2, b2) => a2 + (b2 - m28) ** 2, 0) / n28);
+      const rate = .6 * (s14 / n14) + .4 * (u.t / last), y1 = u.t + rate * rem, spread = 1.28 * sd * Math.sqrt(rem);
+      let mSoFar = 0; for (let j = monthStartIdx; j <= last; j++) mSoFar += u.a[j] || 0;
+      series[i].fc = {x0:last, y0:u.t, x1:fcEnd, y1, lo:Math.max(u.t, y1 - spread), hi:y1 + spread, rate, month:mSoFar + rate * rem, monthSoFar:mSoFar};
+    });
+    const order = [...series].sort((a2, b2) => b2.fc.y1 - a2.fc.y1);
+    order.forEach((s2, k) => { s2.fc.place = k + 1; });
+    series.forEach((s2, k) => { s2.fc.nowPlace = k + 1; });
+  }
+  const yMax = Math.max(1, ...series.flatMap(s => s.pts.map(p => p[1]).concat(s.fc ? [s.fc.y1, s.fc.hi] : [])));
+  const MONTHS_GEN = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+  const fcWord = fcOn ? `, прогноз до ${+monthEndIso.slice(8)} ${MONTHS_GEN[+monthEndIso.slice(5, 7) - 1]}` : fcWanted && NORM !== "abs" ? ", прогноз — только в режиме «Всего»" : "";
+  const normWord = (NORM === "share" ? ", доля от всех, %" : NORM === "day" ? ", в среднем на активный день" : "") + fcWord;
   const dateOf = i => iso(new Date(t0 + (i - 1) * DAY + 12 * 3600e3)).slice(0, 10);
   return lineChart({
     title: cPeriodLabel(), st: sub() + ", накопительно" + normWord + selectedLabel,
@@ -4348,6 +4384,7 @@ async function renderCharts(){
 
   $("trend-count-field").hidden = !["trend", "race", "pairs", "bump", "spread", "multiples"].includes(requestedType);
   $("y-ceil-field").hidden = !["trend", "years"].includes(requestedType);
+  $("trend-fc-field").hidden = requestedType !== "trend";
   $("bars-top-field").hidden = !["bars", "donut"].includes(requestedType);
   { const bl = document.querySelector('label[for="bars-top"]'); if (bl) bl.textContent = chartEntity === "chats" ? "Количество чатов" : "Количество участников"; }
   const isHeatRows = requestedType === "heatrows" || requestedType === "heatrows-custom";
@@ -5158,7 +5195,18 @@ function highlightDonut(seg){
       const x = Math.max(M.xMin, Math.min(M.xMax, Math.round(M.xMin + (p.x - M.L) / M.span * span)));
       const px = M.L + (x - M.xMin) / span * M.span, xh = $("xh");
       xh.setAttribute("x1", px); xh.setAttribute("x2", px); xh.setAttribute("visibility", "visible");
-      const items = M.series.map(s => ({s, v: s.v.get(x)})).filter(q => q.v !== undefined).sort((a, b) => b.v - a.v);
+      let items = M.series.map(s => ({s, v: s.v.get(x)})).filter(q => q.v !== undefined).sort((a, b) => b.v - a.v);
+      const fcs = M.series.filter(s => s.fc && x > s.fc.x0);
+      if (fcs.length && !items.length) {
+        const fi = fcs.map(s => { const f = s.fc, t2 = (x - f.x0) / (f.x1 - f.x0); return {s, v:f.y0 + (f.y1 - f.y0) * t2, f}; }).sort((a, b) => b.v - a.v);
+        const atEnd = x >= fi[0].f.x1;
+        showTip(`<b>${escH(M.xLabel(x))} · прогноз</b>` + fi.map((q, k) => {
+          const mv = atEnd && Math.round(q.f.month) !== Math.round(q.v) ? ` · за месяц ≈ ${fmt(Math.round(q.f.month))}` : "";
+          const mv2 = atEnd && q.f.place !== q.f.nowPlace ? ` <span class="${q.f.place < q.f.nowPlace ? "up" : "down"}">${q.f.place < q.f.nowPlace ? "▲" : "▼"}${Math.abs(q.f.nowPlace - q.f.place)}</span>` : "";
+          return tipRow(`<i style="background:${q.s.c}"></i>${k + 1}. ${escH(q.s.name)}${mv2}`, `≈ ${fmt(Math.round(q.v))}${mv}`);
+        }).join("") + tipRow("Темп", "60% — последние 14 дней, 40% — весь период") + (M.evNote ? M.evNote(x) : ""), e);
+        return;
+      }
       const sum = items.reduce((a, q) => a + q.v, 0);
       const vf = M.valFmt || (v => fmt(Math.round(v)));
       showTip(`<b>${escH(M.xLabel(x))}</b>` + items.map((q, k) => tipRow(`<i style="background:${q.s.c}"></i>${M.shares || M.valFmt ? `${k + 1}. ` : ""}${escH(q.s.name)}`, `${vf(q.v)}${M.shares && sum ? ` · ${pctStr(q.v / sum)}` : ""}`)).join("") + (M.shares && items.length > 1 ? tipRow("Всего", fmt(Math.round(sum))) : "") + (M.evNote ? M.evNote(x) : ""), e);
@@ -10252,7 +10300,7 @@ function syncChartNormField(type){
   const f = $("f-norm"); if (!f) return;
   f.hidden = $("tab-charts").classList.contains("active") && !CHART_NORM_TYPES.includes(type || cType);
 }
-["bump-mode", "spread-zero", "spread-scale", "mult-scale", "chart-events"].forEach(id => { const el = $(id); if (el) el.addEventListener("change", () => renderCharts()); });
+["bump-mode", "spread-zero", "spread-scale", "mult-scale", "chart-events", "trend-forecast"].forEach(id => { const el = $(id); if (el) el.addEventListener("change", () => renderCharts()); });
 document.querySelectorAll("nav button[data-tab]").forEach(b => b.addEventListener("click", () => {
   const f = $("f-norm"); if (f) f.hidden = b.dataset.tab === "charts" && !CHART_NORM_TYPES.includes(cType);
 }));
@@ -12689,6 +12737,9 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.22-7", date:"2026-10-22", title:"Прогноз на «Динамике»", items:[
+    {tag:"new", area:"Графики", text:"На «Динамике» появилось поле «Прогноз: До конца месяца». От сегодняшнего дня к последнему дню месяца идёт пунктир с полосой вероятного диапазона, у конца линий — ожидаемый итог (≈). Подсказка в зоне прогноза показывает ожидаемые места (▲▼ — кто кого обгонит) и итог за месяц."},
+  ]},
   {v:"2026.10.22-6", date:"2026-10-22", title:"Удобные боковые панели", items:[
     {tag:"imp", area:"Навигация", text:"Левая панель помещается по высоте без прокрутки: отступы пунктов подстраиваются под высоту окна."},
     {tag:"fix", area:"Навигация", text:"Заголовки «Навигация» и «Фильтры» стоят на одной линии с шапкой сайта."},
