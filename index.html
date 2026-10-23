@@ -1307,6 +1307,7 @@ body.fx-reveal .fx-in{opacity:1;transform:none;transition:opacity .55s ease-out,
 #fx-confetti,#fx-season{position:fixed;inset:0;pointer-events:none;width:100vw;height:100vh}
 #fx-confetti{z-index:200}
 #fx-season{z-index:-1;opacity:.8}
+#fx-season.fx-season-top{z-index:9000;opacity:.92}
 /* Свечение выделенной линии на графиках */
 body.fx-glow #c-out svg.fx-has-focus [data-n]:not([style*="opacity"]):is(path,line,polygon,circle),body.fx-glow #c-out svg.dimming .hl:is(path,line,polygon,circle){filter:url(#fx-glow)}
 /* Пульсирующая точка «сейчас» на конце линий */
@@ -1882,6 +1883,10 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     <div class="filters">
       <div class="field"><label for="fx-season-kind">Частицы на фоне</label><select id="fx-season-kind"></select></div>
       <div class="field"><label for="fx-season-density">Сколько</label><select id="fx-season-density"><option value="low">Мало</option><option value="mid">Средне</option><option value="high">Много</option><option value="max">Ещё больше</option></select></div>
+    </div>
+    <div class="filters">
+      <div class="field"><label for="tb-style">Рамка таблиц</label><select id="tb-style"><option value="off">Выключено</option><option value="rainbow">🌈 Радуга</option><option value="aurora">🌌 Северное сияние</option><option value="sunset">🌅 Закат</option><option value="ocean">🌊 Океан</option><option value="neon">💜 Неон</option><option value="fire">🔥 Огонь</option><option value="gold">🥇 Золото</option><option value="silver">🥈 Серебро</option><option value="accent">🎨 Цвет темы</option><option value="comet">☄️ Бегущий блик</option></select></div>
+      <div class="field"><label for="tb-speed">Скорость</label><select id="tb-speed"><option value="slow">Медленно</option><option value="mid">Средне</option><option value="fast">Быстро</option></select></div>
     </div>
     <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><button class="mini" type="button" id="fx-bg-toggle" title="Листопад и другие сезонные частицы, параллакс-фон, салют и конфетти">Выключить фоновые эффекты</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
     <h2>Шрифт</h2>
@@ -13243,6 +13248,7 @@ function multiplesChart(){
     ["confetti", "Конфетти: день рождения, новое достижение, победа в дуэли"],
     ["fireworks", "Салют в «Итогах года» (декабрь и январь)"],
     ["season", "Частицы на фоне (вид выбирается ниже)"],
+    ["misha", "🤡 Падающие клоуны в профиле «Миша А.»"],
     ["glow", "Свечение выделенной линии на графиках"],
     ["pulse", "Пульсирующая точка «сейчас» на линиях"],
     ["morph", "Плавная перестройка столбцов при смене периода"],
@@ -13265,7 +13271,7 @@ function multiplesChart(){
   document.getElementById("fx-all-on")?.addEventListener("click", () => { LIST.forEach(([k]) => FX[k] = true); save(); applyAll(); });
   document.getElementById("fx-all-off")?.addEventListener("click", () => { LIST.forEach(([k]) => FX[k] = false); save(); applyAll(); });
   // Фоновые эффекты: всё, что летает или двигается поверх/позади страницы.
-  const BG = ["season", "parallax", "fireworks", "confetti"];
+  const BG = ["season", "parallax", "fireworks", "confetti", "misha"];
   const bgAnyOn = () => BG.some(k => FX[k]);
   function syncBgBtn(){ const b = document.getElementById("fx-bg-toggle"); if (b) b.textContent = bgAnyOn() ? "Выключить фоновые эффекты" : "Включить фоновые эффекты"; }
   document.getElementById("fx-bg-toggle")?.addEventListener("click", () => { const v = !bgAnyOn(); BG.forEach(k => FX[k] = v); save(); applyAll(); });
@@ -13429,18 +13435,28 @@ function multiplesChart(){
     bubbles:{name:"🫧 Пузыри", col:["#9fd8ff", "#c7f0ff", "#b9b3ff"], r:[3, 9], vy:[-.7, -.25], vx:.3, ring:true},
     bokeh:{name:"🔵 Боке", col:["#7aa2f7", "#bb9af7", "#7dcfff", "#ff9ecf", "#ffd166"], r:[18, 58], vy:[-.18, .18], vx:.35, bokeh:true, base:16},
     dust:{name:"🌤 Пылинки в луче", col:["#fff4d6", "#ffe9b0", "#ffffff"], r:[.5, 1.6], vy:[-.08, .12], vx:.12, dust:true, base:80},
-    hearts:{name:"💗 Сердечки", col:["#ff6b9d", "#ff9ecf", "#ff4d6d"], r:[4, 8], vy:[-.6, -.2], vx:.4, glyph:"♥"},
+    hearts:{name:"💗 Сердечки", col:["#ff6b9d", "#ff9ecf", "#ff4d6d", "#ff85a1", "#e0457b"], r:[7, 32], vy:[-.7, -.2], vx:.4, heart:true, base:30},
     glitter:{name:"💎 Блёстки", col:["#ffd166", "#ffffff", "#67e8f9", "#ff9ecf", "#a78bfa"], r:[1, 2.4], vy:[.15, .45], vx:.3, twinkle:true, diamond:true},
     confetti:{name:"🎊 Конфетти", col:["#ff6b9d", "#ffd166", "#76f0b6", "#7aa2f7", "#bb9af7", "#ff9e64"], r:[3, 6], vy:[.8, 2], vx:.8, confetti:true, base:60},
     coins:{name:"🪙 Золотые монеты", col:["#f6c445", "#ffd977", "#e0a526"], r:[5, 9], vy:[.9, 2], vx:.3, coin:true, base:22},
-    embers:{name:"🔥 Искры костра", col:["#ffb347", "#ff7a1a", "#ffd166"], r:[1, 2.4], vy:[-1.1, -.4], vx:.5, glow:true},
-    lanterns:{name:"🏮 Небесные фонарики", col:["#ffb347", "#ff9640", "#ffc870"], r:[6, 11], vy:[-.55, -.22], vx:.3, lantern:true, base:14},
+    embers:{name:"🔥 Искры костра", col:["#fff1b0", "#ffd166", "#ffb347", "#ff7a1a", "#ff5a1f"], r:[1, 2.2], vy:[-2.3, -.8], vx:.6, ember:true, base:70},
+    lanterns:{name:"🏮 Небесные фонарики", col:["#ffb347", "#ff9640", "#ffc870"], r:[28, 48], vy:[-.5, -.18], vx:.3, lantern:true, base:11},
     balloons:{name:"🎈 Воздушные шары", col:["#ff6b9d", "#7aa2f7", "#ffd166", "#76f0b6", "#bb9af7"], r:[10, 17], vy:[-.9, -.4], vx:.35, balloon:true, base:12},
     butterflies:{name:"🦋 Бабочки", col:["#ffffff"], r:[10, 16], vy:[-.25, .25], vx:.7, butterfly:true, base:10},
     fluff:{name:"🌼 Пух одуванчика", col:["#f4f1e8", "#ffffff"], r:[2, 3.5], vy:[-.1, .3], vx:.7, fluff:true},
     digits:{name:"🔢 Падающие цифры", col:["#76f0b6", "#7aa2f7"], r:[9, 14], vy:[.6, 1.6], vx:0, digits:true},
     chat:{name:"💬 Сообщения", col:["#ffffff"], r:[9, 15], vy:[-.5, -.2], vx:.3, emoji:["💬", "😂", "👍", "❤️", "🔥", "🎉", "😮"]},
     notes:{name:"🎵 Ноты", col:["#c792ea", "#7dcfff", "#ffd166"], r:[9, 14], vy:[-.5, -.2], vx:.4, glyph:"♪"},
+    smoke:{name:"💨 Дым", col:["#b9c1cf", "#cfd5e0", "#a3abba"], r:[26, 58], vy:[-.75, -.3], vx:.3, smoke:true, base:28},
+    fog:{name:"🌫 Туман", col:["#c9d2e2", "#aeb8cb", "#dfe6f2"], r:[180, 340], vy:[-.03, .03], vx:.5, fog:true, base:10},
+    aurora:{name:"🌌 Северное сияние", col:["#76f0b6", "#67e8f9", "#a78bfa", "#2dd4bf"], r:[0, 0], vy:[0, 0], vx:0, aurora:true, base:4},
+    warp:{name:"🚀 Полёт сквозь звёзды", col:["#ffffff", "#d5e6ff", "#fff6d5"], r:[.7, 1.9], vy:[0, 0], vx:0, warp:true, base:140},
+    salute:{name:"🎆 Салют", col:["#ffd166", "#ff6ad5", "#67e8f9", "#a78bfa", "#76f0b6", "#ff9e64"], r:[0, 0], vy:[0, 0], vx:0, salute:true, base:1},
+    clowns:{name:"🤡 Клоуны", col:["#ffffff"], r:[16, 30], vy:[1, 2.4], vx:.4, emoji:["🤡"], tumble:true, alpha:.95, base:20},
+    halloween:{name:"🎃 Хэллоуин", col:["#ffffff"], r:[20, 32], vy:[.5, 1.3], vx:.4, emoji:["🎃", "👻", "🦇", "🕸️", "🍬"], tumble:true, alpha:.85, base:22},
+    ghosts:{name:"👻 Призраки", col:["#ffffff"], r:[18, 30], vy:[-.5, -.15], vx:.3, emoji:["👻"], ghost:true, base:10},
+    money:{name:"💵 Денежный дождь", col:["#ffffff"], r:[20, 32], vy:[.7, 1.6], vx:.5, emoji:["💵", "💸", "💶", "💰"], tumble:true, flutter:true, alpha:.9, base:20},
+    food:{name:"🍕 Вкусный дождь", col:["#ffffff"], r:[20, 32], vy:[.7, 1.7], vx:.4, emoji:["🍕", "🍔", "🍩", "🍟", "🌮", "🍦"], tumble:true, alpha:.9, base:20},
   };
   const DENSITY = {low:.5, mid:1, high:1.9, max:3.2};
   const seasonKind = () => { const m = new Date().getMonth(); return m === 11 || m <= 1 ? "snow" : m <= 4 ? "petals" : m <= 7 ? "fireflies" : "leaves"; };
@@ -13466,6 +13482,12 @@ function multiplesChart(){
     if (K.coin) { f.spin = Math.random() * 6; f.ss = .05 + Math.random() * .06; }
     if (K.butterfly) { f.vx = (Math.random() < .5 ? -1 : 1) * (.3 + Math.random() * .6); f.flap = Math.random() * 6; f.hue = Math.floor(Math.random() * 360); }
     if (K.lantern) { f.fl = Math.random() * 6; }
+    if (K.tumble) f.vr = (Math.random() - .5) * .07;
+    if (K.ember) { f.len = 6 + Math.random() * 12; f.w = 1.2 + Math.random() * 1.6; f.tw = Math.random() * 6; }
+    if (K.smoke) { f.r0 = f.r; f.a = .14 + Math.random() * .12; if (!initial) f.y = innerHeight + f.r; }
+    if (K.fog) { f.y = innerHeight * (.2 + Math.random() * .8); f.vx = (.15 + Math.random() * .35) * (Math.random() < .5 ? -1 : 1); f.a = .09 + Math.random() * .08; }
+    if (K.heart) { f.r = K.r[0] + Math.pow(Math.random(), 1.8) * (K.r[1] - K.r[0]); f.vy = -(.22 + Math.random() * .3 + (1 - f.r / K.r[1]) * .35); f.pulse = Math.random() * 6; if (!initial) f.y = innerHeight + f.r * 2; }
+    if (K.warp) { f.ang = Math.random() * Math.PI * 2; f.d = initial ? Math.random() * Math.hypot(innerWidth, innerHeight) / 2 : 2 + Math.random() * 30; f.sp = .4 + Math.random() * 1.3; }
     return f;
   }
   function drawRain(K){
@@ -13531,14 +13553,77 @@ function multiplesChart(){
       flash -= .035; sctx.globalAlpha = 1;
     }
   }
+  function drawAurora(){
+    const t = performance.now() / 1000, W = innerWidth, H = innerHeight;
+    sctx.globalCompositeOperation = "lighter";
+    flakes.forEach((b, i) => {
+      const y0 = H * (.05 + i * .08), amp = 34 + i * 14, h = H * (.34 + .06 * i);
+      sctx.globalAlpha = .26 + .08 * Math.sin(t * .7 + i * 1.7);
+      const g = sctx.createLinearGradient(0, y0 - amp, 0, y0 + h + amp);
+      g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(.18, b.c); g.addColorStop(.5, b.c + "55"); g.addColorStop(1, "rgba(0,0,0,0)");
+      sctx.fillStyle = g; sctx.beginPath();
+      for (let x = 0; x <= W + 24; x += 24) { const y = y0 + Math.sin(x * .004 + t * (.22 + i * .06) + b.ph) * amp + Math.sin(x * .011 - t * .4 + i) * amp * .35; x ? sctx.lineTo(x, y) : sctx.moveTo(x, y); }
+      sctx.lineTo(W + 24, y0 + h + amp); sctx.lineTo(0, y0 + h + amp);
+      sctx.closePath(); sctx.fill();
+    });
+    sctx.globalCompositeOperation = "source-over"; sctx.globalAlpha = 1;
+  }
+  let salRk = [], salSp = [], salNext = 0;
+  function drawSalute(K){
+    const t = performance.now();
+    if (t > salNext) {
+      salNext = t + (650 + Math.random() * 1300) / (DENSITY[PK.density] || 1);
+      salRk.push({x:innerWidth * (.12 + Math.random() * .76), y:innerHeight + 10, vy:-(9 + Math.random() * 4.5), ty:innerHeight * (.12 + Math.random() * .36), c:K.col[Math.floor(Math.random() * K.col.length)]});
+    }
+    for (let i = salRk.length - 1; i >= 0; i--) {
+      const r = salRk[i]; r.y += r.vy; r.vy *= .985;
+      sctx.globalAlpha = .9; sctx.fillStyle = "#fff4d6"; sctx.fillRect(r.x - 1, r.y, 2, 9);
+      if (r.y <= r.ty || r.vy > -1.2) {
+        const n = 60 + Math.floor(Math.random() * 40), two = Math.random() < .4 ? K.col[Math.floor(Math.random() * K.col.length)] : r.c;
+        for (let j = 0; j < n; j++) { const a = Math.random() * Math.PI * 2, v = 1.2 + Math.random() * 4.2; salSp.push({x:r.x, y:r.y, vx:Math.cos(a) * v, vy:Math.sin(a) * v, life:1, c:j % 3 ? r.c : two, s:1.8 + Math.random() * 1.8}); }
+        salRk.splice(i, 1);
+      }
+    }
+    for (let i = salSp.length - 1; i >= 0; i--) {
+      const p = salSp[i]; p.vy += .045; p.vx *= .978; p.vy *= .978; p.x += p.vx; p.y += p.vy; p.life -= .011;
+      if (p.life <= 0) { salSp.splice(i, 1); continue; }
+      sctx.globalAlpha = Math.min(1, p.life * 1.4) * (.7 + .3 * Math.random()); sctx.fillStyle = p.c;
+      sctx.beginPath(); sctx.arc(p.x, p.y, p.s, 0, 7); sctx.fill();
+    }
+    sctx.globalAlpha = 1;
+  }
+  function drawHeart(f, K){
+    f.pulse += .06;
+    const s = f.r * (1 + .07 * Math.sin(f.pulse * 2)) / 16;
+    sctx.rotate(Math.sin(f.ph * 1.3) * .22); sctx.scale(s, s);
+    sctx.globalAlpha = .42 + .4 * (f.r / K.r[1]);
+    sctx.shadowColor = f.c; sctx.shadowBlur = 6 + f.r * .5;
+    const g = sctx.createLinearGradient(0, -14, 0, 13); g.addColorStop(0, "#ffd6e4"); g.addColorStop(.4, f.c); g.addColorStop(1, f.c);
+    sctx.fillStyle = g; sctx.beginPath();
+    sctx.moveTo(0, 12); sctx.bezierCurveTo(-14, 2, -16, -6, -10, -11); sctx.bezierCurveTo(-5, -15, 0, -11, 0, -7);
+    sctx.bezierCurveTo(0, -11, 5, -15, 10, -11); sctx.bezierCurveTo(16, -6, 14, 2, 0, 12); sctx.fill();
+    sctx.shadowBlur = 0; sctx.globalAlpha *= .55; sctx.fillStyle = "#ffffff"; sctx.beginPath(); sctx.ellipse(-6, -8, 2.6, 1.6, -.6, 0, 7); sctx.fill();
+  }
+  function drawEmber(f, sway){
+    f.tw += .35;
+    const ang = Math.atan2(f.vy, f.vx + sway), life = Math.max(0, Math.min(1, f.y / innerHeight)), fl = .55 + .45 * Math.abs(Math.sin(f.tw));
+    sctx.rotate(ang);
+    sctx.globalAlpha = (.18 + .82 * life) * fl;
+    sctx.shadowColor = "#ff8a2a"; sctx.shadowBlur = 7;
+    const g = sctx.createLinearGradient(-f.len, 0, f.len * .35, 0);
+    g.addColorStop(0, "rgba(255,80,20,0)"); g.addColorStop(.55, f.c); g.addColorStop(1, "#fff8dc");
+    sctx.fillStyle = g; sctx.fillRect(-f.len, -f.w / 2, f.len * 1.35, f.w);
+  }
   function drawLantern(f){
     const w = f.r, h = f.r * 1.35, fl = .75 + .25 * Math.sin(f.fl);
-    sctx.shadowColor = "rgba(255,160,60,.9)"; sctx.shadowBlur = 14 * fl;
+    sctx.shadowColor = "rgba(255,160,60,.9)"; sctx.shadowBlur = f.r * 1.4 * fl;
     const g = sctx.createLinearGradient(0, -h / 2, 0, h / 2);
     g.addColorStop(0, "rgba(255,120,40,.85)"); g.addColorStop(.6, `rgba(255,190,90,${.8 * fl + .15})`); g.addColorStop(1, "rgba(255,230,160,.95)");
     sctx.fillStyle = g; sctx.globalAlpha = .85;
     sctx.beginPath(); sctx.moveTo(-w * .42, -h / 2); sctx.lineTo(w * .42, -h / 2); sctx.quadraticCurveTo(w * .6, 0, w * .36, h / 2); sctx.lineTo(-w * .36, h / 2); sctx.quadraticCurveTo(-w * .6, 0, -w * .42, -h / 2); sctx.fill();
-    sctx.shadowBlur = 0; sctx.fillStyle = "#fff3c4"; sctx.globalAlpha = .9 * fl; sctx.beginPath(); sctx.ellipse(0, h * .36, w * .18, h * .1, 0, 0, 7); sctx.fill();
+    sctx.shadowBlur = 0; sctx.strokeStyle = "rgba(150,60,20,.45)"; sctx.lineWidth = Math.max(.6, w * .04); sctx.globalAlpha = .6;
+    [-.16, .16].forEach(k => { sctx.beginPath(); sctx.moveTo(w * k * 1.5, -h / 2); sctx.quadraticCurveTo(w * k * 2.2, 0, w * k * 1.3, h / 2); sctx.stroke(); });
+    sctx.fillStyle = "#fff3c4"; sctx.globalAlpha = .9 * fl; sctx.beginPath(); sctx.ellipse(0, h * .36, w * .18, h * .1, 0, 0, 7); sctx.fill();
   }
   function drawBalloon(f){
     const r = f.r;
@@ -13565,15 +13650,26 @@ function multiplesChart(){
     wing(1, c1); wing(-1, c2);
     sctx.fillStyle = "#2b2233"; sctx.globalAlpha = .8; sctx.beginPath(); sctx.ellipse(0, s * .05, s * .07, s * .42, 0, 0, 7); sctx.fill();
   }
+  // В профиле «Миша А.» на фоне падают клоуны (переключатель «Падающие клоуны…» в Эффектах).
+  function mishaActive(){
+    if (!on("misha") || document.querySelector("main > .tab.active")?.id !== "tab-profile") return false;
+    const sel = document.getElementById("person"), o = sel && sel.options[sel.selectedIndex];
+    return !!o && (o.value === "106" || /^Миша А\.?$/.test(o.textContent.trim().replace(/\s+/g, " ")));
+  }
+  let mishaLast = null, mishaT = 0;
+  function mishaWatch(){ clearTimeout(mishaT); mishaT = setTimeout(() => { const m = mishaActive(); if (m !== mishaLast) { mishaLast = m; seasonSync(); } }, 150); }
+  new MutationObserver(mishaWatch).observe(document.querySelector("main") || document.body, {childList:true, subtree:true, attributes:true, attributeFilter:["class"]});
+  document.addEventListener("change", e => { if (e.target.id === "person") mishaWatch(); });
   function seasonSync(){
-    const want = on("season");
+    const misha = mishaActive(); mishaLast = misha;
+    const want = on("season") || misha;
     const sel = document.getElementById("fx-season-kind"), den = document.getElementById("fx-season-density");
     if (sel && !sel.options.length) sel.innerHTML = `<option value="auto">По сезону (сейчас: ${KINDS[seasonKind()].name})</option>` + Object.entries(KINDS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
     if (sel) sel.value = KINDS[PK.kind] ? PK.kind : "auto";
     if (den) den.value = DENSITY[PK.density] ? PK.density : "mid";
     if (!want) { cancelAnimationFrame(sraf); sraf = 0; sctx.clearRect(0, 0, sc.width, sc.height); sc.hidden = true; return; }
-    sc.hidden = false;
-    const k = curKind();
+    sc.hidden = false; sc.classList.toggle("fx-season-top", misha);
+    const k = misha ? "clowns" : curKind();
     if (sraf && sKind === k + PK.density) return;
     cancelAnimationFrame(sraf); sKind = k + PK.density;
     sizeCv(sc);
@@ -13581,11 +13677,13 @@ function multiplesChart(){
     const base = K.base || (K.stars || K.twinkle ? 70 : K.shoot ? 6 : K.digits || K.emoji || K.glyph ? 22 : 46);
     const n = Math.round(Math.min(base * 3.6, base * mult * Math.min(1.4, innerWidth / 1300)));
     flakes = Array.from({length:Math.max(3, n)}, () => makeFlake(k, true));
-    splashes = []; flash = 0; bolt = null; nextBolt = 0;
+    splashes = []; flash = 0; bolt = null; nextBolt = 0; salRk = []; salSp = []; salNext = 0;
     const tick = () => {
       if (document.hidden) { sraf = requestAnimationFrame(tick); return; }
       sctx.clearRect(0, 0, innerWidth, innerHeight);
       if (K.rain) { drawRain(K); sraf = requestAnimationFrame(tick); return; }
+      if (K.aurora) { drawAurora(); sraf = requestAnimationFrame(tick); return; }
+      if (K.salute) { drawSalute(K); sraf = requestAnimationFrame(tick); return; }
       flakes.forEach((f, i) => {
         if (K.shoot) {
           if (f.wait > 0) { f.wait--; return; }
@@ -13596,20 +13694,36 @@ function multiplesChart(){
           sctx.strokeStyle = g; sctx.lineWidth = f.r; sctx.beginPath(); sctx.moveTo(f.x, f.y); sctx.lineTo(f.x - f.vx * 18, f.y - f.vy * 18); sctx.stroke();
           return;
         }
-        f.ph += .015; f.rot += K.spin ? .012 : 0;
-        const sway = K.digits || K.blizzard || K.coin ? 0 : K.butterfly ? Math.sin(f.ph * 3) * 1.1 : K.confetti ? Math.sin(f.ph * 4) * 1.2 : Math.sin(f.ph) * (K.fluff ? .6 : K.lantern || K.balloon ? .35 : .3);
+        if (K.warp) {
+          const cx = innerWidth / 2, cy = innerHeight / 2, step = f.sp * (1 + f.d * .022); f.d += step;
+          const x = cx + Math.cos(f.ang) * f.d, y = cy + Math.sin(f.ang) * f.d;
+          if (x < -30 || x > innerWidth + 30 || y < -30 || y > innerHeight + 30) { flakes[i] = makeFlake(k, false); return; }
+          const tl = Math.min(f.d, step * 7);
+          sctx.globalAlpha = Math.min(1, f.d / 240) * .9; sctx.strokeStyle = f.c; sctx.lineWidth = f.r * (.5 + f.d / 650); sctx.lineCap = "round";
+          sctx.beginPath(); sctx.moveTo(x, y); sctx.lineTo(cx + Math.cos(f.ang) * (f.d - tl), cy + Math.sin(f.ang) * (f.d - tl)); sctx.stroke(); sctx.globalAlpha = 1;
+          return;
+        }
+        f.ph += .015; f.rot += K.spin ? .012 : K.tumble ? f.vr : 0;
+        if (K.ember) { f.vx = Math.max(-1.2, Math.min(1.2, f.vx * .96 + (Math.random() - .5) * .22)); if (Math.random() < .004) { Object.assign(f, makeFlake(k, false)); return; } }
+        if (K.smoke) { f.r += .1 + f.r * .0008; if (f.y < -f.r || f.r > f.r0 * 4.5) { Object.assign(f, makeFlake(k, false)); return; } }
+        const sway = K.digits || K.blizzard || K.coin || K.ember || K.fog ? 0 : K.butterfly ? Math.sin(f.ph * 3) * 1.1 : K.confetti || K.flutter ? Math.sin(f.ph * 4) * 1.2 : K.ghost ? Math.sin(f.ph * .8) * .7 : K.smoke ? Math.sin(f.ph * .7) * .45 : Math.sin(f.ph) * (K.fluff ? .6 : K.lantern || K.balloon ? .35 : .3);
         f.x += f.vx + sway; f.y += f.vy + (K.butterfly ? Math.cos(f.ph * 2.3) * .6 : 0);
         if (K.blizzard) f.x += Math.sin(f.ph * 3 + f.y * .01) * .8;
         if (f.y > innerHeight + 40) { Object.assign(f, makeFlake(k, false)); f.y = -30; }
         if (f.y < -60) { Object.assign(f, makeFlake(k, false)); f.y = innerHeight + 40; }
-        const pad = K.bokeh ? 70 : 30;
+        const pad = K.fog ? 360 : K.bokeh || K.smoke ? 70 : K.heart || K.emoji ? 40 : 30;
         if (f.x > innerWidth + pad) f.x = -pad; if (f.x < -pad) f.x = innerWidth + pad;
         sctx.save(); sctx.translate(f.x, f.y); sctx.rotate(f.rot); sctx.fillStyle = f.c; sctx.strokeStyle = f.c;
         if (K.twinkle) sctx.globalAlpha = .25 + .6 * Math.abs(Math.sin(f.ph * 2.2));
         else if (K.glow) { sctx.globalAlpha = .35 + .4 * Math.sin(f.ph * 3); sctx.shadowColor = f.c; sctx.shadowBlur = 8; }
         else if (K.dust) sctx.globalAlpha = .18 + .5 * Math.abs(Math.sin(f.ph * 1.3));
-        else sctx.globalAlpha = .55;
-        if (K.ring) { sctx.lineWidth = 1.2; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.stroke(); sctx.globalAlpha *= .6; sctx.beginPath(); sctx.arc(-f.r * .35, -f.r * .35, f.r * .25, 0, 7); sctx.fill(); }
+        else if (K.ghost) sctx.globalAlpha = .22 + .5 * Math.abs(Math.sin(f.ph * 1.2));
+        else sctx.globalAlpha = K.alpha || .55;
+        if (K.ember) { sctx.rotate(-f.rot); drawEmber(f, sway); }
+        else if (K.heart) { sctx.rotate(-f.rot); drawHeart(f, K); }
+        else if (K.smoke) { sctx.rotate(-f.rot); const life = Math.max(0, Math.min(1, f.y / innerHeight)), fade = Math.min(1, (f.r0 * 4.5 - f.r) / (f.r0 * 1.5)); const g = sctx.createRadialGradient(0, 0, 0, 0, 0, f.r); g.addColorStop(0, f.c + "cc"); g.addColorStop(.5, f.c + "55"); g.addColorStop(1, f.c + "00"); sctx.globalAlpha = Math.max(0, f.a * (.35 + life * 1.1) * fade); sctx.fillStyle = g; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
+        else if (K.fog) { sctx.rotate(-f.rot); sctx.scale(1.9, .55); const g = sctx.createRadialGradient(0, 0, 0, 0, 0, f.r); g.addColorStop(0, f.c); g.addColorStop(1, f.c + "00"); sctx.globalAlpha = f.a * (.8 + .2 * Math.sin(f.ph * 1.3)); sctx.fillStyle = g; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
+        else if (K.ring) { sctx.lineWidth = 1.2; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.stroke(); sctx.globalAlpha *= .6; sctx.beginPath(); sctx.arc(-f.r * .35, -f.r * .35, f.r * .25, 0, 7); sctx.fill(); }
         else if (K.bokeh) { sctx.rotate(-f.rot); const g = sctx.createRadialGradient(0, 0, 0, 0, 0, f.r); g.addColorStop(0, f.c); g.addColorStop(.7, f.c); g.addColorStop(1, "transparent"); sctx.globalAlpha = f.a * (.7 + .3 * Math.sin(f.ph * 1.7)); sctx.fillStyle = g; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
         else if (K.dust) { sctx.shadowColor = f.c; sctx.shadowBlur = 4; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
         else if (K.confetti) { f.flip += f.fs; sctx.scale(1, Math.cos(f.flip)); sctx.globalAlpha = .8; sctx.fillRect(-f.w / 2, -f.h / 2, f.w, f.h); }
@@ -13621,7 +13735,7 @@ function multiplesChart(){
         else if (K.diamond) { sctx.beginPath(); sctx.moveTo(0, -f.r * 1.6); sctx.lineTo(f.r, 0); sctx.lineTo(0, f.r * 1.6); sctx.lineTo(-f.r, 0); sctx.closePath(); sctx.fill(); }
         else if (k === "flakes") { sctx.lineWidth = 1; for (let a = 0; a < 6; a++) { sctx.rotate(Math.PI / 3); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r); sctx.moveTo(0, f.r * .6); sctx.lineTo(f.r * .25, f.r * .8); sctx.moveTo(0, f.r * .6); sctx.lineTo(-f.r * .25, f.r * .8); sctx.stroke(); } }
         else if (K.fluff) { sctx.lineWidth = .8; for (let a = 0; a < 8; a++) { sctx.rotate(Math.PI / 4); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r * 1.8); sctx.stroke(); } }
-        else if (K.digits || K.emoji || K.glyph) { sctx.rotate(-f.rot); sctx.font = `${Math.round(f.r * 1.4)}px "Segoe UI Emoji","Apple Color Emoji",system-ui,sans-serif`; sctx.textAlign = "center"; sctx.fillText(f.ch || K.glyph, 0, 0); if (K.digits && Math.random() < .01) f.ch = String(Math.floor(Math.random() * 10)); }
+        else if (K.digits || K.emoji || K.glyph) { if (!K.tumble) sctx.rotate(-f.rot); sctx.textBaseline = "middle"; sctx.font = `${Math.round(f.r * 1.4)}px "Segoe UI Emoji","Apple Color Emoji",system-ui,sans-serif`; sctx.textAlign = "center"; sctx.fillText(f.ch || K.glyph, 0, 0); if (K.digits && Math.random() < .01) f.ch = String(Math.floor(Math.random() * 10)); }
         else if (k === "snow" || k === "stars" || K.glow) { sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
         else { sctx.beginPath(); sctx.ellipse(0, 0, f.r, f.r * .55, 0, 0, 7); sctx.fill(); }
         sctx.restore();
@@ -13679,6 +13793,14 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-10", date:"2026-10-23", title:"Крупные фильтры, рамка таблиц и новые частицы", items:[
+    {tag:"imp", area:"Везде", text:"Фильтры стали крупнее и просторнее: выше поля, крупнее шрифт, спокойный акцент. Выпадающие списки шире, пункты выше и легче читаются."},
+    {tag:"new", area:"Таблицы", text:"Рамка вокруг таблиц переливается градиентом. Цвет (радуга, северное сияние, закат, океан, неон, огонь, золото, серебро, цвет темы, бегущий блик) и скорость выбираются в «Настройки → Эффекты»; там же её можно выключить."},
+    {tag:"imp", area:"Таблицы", text:"Первые три места в столбце «Место» переливаются так же, как имена призёров."},
+    {tag:"new", area:"Настройки", text:"Новые частицы на фоне: дым, туман, северное сияние, полёт сквозь звёзды, салют, клоуны, Хэллоуин, призраки, денежный и вкусный дождь."},
+    {tag:"imp", area:"Настройки", text:"Небесные фонарики стали крупнее и получили каркас, искры костра — вытянутые и мерцающие, сердечки — крупнее и разного размера."},
+    {tag:"new", area:"Профиль", text:"В профиле «Миша А.» сверху падают клоуны 🤡. Отключается в «Настройки → Эффекты»."},
+  ]},
   {v:"2026.10.23-9", date:"2026-10-23", title:"Селфи в облаке, новые частицы и современные фильтры", items:[
     {tag:"new", area:"Селфи", text:"Общая база селфи в облаке: отметки видны всем участникам и обновляются сами каждые полминуты. Отмечать может редактор с ключом — кнопка «🔑 Ключ редактора». Если связи нет, отметки сохраняются в браузере и уходят в облако, как только она появится."},
     {tag:"new", area:"Настройки", text:"Частицы на фоне: появился вариант «Ещё больше» и 9 новых видов — гроза с молниями, метель, боке, пылинки в луче, конфетти, золотые монеты, небесные фонарики, воздушные шары и бабочки."},
@@ -14690,6 +14812,97 @@ body.filters-right .stats-quick{display:flex}
 #filter-drawer .msel{max-width:none;width:100%}
 @media (max-width:720px){.msel{max-width:100%}}
 </style>
+<style id="filters-v4">
+/* ===================== Фильтры v4: крупнее, спокойнее, современнее =====================
+   Работает поверх «Современного вида фильтров» (Настройки → Фильтры). Выключить: снять ту же галочку. */
+body:not(.fv3-off){--fv4-line:color-mix(in srgb,var(--text) 11%,transparent);--fv4-line-hi:color-mix(in srgb,var(--text) 22%,transparent);--fv4-fill:color-mix(in srgb,var(--text) 4%,var(--ctrl));--fv4-on:color-mix(in srgb,var(--text) 11%,transparent)}
+body:not(.fv3-off) .filters{--control-height:40px;gap:10px}
+body:not(.fv3-off) .tab > .filters,body:not(.fv3-off) #shared > .filters,body:not(.fv3-off) .stat-content > .filters{padding:10px;border-radius:18px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--fv4-line);box-shadow:0 1px 0 #ffffff08 inset,0 14px 34px -26px #000;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+/* поле: подпись слева, значение справа, одна спокойная «капсула» */
+body:not(.fv3-off) .filters .field{border-radius:13px;background:var(--fv4-fill);box-shadow:inset 0 0 0 1px var(--fv4-line)}
+body:not(.fv3-off) .filters .field:hover{box-shadow:inset 0 0 0 1px var(--fv4-line-hi)}
+body:not(.fv3-off) .filters .field:focus-within{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,var(--fv4-line)),0 0 0 3px color-mix(in srgb,var(--accent) 9%,transparent)}
+body:not(.fv3-off) .filters .field > label{padding:0 4px 0 14px;font-size:13px;letter-spacing:0;color:var(--muted)}
+body:not(.fv3-off) .filters .field > label::after{height:16px;margin-left:12px;background:var(--fv4-line)}
+body:not(.fv3-off) .filters .field select,body:not(.fv3-off) .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){font-size:14.5px;padding:0 12px}
+body:not(.fv3-off) .filters .field select{max-width:280px;padding-right:30px}
+@media (min-width:721px){
+  body:not(.fv3-off) .filters .field input[type=date]{width:150px}
+  body:not(.fv3-off) .filters .field input[type=month]{width:140px}
+  body:not(.fv3-off) .filters .field input[type=number]{width:86px!important}
+  body:not(.fv3-off) .filters .field input[type=text],body:not(.fv3-off) .filters .field input:not([type]),body:not(.fv3-off) .filters .field input[list]{width:170px}
+}
+/* сегменты: активный — мягкая светлая подложка вместо яркого акцента */
+body:not(.fv3-off) .filters .seg,body:not(.fv3-off) .stat-subnav,body:not(.fv3-off) .group-tabs{gap:3px;padding:3px;border-radius:13px;background:var(--fv4-fill);box-shadow:inset 0 0 0 1px var(--fv4-line)}
+body:not(.fv3-off) .filters .seg button,body:not(.fv3-off) .stat-subnav button,body:not(.fv3-off) .group-tabs button{padding:0 14px;font-size:14px;font-weight:500;border-radius:10px;color:var(--muted)}
+body:not(.fv3-off) .filters .seg button:hover,body:not(.fv3-off) .stat-subnav button:hover,body:not(.fv3-off) .group-tabs button:hover{color:var(--text);background:color-mix(in srgb,var(--text) 6%,transparent)}
+body:not(.fv3-off) .filters .seg button.active,body:not(.fv3-off) .stat-subnav button.active,body:not(.fv3-off) .group-tabs button.active{background:var(--fv4-on);color:var(--text);box-shadow:inset 0 0 0 1px var(--fv4-line),0 1px 2px #0003,inset 0 -2px 0 color-mix(in srgb,var(--accent) 38%,transparent)}
+body:not(.fv3-off) .filters .field > .seg{padding:3px;background:transparent;box-shadow:none}
+body:not(.fv3-off) .filters .field > .seg button{font-size:14px;padding:0 12px}
+/* переключатели-галочки */
+body:not(.fv3-off) .checkline{min-height:var(--control-height,40px);padding:0 14px;gap:10px;border-radius:13px;font-size:14px;background:var(--fv4-fill,var(--ctrl));box-shadow:inset 0 0 0 1px var(--fv4-line,var(--line))}
+body:not(.fv3-off) .checkline:has(input:checked){background:color-mix(in srgb,var(--text) 8%,var(--ctrl));box-shadow:inset 0 0 0 1px var(--fv4-line-hi,var(--line))}
+body:not(.fv3-off) .checkline input[type=checkbox]{flex-basis:30px;width:30px!important;height:17px!important;background:radial-gradient(circle at 8.5px 50%,#cfd5e3 0 5.5px,transparent 6.2px),color-mix(in srgb,var(--text) 18%,transparent)}
+body:not(.fv3-off) .checkline input[type=checkbox]:checked{background:radial-gradient(circle at 21.5px 50%,#fff 0 5.5px,transparent 6.2px),color-mix(in srgb,var(--accent) 70%,#7a8090)}
+/* кнопки и «Параметры» */
+body:not(.fv3-off) .filters button.mini,body:not(.fv3-off) .filters .table-export-actions .mini{height:var(--control-height);padding:0 14px;font-size:14px;border-radius:13px;border-color:var(--fv4-line);background:var(--fv4-fill)}
+body:not(.fv3-off) .filters button.mini:hover,body:not(.fv3-off) .filters .table-export-actions .mini:hover{border-color:var(--fv4-line-hi)}
+body:not(.fv3-off) .filters .field > .pbtn > .mini,body:not(.fv3-off) .filters .field > button.mini{border-radius:0;font-size:14px;padding:0 12px;background:transparent}
+body:not(.fv3-off) .filters .opt-pop>summary{padding:0 14px;font-size:14px;border-radius:13px;border-color:var(--fv4-line);background:var(--fv4-fill)}
+body:not(.fv3-off) .opt-pop[open]>summary,body:not(.fv3-off) .opt-pop>summary:hover{border-color:var(--fv4-line-hi)}
+body:not(.fv3-off) .opt-pop .opt-n{background:color-mix(in srgb,var(--text) 12%,transparent);color:var(--text)}
+body:not(.fv3-off) .filters .field .pick summary{font-size:14.5px;padding:0 12px}
+/* цветные метки фильтров — тише */
+body.filter-colors:not(.fv3-off) .filters .field[data-fcat],body.filter-colors:not(.fv3-off) .filters .checkline[data-fcat]{box-shadow:inset 0 0 0 1px var(--fv4-line),inset 0 2px 0 color-mix(in srgb,var(--fc) 38%,transparent)}
+body.filter-colors:not(.fv3-off) .filters .field[data-fcat] > label{background:transparent;color:color-mix(in srgb,var(--fc) 30%,var(--muted))}
+/* ---------- выпадающий список: просторнее и крупнее ---------- */
+.msel{gap:8px;max-width:300px;padding:0 34px 0 12px;font-size:14.5px}
+.msel::after{right:14px;width:7px;height:7px}
+.msel.solo{height:var(--control-height,40px);border-radius:13px;background:color-mix(in srgb,var(--text) 4%,var(--ctrl));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 11%,transparent)}
+.msel-pop{min-width:240px;max-width:min(440px,calc(100vw - 16px));padding:8px;gap:6px;border-radius:16px;background:color-mix(in srgb,var(--panel-2) 92%,#000);border:1px solid color-mix(in srgb,var(--text) 10%,transparent);box-shadow:0 24px 60px -16px #000e,0 1px 0 #ffffff0a inset}
+.msel-pop input{height:38px;padding:0 12px;border-radius:11px;font-size:14px}
+.msel-pop input:focus{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 50%,transparent)}
+.msel-list{gap:2px}
+.msel-opt{min-height:38px;padding:9px 14px 9px 36px;border-radius:10px;font-size:14.5px;line-height:1.3}
+.msel-opt:hover,.msel-opt.hl{background:color-mix(in srgb,var(--text) 7%,transparent)}
+.msel-opt[aria-selected="true"]{color:var(--text);font-weight:600;background:color-mix(in srgb,var(--text) 10%,transparent)}
+.msel-opt[aria-selected="true"]::before{left:14px;width:9px;height:4.5px;color:color-mix(in srgb,var(--accent) 80%,var(--text))}
+.msel-grp{padding:10px 14px 4px;font-size:11.5px}
+.msel-empty{padding:12px 14px;font-size:14px}
+@media (max-width:720px){
+  body:not(.fv3-off) .filters{--control-height:42px;gap:8px}
+  body:not(.fv3-off) .tab > .filters,body:not(.fv3-off) #shared > .filters,body:not(.fv3-off) .stat-content > .filters{padding:8px;border-radius:16px}
+  body:not(.fv3-off) .filters .field select,body:not(.fv3-off) .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){font-size:16px}
+}
+</style>
+<style id="tables-fx">
+/* ===================== Переливающаяся рамка таблиц =====================
+   Настройки → Эффекты → «Рамка таблиц»: цвет, скорость или «Выключено». */
+@property --tb-ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes tbSpin{to{--tb-ang:360deg}}
+body.tb-on .wrap:has(> table){border:1.5px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,conic-gradient(from var(--tb-ang),var(--tb-c)) border-box;animation:tbSpin var(--tb-speed,6s) linear infinite;box-shadow:var(--shadow),0 0 22px -10px var(--tb-glow,transparent)}
+body.tb-rainbow{--tb-c:#ff6ad5,#ffd166,#76f0b6,#67e8f9,#a78bfa,#ff6ad5;--tb-glow:#a78bfa}
+body.tb-aurora{--tb-c:#76f0b6,#2dd4bf,#67e8f9,#a78bfa,#76f0b6;--tb-glow:#2dd4bf}
+body.tb-sunset{--tb-c:#ff7a59,#ffd166,#ff9ecf,#ff6ad5,#ff7a59;--tb-glow:#ff7a59}
+body.tb-ocean{--tb-c:#1e66f5,#67e8f9,#2dd4bf,#7aa2f7,#1e66f5;--tb-glow:#38bdf8}
+body.tb-neon{--tb-c:#ff2bd6,#00f0ff,#ff2bd6,#00f0ff,#ff2bd6;--tb-glow:#ff2bd6}
+body.tb-fire{--tb-c:#ff3d00,#ff9e00,#ffd166,#ff9e00,#ff3d00;--tb-glow:#ff6a00}
+body.tb-gold{--tb-c:#8a6a1f,#ffd166,#fff1b0,#e0a526,#8a6a1f;--tb-glow:#e0a526}
+body.tb-silver{--tb-c:#6b7486,#dfe6f2,#9aa6bd,#ffffff,#6b7486;--tb-glow:#9aa6bd}
+body.tb-accent{--tb-c:color-mix(in srgb,var(--accent) 25%,transparent),var(--accent),color-mix(in srgb,var(--accent) 25%,transparent),var(--accent),color-mix(in srgb,var(--accent) 25%,transparent);--tb-glow:var(--accent)}
+/* «Бегущий блик»: по спокойной рамке пробегает одна яркая искра */
+body.tb-comet{--tb-c:var(--line) 0 62%,color-mix(in srgb,var(--accent) 80%,#fff) 80%,#fff 86%,var(--line) 94%;--tb-glow:var(--accent)}
+body.tb-slow{--tb-speed:12s}body.tb-mid{--tb-speed:6s}body.tb-fast{--tb-speed:3s}
+@media (prefers-reduced-motion:reduce){body.tb-on .wrap:has(> table){animation:none}}
+
+/* ===================== Перелив у первых трёх мест в столбце «Место» =====================
+   Тот же перелив, что у имён призёров; фон ячейки сохраняется, потому что столбец закреплён при прокрутке. */
+body.holo-text-on :is(tr:has(> td.medal-1),tr:has(> td.medal-2),tr:has(> td.medal-3)) > td:first-child:is(.medal-1,.medal-2,.medal-3){background-size:300% 100%;background-repeat:repeat;-webkit-background-clip:text,padding-box;background-clip:text,padding-box;-webkit-text-fill-color:transparent;font-weight:700}
+body.holo-text-on tr > td.medal-1:first-child{background-image:linear-gradient(100deg,#ffd166 0%,#ff9ecf 18%,#67e8f9 36%,#a78bfa 54%,#76f0b6 72%,#ffd166 90%),none;animation:holoText 7s linear infinite}
+body.holo-text-on tr > td.medal-2:first-child{background-image:linear-gradient(100deg,#9aa6bd 0%,#ffffff 16%,#7f8aa1 36%,#dfe6f2 56%,#8e99b0 78%,#9aa6bd 100%),none;animation:holoText 10s linear infinite}
+body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(100deg,#e3a36b 0%,#f3c79a 30%,#b8784a 55%,#e3a36b 80%,#e3a36b 100%),none;animation:holoText 14s linear infinite}
+@media (prefers-reduced-motion:reduce){body.holo-text-on tr > td:first-child:is(.medal-1,.medal-2,.medal-3){animation:none}}
+</style>
 <script id="ui-v3">
 /* ===================== Быстрый период в «Статистике» (рядом с «Участники / Чаты») ===================== */
 (function(){
@@ -14749,6 +14962,31 @@ body.filters-right .stats-quick{display:flex}
   const st = $("status"); if (st) new MutationObserver(() => sync()).observe(st, {childList:true, characterData:true, subtree:true});
   sub.addEventListener("click", () => setTimeout(sync, 0));
   sync();
+})();
+
+/* ===================== Переливающаяся рамка таблиц ===================== */
+(function(){
+  const KEY = "chatstats.tableBorder.v1", STYLES = ["rainbow", "aurora", "sunset", "ocean", "neon", "fire", "gold", "silver", "accent", "comet"], SPEEDS = ["slow", "mid", "fast"];
+  let st = {style:"rainbow", speed:"mid"};
+  try { Object.assign(st, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+  function apply(){
+    const b = document.body, on = STYLES.includes(st.style);
+    [...b.classList].filter(c => /^tb-/.test(c)).forEach(c => b.classList.remove(c));
+    if (on) b.classList.add("tb-on", "tb-" + st.style, "tb-" + (SPEEDS.includes(st.speed) ? st.speed : "mid"));
+    const s = document.getElementById("tb-style"), v = document.getElementById("tb-speed");
+    if (s) s.value = on ? st.style : "off";
+    if (v) { v.value = SPEEDS.includes(st.speed) ? st.speed : "mid"; v.disabled = !on; }
+  }
+  document.addEventListener("change", e => {
+    if (e.target.id === "tb-style") st.style = e.target.value;
+    else if (e.target.id === "tb-speed") st.speed = e.target.value;
+    else return;
+    save(); apply();
+  });
+  document.getElementById("fx-all-off")?.addEventListener("click", () => { st.style = "off"; save(); apply(); });
+  document.getElementById("fx-all-on")?.addEventListener("click", () => { if (!STYLES.includes(st.style)) { st.style = "rainbow"; save(); apply(); } });
+  apply();
 })();
 
 /* ===================== Современные выпадающие списки (ПК) ===================== */
@@ -14834,10 +15072,10 @@ body.filters-right .stats-quick{display:flex}
     document.body.appendChild(pop);
     // позиция: под кнопкой, если не помещается — над ней
     const r = (b.closest(".field") || b).getBoundingClientRect(), vh = innerHeight, vw = innerWidth;
-    const w = Math.min(Math.max(r.width, 190), 380);
+    const w = Math.min(Math.max(r.width, 240), 440);
     const below = vh - r.bottom - 10, above = r.top - 10, up = below < 220 && above > below;
-    const maxH = Math.max(140, Math.min(380, up ? above : below));
-    pop.style.width = w + "px"; box.style.maxHeight = (maxH - (many ? 44 : 12)) + "px";
+    const maxH = Math.max(160, Math.min(460, up ? above : below));
+    pop.style.width = w + "px"; box.style.maxHeight = (maxH - (many ? 62 : 18)) + "px";
     pop.style.left = Math.max(8, Math.min(r.left, vw - w - 8)) + "px";
     if (up) { pop.classList.add("up"); pop.style.bottom = (vh - r.top + 6) + "px"; } else pop.style.top = (r.bottom + 6) + "px";
     let hl = Math.max(0, items.findIndex(x => x.getAttribute("aria-selected") === "true"));
