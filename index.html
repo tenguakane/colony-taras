@@ -1751,11 +1751,13 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
       <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="copy-months-top10" type="button">Копировать топ-10</button><button class="mini copy-btn" id="copy-months-top20" type="button">Копировать топ-20</button><button class="mini copy-btn" id="copy-months-all" type="button">Копировать все</button><span class="hint" id="months-copy-status" role="status" aria-live="polite"></span></div>
     </div>
     <div class="year-legend" id="m-years"></div>
+    <div class="top-tools"><label class="top-search"><span aria-hidden="true">🔍</span><input type="search" id="m-q" placeholder="Найти месяц: март, 2024, 03.2024" autocomplete="off" aria-label="Поиск месяца"></label></div>
     <p class="status" id="m-status"></p>
     <div class="wrap"><table id="months-table">
       <thead><tr><th style="text-align:center">Место</th><th style="text-align:left">Месяц</th><th>Сообщения</th><th>Стикеры</th><th>Голосовые</th><th>Видеосообщения</th></tr></thead>
       <tbody id="m-body"></tbody>
     </table></div>
+    <div class="top-more" id="m-more"></div>
   </section>
 
   <section class="tab" id="tab-days">
@@ -1773,11 +1775,13 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     </div>
     <p class="hint">Место рассчитывается по количеству сообщений за день. Если включить «Отобразить сегодня», сегодняшняя дата будет первой в таблице, но её номер места останется реальным. Нажми на год, чтобы оставить в таблице только его.</p>
     <div class="year-legend" id="d-years"></div>
+    <div class="top-tools"><label class="top-search"><span aria-hidden="true">🔍</span><input type="search" id="d-q" placeholder="Найти день: 15 марта, 15.03.2024, пятница" autocomplete="off" aria-label="Поиск дня"></label></div>
     <p class="status" id="d-status"></p>
     <div class="wrap"><table id="days-table">
       <thead><tr><th style="text-align:center">Место</th><th style="text-align:left">День</th><th>Сообщения</th><th>Стикеры</th><th>Голосовые</th><th>Видеосообщения</th></tr></thead>
       <tbody id="d-body"></tbody>
     </table></div>
+    <div class="top-more" id="d-more"></div>
   </section>
 
   <section class="tab" id="tab-time">
@@ -3135,7 +3139,10 @@ function renderMonths(){
   if (!allRows) return;
   const data = monthsData();
   renderYearLegend("m-years", data.yearTotals, mYear, y => { mYear = y; renderMonths(); });
-  const list = data.entries.sort((a,b) => mDir * (mSort === "msgs" ? a[1].msgs - b[1].msgs : (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
+  const sorted = data.entries.sort((a,b) => mDir * (mSort === "msgs" ? a[1].msgs - b[1].msgs : (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
+  // По умолчанию — топ-25; поиск показывает все совпадения, «Показать все» раскрывает список.
+  const sel = window.__topLimit ? window.__topLimit.take("months", sorted) : {list:sorted, q:""};
+  const list = sel.list;
   let html = "", prevY = null;
   list.forEach(e => {
     const y = e[0].slice(0, 4);
@@ -3143,7 +3150,7 @@ function renderMonths(){
       html += `<tr class="year-sep"><td colspan="6" style="border-left:4px solid ${yearHue(y)}"><span class="ychip" style="margin:0 8px 0 0;color:${yearHue(y)};border-color:${hexA(yearHue(y), .55)};background-color:${hexA(yearHue(y), .12)}">${y}</span>${fmt(data.yearTotals.get(y))} сообщений</td></tr>`;
     prevY = y; html += data.row(e);
   });
-  $("m-body").innerHTML = html || `<tr><td colspan="6" style="text-align:center;color:var(--muted)">Нет данных</td></tr>`;
+  $("m-body").innerHTML = html || `<tr><td colspan="6" style="text-align:center;color:var(--muted)">${sel.q ? "Ничего не найдено" : "Нет данных"}</td></tr>`;
 }
 
 /* ---------- Топ дней: полная история user_daily_stats ---------- */
@@ -3211,7 +3218,11 @@ function renderDays(){
   });
   // Pin today's row first for viewing, but keep its original rank in the first column.
   if (showToday && data.has(data.today)) list = [[data.today, data.get(data.today)], ...list.filter(([k]) => k !== data.today)];
-  $("d-body").innerHTML = list.length ? list.map(data.row).join("") : `<tr><td colspan="6" style="text-align:center;color:var(--muted)">Нет данных</td></tr>`;
+  // По умолчанию — топ-25 (закреплённый «сегодня» не считается); поиск показывает все совпадения.
+  const pinned = showToday && data.has(data.today) ? (e => e[0] === data.today) : null;
+  const sel = window.__topLimit ? window.__topLimit.take("days", list, pinned) : {list, q:""};
+  list = sel.list;
+  $("d-body").innerHTML = list.length ? list.map(data.row).join("") : `<tr><td colspan="6" style="text-align:center;color:var(--muted)">${sel.q ? "Ничего не найдено" : "Нет данных"}</td></tr>`;
 }
 
 /* ---------- Рейтинг чатов за выбранный период ---------- */
@@ -6561,7 +6572,9 @@ const SELFIE_SRC_KEY = "chatselfie.src.v1";
 try {
   const saved = JSON.parse(localStorage.getItem(SELFIE_KEY) || "null");
   selfieDirty = localStorage.getItem(SELFIE_DIRTY_KEY) === "1";
-  const userData = localStorage.getItem(SELFIE_SRC_KEY) === "user" || selfieDirty, bk = window.__BAKED && window.__BAKED.selfie;
+  // Своя копия («user») и копия облака («cloud») всегда важнее встроенной базы: встроенная — только для первого запуска.
+  const src = localStorage.getItem(SELFIE_SRC_KEY);
+  const userData = src === "user" || src === "cloud" || selfieDirty, bk = window.__BAKED && window.__BAKED.selfie;
   if (Array.isArray(saved) && (userData || !bk)) SELFIE = saved.filter(r => r && r.pk != null && /^\d{4}-\d{2}-\d{2}$/.test(r.date))
     .map(r => ({pk:String(r.pk), name:String(r.name || ""), date:r.date, count:Math.max(1, Math.round(Number(r.count) || 1))}));
   else if (bk) SELFIE = bk.rows.map(([pk, date, count]) => ({pk:String(pk), name:bk.names[pk] || "", date, count}));
@@ -6796,7 +6809,7 @@ $("s-file").onchange = async () => {
     if (!res.rows.length) throw new Error("в таблице нет записей");
     if (SELFIE.length && !confirm(`Заменить ${scOn() ? "общую базу в облаке — её увидят все участники —" : "текущую базу"} (записей: ${fmt(SELFIE.length)}) данными из файла (записей: ${fmt(res.rows.length)})?`)) { selfieMsg("Импорт отменён"); return; }
     selfieUndo = SELFIE.length ? SELFIE.map(r => ({...r})) : null;
-    SELFIE = res.rows; selfieChanged(false);
+    SC.bulk = true; SELFIE = res.rows; selfieChanged(false);
     selfieMsg(`Импортировано ${fmt(res.rows.length)} ${wordForm(res.rows.length, ["запись","записи","записей"])}${res.table ? " из таблицы SLF" : ` с листа «${res.sheet}»`}${res.skipped ? `, пропущено строк с ошибками: ${res.skipped}` : ""}`);
     renderSelfie();
   } catch (e) { selfieMsg("Не удалось импортировать: " + (e.message || e), true); }
@@ -6822,7 +6835,7 @@ $("s-export").onclick = async () => {
 $("s-undo").onclick = () => {
   if (!selfieUndo) return;
   if (!scCanEdit()) { scDenied(); return; }
-  SELFIE = selfieUndo; selfieUndo = null; selfieChanged(); renderSelfie(); selfieMsg("Последнее изменение отменено");
+  SC.bulk = true; SELFIE = selfieUndo; selfieUndo = null; selfieChanged(); renderSelfie(); selfieMsg("Последнее изменение отменено");
 };
 /* ---------- Облако селфи: общая база для всех участников ----------
    Смотреть может любой, отмечать — тот, у кого есть ключ редактора.
@@ -6830,7 +6843,8 @@ $("s-undo").onclick = () => {
 const SC_URL_KEY = "chatselfie.cloudUrl.v1", SC_EDIT_KEY = "chatselfie.editKey.v1", SC_BY_KEY = "chatselfie.editBy.v1";
 const SC_REV_KEY = "chatselfie.cloudRev.v1", SC_BASE_KEY = "chatselfie.cloudBase.v1", SC_PEND_KEY = "chatselfie.cloudPending.v1";
 const SC_DEFAULT_URL = "https://chat-selfie.tenguakane.workers.dev";
-const SC = {url:"", key:"", by:"", rev:-1, base:null, pending:false, state:"idle", err:"", at:0, last:null, busy:null, empty:false, timer:0};
+// fresh — в этой сессии уже была полная загрузка из облака; bulk — разрешено массовое удаление (импорт, отмена); forcePut — заменить базу целиком.
+const SC = {url:"", key:"", by:"", rev:-1, base:null, pending:false, state:"idle", err:"", at:0, last:null, busy:null, empty:false, timer:0, fresh:false, bulk:false, forcePut:false, skipped:0};
 try {
   const u = localStorage.getItem(SC_URL_KEY);
   SC.url = u === "off" ? "" : (u && /^https?:\/\//i.test(u) ? u.replace(/\/+$/, "") : SC_DEFAULT_URL);
@@ -6856,6 +6870,7 @@ const scRowsOf = list => list.map(r => [String(r.pk), String(r.name || ""), r.da
 function scAdopt(res, own = false){
   const rows = (res.rows || []).filter(r => Array.isArray(r) && r[0] != null && /^\d{4}-\d{2}-\d{2}$/.test(String(r[2])));
   // Облако ещё пустое: свою базу не стираем — её можно выгрузить кнопкой или она уйдёт с первой отметкой редактора.
+  SC.fresh = true;
   if (!rows.length && !own) { SC.empty = true; SC.base = new Map(); SC.rev = Number(res.rev) || 0; SC.last = res.last || null; scSaveLocal(); scRenderBadge(); return; }
   SC.base = new Map(rows.map(r => [String(r[0]) + "|" + r[2], [String(r[0]), String(r[1] || ""), r[2], Math.max(1, Math.round(Number(r[3]) || 1))]]));
   SC.rev = Number(res.rev) || 0; SC.last = res.last || SC.last; SC.empty = rows.length === 0;
@@ -6893,21 +6908,39 @@ function scDiff(){
 }
 async function scPush(){
   if (!scOn() || !SC.key) return;
-  const ops = scDiff();
-  if (!ops.length) { SC.pending = false; scSaveLocal(); scRenderBadge(); return; }
   SC.state = "saving"; scRenderBadge();
   const by = SC.by || "редактор";
-  const res = ops.length > 400 || !SC.base
-    ? await scFetch("/selfie", {method:"PUT", key:true, body:{by, rows:scRowsOf(SELFIE)}})
-    : await scFetch("/selfie/ops", {method:"POST", key:true, body:{by, ops}});
-  SC.pending = false; SC.state = "ok"; SC.err = ""; SC.at = Date.now();
+  // Явная выгрузка всей базы (кнопка «Выгрузить базу в облако»).
+  if (SC.forcePut) {
+    const res = await scFetch("/selfie", {method:"PUT", key:true, body:{by, rows:scRowsOf(SELFIE)}});
+    SC.forcePut = false; SC.bulk = false; SC.pending = false; SC.state = "ok"; SC.err = ""; SC.at = Date.now(); SC.skipped = 0;
+    scAdopt(res, true); return;
+  }
+  let ops = scDiff();
+  // Версия облака неизвестна — только добавляем свои отметки, ничего чужого не удаляем.
+  if (!SC.base) ops = ops.filter(o => o.op === "set");
+  // Защита: много удалений без импорта или отмены — значит, локальная копия устарела. Удаления не отправляем.
+  const dels = ops.filter(o => o.op === "del").length;
+  SC.skipped = 0;
+  if (dels > 10 && !SC.bulk) { ops = ops.filter(o => o.op !== "del"); SC.skipped = dels; }
+  if (!ops.length) {
+    SC.pending = false; SC.bulk = false; scSaveLocal();
+    // Нечего отправлять, но копия могла устареть — подтягиваем облако целиком.
+    const res = await scFetch("/selfie");
+    SC.state = "ok"; SC.err = ""; SC.at = Date.now(); scAdopt(res); return;
+  }
+  // Отправляем частями, сервер применяет изменения к своей актуальной версии и ничего чужого не затирает.
+  let res = null;
+  for (let i = 0; i < ops.length; i += 300) res = await scFetch("/selfie/ops", {method:"POST", key:true, body:{by, ops:ops.slice(i, i + 300)}});
+  SC.pending = false; SC.bulk = false; SC.state = "ok"; SC.err = ""; SC.at = Date.now();
   scAdopt(res, true);
 }
 async function scPull(){
   if (!scOn()) return;
   if (SC.pending && SC.key) return scPush();
   SC.state = SC.state === "ok" ? "ok" : "loading"; scRenderBadge();
-  const res = await scFetch("/selfie" + (SC.base && SC.rev >= 0 ? "?rev=" + SC.rev : ""));
+  // Первая загрузка в сессии — всегда полная: так копия в браузере не может «перекрыть» облако.
+  const res = await scFetch("/selfie" + (SC.fresh && SC.base && SC.rev >= 0 ? "?rev=" + SC.rev : ""));
   SC.state = "ok"; SC.err = ""; SC.at = Date.now();
   if (res.same) { SC.last = res.last || SC.last; scRenderBadge(); return; }
   scAdopt(res);
@@ -6949,6 +6982,7 @@ function scRenderBadge(){
 function scStatusTail(){
   if (!scOn()) return "";
   if (SC.state === "err") return ` · <span class="s-dirty">облако: ${escH(SC.err)}</span>`;
+  if (SC.skipped) return ` · <span class="s-dirty">не удалил из облака ${fmt(SC.skipped)} ${wordForm(SC.skipped, ["запись","записи","записей"])}: копия в браузере была устаревшей, база обновлена из облака</span>`;
   if (SC.state !== "ok") return "";
   const who = SC.last ? ` · последнее изменение: ${escH(SC.last.by || "редактор")}, ${scFmtAt(SC.last.at)}` : "";
   const seed = SC.empty && SC.key && SELFIE.length ? ` · <button class="mini" type="button" id="s-cloud-seed">Выгрузить базу в облако</button>` : SC.empty && !SELFIE.length ? " · облако пока пустое" : "";
@@ -6996,7 +7030,7 @@ document.addEventListener("click", e => {
   else if (e.target.closest("#s-cloud-badge")) scSync(SC.pending ? "push" : "pull");
   else if (e.target.closest("#s-cloud-seed")) {
     if (!confirm(`Выгрузить текущую базу (записей: ${fmt(SELFIE.length)}) в облако? Её увидят все участники.`)) return;
-    SC.base = null; SC.pending = true; scSync("push");
+    SC.forcePut = true; SC.pending = true; scSync("push");
   }
 });
 // Проверяем облако при открытии сайта, при возвращении на вкладку и раз в полминуты, пока открыты «Селфи» или «Профиль».
@@ -13855,6 +13889,12 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-15", date:"2026-10-23", title:"Надёжное облако селфи, топ-25 и скрытие столбцов", items:[
+    {tag:"fix", area:"Селфи", text:"Облако больше не теряет новые отметки после обновления или замены файла сайта: при открытии база всегда загружается из облака целиком, а встроенная база используется только при самом первом запуске."},
+    {tag:"fix", area:"Селфи", text:"Защита от случайного удаления: если копия в браузере устарела, массовые удаления в облако не отправляются, а база обновляется из облака. Импорт из Excel и отмена по-прежнему заменяют базу."},
+    {tag:"new", area:"Топ месяцев", text:"В «Топ месяцев» и «Топ дней» по умолчанию показывается топ-25. Под таблицей — «Показать все», над таблицей — поиск по месяцу или дню (например, «март 2024», «15 марта», «15.03.2024», «пятница»)."},
+    {tag:"new", area:"Таблицы", text:"Любой столбец в любой таблице можно скрыть: кнопка «Столбцы» над таблицей или правый клик по заголовку на ПК. Вернуть — там же, галочкой или «Показать все». Выбор запоминается для каждой таблицы."},
+  ]},
   {v:"2026.10.23-14", date:"2026-10-23", title:"Настройки по вкладкам и живые голограммы", items:[
     {tag:"new", area:"Настройки", text:"Настройки разбиты на разделы: Оформление, Эффекты, Фильтры и таблицы, Участники, Данные, Перенос и версия. На ПК это вкладки сверху, на телефоне — список разделов, как в настройках приложения."},
     {tag:"fix", area:"Настройки", text:"Пункты настроек больше не уезжают в правую шторку фильтров: на вкладке «Настройки» шторка скрывается."},
@@ -15772,6 +15812,245 @@ body.tb-on .chart:has(svg.heatrows-svg){border:1.5px solid transparent;backgroun
   const host = document.querySelector("main") || document.body;
   scan(host);
   new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(nd => { if (nd.nodeType === 1) scan(nd); }))).observe(host, {childList:true, subtree:true});
+})();
+</script>
+<style id="v15-ui">
+/* ===================== Скрытие столбцов в таблицах ===================== */
+.hc-bar{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin:0 0 6px;min-height:30px}
+.hc-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border:1px solid color-mix(in srgb,var(--text) 11%,transparent);border-radius:10px;background:color-mix(in srgb,var(--text) 4%,var(--ctrl));color:var(--muted);font:inherit;font-size:13px;cursor:pointer;opacity:.75;transition:opacity .15s,color .15s,border-color .15s}
+.hc-btn:hover,.hc-btn[aria-expanded="true"]{opacity:1;color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
+.hc-btn.has{opacity:1;color:var(--text)}
+.hc-btn b{min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text);font-size:11.5px;line-height:18px;text-align:center;font-weight:600}
+.hc-btn svg{width:15px;height:15px}
+.hc-pop{position:fixed;z-index:10050;min-width:230px;max-width:min(320px,calc(100vw - 16px));max-height:min(70vh,520px);display:flex;flex-direction:column;padding:8px;border-radius:14px;background:color-mix(in srgb,var(--panel-2,var(--panel)) 94%,#000);border:1px solid color-mix(in srgb,var(--text) 10%,transparent);box-shadow:0 24px 60px -16px #000e;animation:hcIn .14s ease-out}
+@keyframes hcIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.hc-pop h4{margin:2px 6px 8px;font-size:12.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.hc-list{overflow-y:auto;display:flex;flex-direction:column;gap:2px;scrollbar-width:thin}
+.hc-item{display:flex;align-items:center;gap:10px;min-height:36px;padding:0 10px;border-radius:9px;font-size:14px;cursor:pointer;user-select:none}
+.hc-item:hover{background:color-mix(in srgb,var(--text) 7%,transparent)}
+.hc-pop label.hc-item{justify-content:flex-start!important;text-align:left!important;width:auto;margin:0;color:var(--text)}
+.hc-item span{flex:1 1 auto;min-width:0}
+.hc-pop .hc-item input{flex:0 0 16px!important;width:16px!important;min-width:0!important;max-width:16px!important;padding:0!important;height:16px;margin:0;accent-color:var(--accent)}
+.hc-item.off span{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 60%,transparent)}
+.hc-foot{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid color-mix(in srgb,var(--text) 9%,transparent)}
+.hc-foot button{flex:1 1 auto;height:34px;border:0;border-radius:9px;background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--text);font:inherit;font-size:13.5px;cursor:pointer}
+.hc-foot button:hover{background:color-mix(in srgb,var(--text) 12%,transparent)}
+.hc-foot button:disabled{opacity:.45;cursor:default}
+.hc-cell-off{display:none!important}
+/* ===================== Топ месяцев и дней: поиск и «показать все» ===================== */
+.top-tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0 0 10px}
+.top-search{display:flex;align-items:center;gap:8px;flex:0 1 380px;min-width:220px;height:42px;padding:0 6px 0 14px;border-radius:13px;background:color-mix(in srgb,var(--text) 4%,var(--ctrl));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 11%,transparent);color:var(--muted)}
+.top-search:focus-within{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent),0 0 0 3px color-mix(in srgb,var(--accent) 9%,transparent)}
+.top-search input{flex:1 1 auto;min-width:0;height:100%;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;color:var(--text);font:inherit;font-size:15px;padding:0!important}
+.top-search input::-webkit-search-cancel-button{cursor:pointer}
+.top-more{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;margin:12px 0 4px;color:var(--muted);font-size:14px}
+.top-more:empty{display:none}
+.top-more .mini{height:38px;padding:0 18px;border-radius:12px;font-size:14.5px}
+@media (max-width:720px){.top-search{flex:1 1 100%;min-width:0}.hc-bar{margin-bottom:4px}}
+</style>
+<script id="v15-js">
+/* ===================== Скрытие столбцов: кнопка «Столбцы» над каждой таблицей ===================== */
+(function(){
+  const KEY = "chatstats.hiddenCols.v1", MAX_COLS = 40;
+  const SKIP = "#tab-settings, .chart-settings-panel, .msel-pop, .hc-pop, [data-no-hc], #ma-fsheet, .s-cloud-dlg";
+  let H = {};
+  try { const j = JSON.parse(localStorage.getItem(KEY) || "{}"); if (j && typeof j === "object") H = j; } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(H)); } catch (e) {} };
+  const style = document.createElement("style"); style.id = "hc-rules"; document.head.appendChild(style);
+  const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12s3.5-6.5 9-6.5 9 6.5 9 6.5-3.5 6.5-9 6.5S3 12 3 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
+  const clean = t => String(t || "").replace(/[▲▼△▽↑↓⇅⬍↕]/g, "").replace(/\s+/g, " ").trim();
+  let uid = 0;
+  // Ключ таблицы: её id, иначе вкладка + порядковый номер таблицы без id на этой вкладке.
+  function keyOf(t){
+    if (t.id) return t.id;
+    const sec = t.closest("section.tab, .tab, main") || document.body;
+    const list = [...sec.querySelectorAll("table:not([id])")].filter(x => !x.closest(SKIP));
+    return (sec.id || "main") + ":" + list.indexOf(t);
+  }
+  function headRow(t){
+    const th = t.tHead; if (!th || th.rows.length !== 1) return null;
+    const r = th.rows[0];
+    if (r.cells.length < 2 || r.cells.length > MAX_COLS || [...r.cells].some(c => c.colSpan > 1 || c.rowSpan > 1)) return null;
+    return r;
+  }
+  function colsOf(t){
+    const r = headRow(t); if (!r) return null;
+    return [...r.cells].map((c, i) => clean(c.dataset.hcName || c.textContent) || `Столбец ${i + 1}`);
+  }
+  function hostOf(t){ return t.closest(".wrap") || t.parentElement; }
+  function eligible(t){
+    if (!t.isConnected || t.closest(SKIP) || !t.closest("main")) return false;
+    return !!colsOf(t);
+  }
+  function hiddenIdx(t, cols){
+    const set = new Set(H[t.dataset.hcKey] || []);
+    const idx = []; cols.forEach((n, i) => { if (set.has(n)) idx.push(i); });
+    if (idx.length >= cols.length) idx.pop(); // хотя бы один столбец остаётся
+    return idx;
+  }
+  // Строки с объединёнными ячейками (разделители годов, «Нет данных», итоги) правим вручную.
+  function fixSpans(t, hid){
+    const hs = new Set(hid);
+    t.querySelectorAll(":scope > :is(thead,tbody,tfoot) > tr").forEach(tr => {
+      const cells = [...tr.cells];
+      if (!cells.some(c => c.colSpan > 1 || c.dataset.hcCs)) return;
+      let col = 0;
+      cells.forEach(c => {
+        const span = Number(c.dataset.hcCs || c.colSpan) || 1;
+        let vis = 0; for (let k = col; k < col + span; k++) if (!hs.has(k)) vis++;
+        if (span > 1 || c.dataset.hcCs) {
+          if (!c.dataset.hcCs) c.dataset.hcCs = String(span);
+          c.colSpan = Math.max(1, vis);
+        }
+        c.classList.toggle("hc-cell-off", vis === 0);
+        col += span;
+      });
+    });
+  }
+  function rules(){
+    let css = "";
+    document.querySelectorAll("table[data-hc]").forEach(t => {
+      const cols = colsOf(t); if (!cols) return;
+      const hid = hiddenIdx(t, cols);
+      if (hid.length) {
+        const sel = hid.map(i => `table[data-hc="${t.dataset.hc}"] > :is(thead,tbody,tfoot) > tr:not(:has(> [colspan], > [data-hc-cs])) > :nth-child(${i + 1})`).join(",");
+        css += sel + "{display:none!important}\n";
+      }
+      if (hid.length || t.querySelector("[data-hc-cs]")) fixSpans(t, hid);
+      const b = t.__hcBtn; if (b) { b.classList.toggle("has", hid.length > 0); b.querySelector("b").textContent = hid.length ? String(hid.length) : ""; b.querySelector("b").hidden = !hid.length; }
+    });
+    if (style.textContent !== css) style.textContent = css;
+  }
+  function attach(t){
+    if (!t.dataset.hc) t.dataset.hc = String(++uid);
+    t.dataset.hcKey = keyOf(t);
+    const host = hostOf(t); if (!host) return;
+    let bar = host.previousElementSibling;
+    if (!bar || !bar.classList.contains("hc-bar") || bar.dataset.for !== t.dataset.hc) {
+      bar = document.createElement("div"); bar.className = "hc-bar"; bar.dataset.for = t.dataset.hc; bar.dataset.noExport = "1";
+      bar.innerHTML = `<button type="button" class="hc-btn" aria-haspopup="true" aria-expanded="false" title="Скрыть или вернуть столбцы">${EYE}Столбцы<b hidden></b></button>`;
+      host.before(bar);
+    }
+    t.__hcBtn = bar.querySelector(".hc-btn");
+  }
+  let pending = 0;
+  function scan(){
+    pending = 0;
+    document.querySelectorAll("main table").forEach(t => { if (eligible(t)) attach(t); });
+    // Убираем кнопки, чья таблица исчезла.
+    document.querySelectorAll(".hc-bar").forEach(b => { const t = document.querySelector(`table[data-hc="${b.dataset.for}"]`); if (!t || hostOf(t)?.previousElementSibling !== b) b.remove(); });
+    rules();
+  }
+  const later = () => { if (!pending) pending = setTimeout(scan, 60); };
+  // ---------- Меню «Столбцы» ----------
+  let pop = null, popTable = null, popBtn = null;
+  function closePop(){ if (pop) { pop.remove(); pop = null; } if (popBtn) popBtn.setAttribute("aria-expanded", "false"); popTable = popBtn = null; }
+  function setHidden(t, names){ const k = t.dataset.hcKey; if (names.length) H[k] = names; else delete H[k]; save(); rules(); }
+  function drawPop(){
+    const t = popTable, cols = colsOf(t); if (!cols) { closePop(); return; }
+    const set = new Set(H[t.dataset.hcKey] || []), shown = cols.filter(n => !set.has(n)).length;
+    pop.innerHTML = `<h4>Столбцы таблицы</h4><div class="hc-list">${cols.map((n, i) => {
+      const on = !set.has(n), last = on && shown === 1;
+      return `<label class="hc-item${on ? "" : " off"}"${last ? ' title="Последний видимый столбец скрыть нельзя"' : ""}><input type="checkbox" data-hc-col="${i}"${on ? " checked" : ""}${last ? " disabled" : ""}><span>${escH(n)}</span></label>`;
+    }).join("")}</div><div class="hc-foot"><button type="button" data-hc-all${set.size ? "" : " disabled"}>Показать все</button></div>`;
+  }
+  function place(){
+    if (!pop || !popBtn) return;
+    const r = popBtn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    let x = Math.min(innerWidth - w - 8, Math.max(8, r.right - w)), y = r.bottom + 6;
+    if (y + h > innerHeight - 8) y = Math.max(8, r.top - h - 6);
+    pop.style.left = x + "px"; pop.style.top = y + "px";
+  }
+  function openPop(btn){
+    const bar = btn.closest(".hc-bar"), t = document.querySelector(`table[data-hc="${bar.dataset.for}"]`); if (!t) return;
+    if (popBtn === btn) { closePop(); return; }
+    closePop();
+    popTable = t; popBtn = btn; btn.setAttribute("aria-expanded", "true");
+    pop = document.createElement("div"); pop.className = "hc-pop"; pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Столбцы таблицы");
+    document.body.appendChild(pop); drawPop(); place();
+    pop.addEventListener("change", e => {
+      const i = Number(e.target.dataset.hcCol); if (!Number.isFinite(i)) return;
+      const cols = colsOf(popTable), set = new Set(H[popTable.dataset.hcKey] || []);
+      if (e.target.checked) set.delete(cols[i]); else set.add(cols[i]);
+      setHidden(popTable, cols.filter(n => set.has(n))); drawPop();
+    });
+    pop.addEventListener("click", e => { if (e.target.closest("[data-hc-all]")) { setHidden(popTable, []); drawPop(); } });
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".hc-btn"); if (b) { openPop(b); return; }
+    if (pop && !e.target.closest(".hc-pop")) closePop();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && pop) closePop(); });
+  addEventListener("resize", () => place());
+  addEventListener("scroll", () => place(), {passive:true, capture:true});
+  // Быстро: правый клик по заголовку столбца на ПК — скрыть его.
+  document.addEventListener("contextmenu", e => {
+    const th = e.target.closest && e.target.closest("thead th"); if (!th || e.shiftKey) return;
+    const t = th.closest("table[data-hc]"); if (!t || !headRow(t)) return;
+    const cols = colsOf(t), set = new Set(H[t.dataset.hcKey] || []), n = cols[th.cellIndex];
+    if (!n || cols.filter(x => !set.has(x)).length <= 1) return;
+    e.preventDefault(); set.add(n); setHidden(t, cols.filter(x => set.has(x)));
+    if (typeof toastMsg === "function") { try { toastMsg(`Столбец «${n}» скрыт. Вернуть — кнопка «Столбцы» над таблицей`); } catch (err) {} }
+  });
+  const root = document.querySelector("main") || document.body;
+  new MutationObserver(ms => { if (ms.some(m => !(m.target.closest && m.target.closest(".hc-bar, .hc-pop")))) later(); }).observe(root, {childList:true, subtree:true});
+  scan();
+})();
+
+/* ===================== Топ месяцев и дней: топ-25, поиск, «показать все» ===================== */
+(function(){
+  const N = 25;
+  const GEN = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+  const WDF = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+  const norm = s => String(s).toLowerCase().replace(/ё/g, "е");
+  // Каждое слово запроса должно совпасть с началом какого-нибудь слова описания.
+  function match(q, hay){
+    const words = norm(hay).split(/\s+/).filter(Boolean);
+    return norm(q).split(/[\s,;]+/).filter(Boolean).every(w => words.some(x => x.startsWith(w)));
+  }
+  function monthHay(k){
+    const [y, m] = k.split("-"), i = Number(m) - 1;
+    return `${MONTHS[i]} ${GEN[i]} ${y} ${m}.${y} ${k} ${m}/${y} ${Number(m)}.${y}`;
+  }
+  function dayHay(k){
+    const [y, m, d] = k.split("-"), i = Number(m) - 1, wd = WDF[new Date(Date.UTC(+y, i, +d)).getUTCDay()];
+    return `${d}.${m}.${y} ${Number(d)}.${Number(m)}.${y} ${d}.${m} ${Number(d)}.${Number(m)} ${Number(d)} ${d} ${GEN[i]} ${MONTHS[i]} ${y} ${k} ${wd}`;
+  }
+  window.__topLimit = {
+    months:{all:false}, days:{all:false},
+    // Отбираем строки для показа: поиск — все совпадения, иначе первые 25 (или все, если раскрыто).
+    take(kind, list, keep){
+      const st = this[kind], q = (document.getElementById(kind === "months" ? "m-q" : "d-q")?.value || "").trim();
+      let out = list;
+      if (q) out = out.filter(e => (keep && keep(e)) || match(q, kind === "months" ? monthHay(e[0]) : dayHay(e[0])));
+      const total = out.length;
+      if (!q && !st.all) out = out.slice(0, N + (keep && out[0] && keep(out[0]) ? 1 : 0));
+      const more = document.getElementById(kind === "months" ? "m-more" : "d-more");
+      if (more) {
+        const what = kind === "months" ? ["месяц", "месяца", "месяцев"] : ["день", "дня", "дней"];
+        if (q) more.innerHTML = total ? `<span>Найдено: ${fmt(total)} ${wordForm(total, what)}</span>` : "";
+        else if (total <= N + 1) more.innerHTML = "";
+        else more.innerHTML = st.all
+          ? `<span>Показаны все ${fmt(total)} ${wordForm(total, what)}</span><button type="button" class="mini" data-top-less="${kind}">Свернуть до топ-${N}</button>`
+          : `<span>Показаны первые ${N} из ${fmt(total)}</span><button type="button" class="mini" data-top-all="${kind}">Показать все (${fmt(total)})</button>`;
+      }
+      return {list:out, q, total};
+    }
+  };
+  const rer = kind => { if (kind === "months") renderMonths(); else renderDays(); };
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-top-all]"), l = e.target.closest("[data-top-less]");
+    if (a) { window.__topLimit[a.dataset.topAll].all = true; rer(a.dataset.topAll); }
+    else if (l) {
+      const k = l.dataset.topLess; window.__topLimit[k].all = false; rer(k);
+      document.getElementById(k === "months" ? "months-table" : "days-table")?.scrollIntoView({block:"start", behavior:"smooth"});
+    }
+  });
+  let t = 0;
+  document.addEventListener("input", e => {
+    const id = e.target.id; if (id !== "m-q" && id !== "d-q") return;
+    clearTimeout(t); t = setTimeout(() => rer(id === "m-q" ? "months" : "days"), 120);
+  });
 })();
 </script>
 </body>
