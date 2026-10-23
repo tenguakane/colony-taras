@@ -1243,6 +1243,19 @@ body.filter-colors .filters .field[data-fcat] > label{background:color-mix(in sr
 .ach-card[data-tier="diamond"]:not(.locked){background-image:linear-gradient(125deg,transparent 30%,rgba(103,232,249,.07) 45%,rgba(167,139,250,.07) 55%,transparent 70%)}
 .holo-active{box-shadow:0 18px 40px -18px #000c,0 0 0 1px color-mix(in srgb,var(--holo-c,#fff) 30%,transparent)}
 @media (prefers-reduced-motion: reduce){.holo-on.holo-active{transform:none}.holo-k-gold > .holo-glare{animation:none}}
+/* ===================== Голографический переливающийся текст у победителей ===================== */
+@keyframes holoText{to{background-position:300% 50%}}
+body.holo-text-on :is(
+  tr:has(> td.medal-1) > td:nth-child(2),
+  .dm-table tr:has(> td.medal-1) .dm-name .pname,
+  .cmp-side.win .cmp-name,
+  .yr-award-name,
+  .ach-card.max h3,
+  .ach-card[data-tier="diamond"]:not(.locked) h3,
+  .holo-text
+){background-image:linear-gradient(100deg,#ffd166 0%,#ff9ecf 18%,#67e8f9 36%,#a78bfa 54%,#76f0b6 72%,#ffd166 90%);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:holoText 7s linear infinite;filter:drop-shadow(0 0 6px rgba(167,139,250,.25))}
+body.holo-text-on tr:has(> td.medal-1) > td:nth-child(2) .row-exclude-btn,body.holo-text-on tr:has(> td.medal-1) > td:nth-child(2) .goal-mini{-webkit-text-fill-color:initial}
+@media (prefers-reduced-motion: reduce){body.holo-text-on :is(tr:has(> td.medal-1) > td:nth-child(2),.dm-table tr:has(> td.medal-1) .dm-name .pname,.cmp-side.win .cmp-name,.yr-award-name,.ach-card.max h3,.holo-text){animation:none}}
 .hub-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .hub-hero h2{margin:0;font-size:26px}.hub-hero .hint{margin:4px 0 0}
 .hub-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 6px}
@@ -1801,7 +1814,7 @@ body.filter-colors .filters .field[data-fcat] > label{background:color-mix(in sr
     <div class="quick-ranges" id="theme-bases" role="group" aria-label="Фон сайта" style="margin:0 0 10px"></div>
     <div class="theme-grid" id="theme-grid"></div>
     <h2>Эффекты</h2>
-    <div class="filters"><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
+    <div class="filters"><label class="checkline" title="Имя первого места в таблицах, победитель дуэли, номинанты «Итогов года» и максимальные достижения переливаются голографическим градиентом. В скопированных картинках — обычный текст"><input type="checkbox" id="set-holo-text">Переливающийся текст у победителей</label><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
     <h2>Шрифт</h2>
     <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label></div>
     <h2>Фильтры</h2>
@@ -2648,7 +2661,7 @@ function render(){
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const cell = (u,k) => displayedCell(Number(u[k])||0, Number((priorMap.get(u.key)||{})[k])||0, compareOn, priorMap.has(u.key));
   $("body").innerHTML = list.length
-    ? list.map((u, i) => `<tr data-row-entity="participants" data-row-key="${esc(u.key)}"><td>${i + 1}</td><td><div class="row-name-with-action"><span class="pname" data-open-profile="${esc(u.key)}">${esc(u.name)}</span>${goalMini(u.key, rawPM.get(u.key))}<button type="button" class="row-exclude-btn" data-no-export="true" data-exclude-row="participants" data-row-key="${esc(u.key)}" data-row-name="${esc(u.name)}" title="Исключить из таблицы" aria-label="Исключить ${esc(u.name)} из таблицы">×</button></div></td>${cell(u,"msgs")}${cell(u,"voice")}${cell(u,"video")}${cell(u,"stick")}</tr>`).join("")
+    ? list.map((u, i) => `<tr data-row-entity="participants" data-row-key="${esc(u.key)}"><td class="${i < 3 ? "medal-" + (i + 1) : ""}">${i + 1}</td><td><div class="row-name-with-action"><span class="pname" data-open-profile="${esc(u.key)}">${esc(u.name)}</span>${goalMini(u.key, rawPM.get(u.key))}<button type="button" class="row-exclude-btn" data-no-export="true" data-exclude-row="participants" data-row-key="${esc(u.key)}" data-row-name="${esc(u.name)}" title="Исключить из таблицы" aria-label="Исключить ${esc(u.name)} из таблицы">×</button></div></td>${cell(u,"msgs")}${cell(u,"voice")}${cell(u,"video")}${cell(u,"stick")}</tr>`).join("")
     : `<tr><td colspan="6" style="text-align:center;color:var(--muted)">${EXCLUDED_TABLE_ROWS.participants.size ? "Нет строк: участники исключены из таблицы" : "Нет данных за выбранный период"}</td></tr>`;
 
   $("foot").innerHTML = list.length
@@ -3186,7 +3199,7 @@ function renderChatRank(){
   status.textContent = "";
   bodyEl.innerHTML = list.length ? list.map((u,i) => {
     const value = k => displayedCell(Number(u[k])||0, Number((priorMap.get(u.key)||{})[k])||0, compareOn, priorMap.has(u.key));
-    return `<tr data-row-entity="chats" data-row-key="${escH(u.key)}"><td>${i+1}</td><td style="text-align:left"><div class="row-name-with-action"><span>${escH(u.name)}</span><button type="button" class="row-exclude-btn" data-no-export="true" data-exclude-row="chats" data-row-key="${escH(u.key)}" data-row-name="${escH(u.name)}" title="Исключить из таблицы" aria-label="Исключить ${escH(u.name)} из таблицы">×</button></div></td>${value("msgs")}${value("stick")}${value("voice")}${value("video")}</tr>`;
+    return `<tr data-row-entity="chats" data-row-key="${escH(u.key)}"><td class="${i < 3 ? "medal-" + (i + 1) : ""}">${i+1}</td><td style="text-align:left"><div class="row-name-with-action"><span>${escH(u.name)}</span><button type="button" class="row-exclude-btn" data-no-export="true" data-exclude-row="chats" data-row-key="${escH(u.key)}" data-row-name="${escH(u.name)}" title="Исключить из таблицы" aria-label="Исключить ${escH(u.name)} из таблицы">×</button></div></td>${value("msgs")}${value("stick")}${value("voice")}${value("video")}</tr>`;
   }).join("") : `<tr><td colspan="6" style="text-align:center;color:var(--muted)">${EXCLUDED_TABLE_ROWS.chats.size ? "Нет строк: чаты исключены из таблицы" : "Нет данных по отдельным чатам за выбранный период"}</td></tr>`;
   if (footEl) footEl.innerHTML = list.length ? (NORM === "day" ? "" : `<tr><td colspan="2">Всего (${list.length} чатов)</td>${["msgs","stick","voice","video"].map(k=>displayedCell(sumMapMetric(shownMap,k),sumMapMetric(shownPriorMap,k),compareOn,shownPriorMap.size > 0)).join("")}</tr>`)
     + statRows(list, ["msgs","stick","voice","video"], label => `<td colspan="2">${label}</td>`) : "";
@@ -9040,7 +9053,7 @@ function renderCompare(){
   const tableHtml = t.rows.length ? `<div class="section-head"><h2>${t.title}</h2><button class="mini copy-btn" type="button" id="cmp-chats-copy">Копировать</button><span class="hint" id="cmp-chats-msg"></span></div>
     <div class="wrap"><table id="cmp-chats-table"><thead><tr><th style="text-align:left">${t.head}</th><th style="color:${cA}">${escH(nA)}</th><th style="color:${cB}">${escH(nB)}</th><th>Разница</th><th style="text-align:left">Впереди</th></tr></thead><tbody>${t.rows.map(r => { const [, a, b] = r; return `<tr><td style="text-align:left">${nameCell(r)}</td><td>${fmt(a)}</td><td>${fmt(b)}</td><td>${fmt(Math.abs(a - b))}</td><td style="text-align:left;color:${a === b ? "var(--muted)" : a > b ? cA : cB}">${a === b ? "поровну" : escH(a > b ? nA : nB)}</td></tr>`; }).join("")}</tbody></table></div>` : "";
   $("cmp-out").innerHTML = `<div class="section-head cmp-copy-head"><span class="hint">${escH(m.scope)}</span><button class="mini copy-btn" type="button" id="cmp-card-copy">Копировать сравнение как картинку</button>${m.mode === "user" ? '<button class="mini copy-btn" type="button" id="cmp-card-copy-av">Копировать с аватарками</button>' : ""}<span class="hint" id="cmp-card-msg"></span></div>
-    <div class="cmp-hero">${side(m.keyA, nA, cA, A, "a")}<div class="cmp-vs"><span>VS</span><div class="cmp-score"><b style="color:${cA}">${sa}</b> : <b style="color:${cB}">${sb}</b></div><div class="cmp-sub">побед по показателям</div></div>${side(m.keyB, nB, cB, B, "b")}</div>
+    <div class="cmp-hero">${side(m.keyA, nA, cA, A, sa > sb ? "a win" : "a")}<div class="cmp-vs"><span>VS</span><div class="cmp-score"><b style="color:${cA}">${sa}</b> : <b style="color:${cB}">${sb}</b></div><div class="cmp-sub">побед по показателям</div></div>${side(m.keyB, nB, cB, B, sb > sa ? "b win" : "b")}</div>
     <div class="cmp-duels">${rowsHtml}</div>
     <div class="cmp-verdict" style="--ca:${cA};--cb:${cB}"><h3>Вывод</h3><ul>${m.verdict.map(v => `<li>${escH(v)}</li>`).join("")}</ul></div>
     <div class="section-head"><h2>${escH(m.series.title)}</h2><span class="hint">${escH(m.series.unitName[0].toUpperCase() + m.series.unitName.slice(1))} впереди: ${escH(nA)} — ${m.series.leadA}, ${escH(nB)} — ${m.series.leadB}</span><button class="mini copy-btn" type="button" id="cmp-chart-copy">Копировать</button><span class="hint" id="cmp-chart-msg"></span></div>
@@ -12936,9 +12949,24 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* Переливающийся текст у победителей: включается в Настройках → «Эффекты» */
+(function(){
+  const KEY = "chatstats.holoText.v1";
+  let on = true; try { on = localStorage.getItem(KEY) !== "0"; } catch (e) {}
+  const apply = () => { document.body.classList.toggle("holo-text-on", on); const c = document.getElementById("set-holo-text"); if (c) c.checked = on; };
+  document.addEventListener("change", e => { if (e.target.id === "set-holo-text") { on = e.target.checked; try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (err) {} apply(); } });
+  apply();
+})();
+</script>
+<script>
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-3", date:"2026-10-23", title:"Голографический текст у победителей", items:[
+    {tag:"new", area:"Везде", text:"Имена победителей переливаются голографическим градиентом: первое место в таблицах (Участники, Чаты, Рекорды, Матрица, Марафоны и другие), победитель дуэли в «Сравнении», номинанты «Итогов года», названия максимальных и алмазных достижений."},
+    {tag:"imp", area:"Статистика", text:"Первые три места в таблицах участников и чатов окрашены медальными цветами."},
+    {tag:"new", area:"Настройки", text:"«Эффекты» → «Переливающийся текст у победителей». В скопированных и скачанных картинках текст обычный."},
+  ]},
   {v:"2026.10.23-2", date:"2026-10-23", title:"Эффекты: без шапок", items:[
     {tag:"del", area:"Профиль", text:"С шапки профиля и шапки достижений убран 3D-наклон и голографический блик. На карточках достижений, в «Сравнении» и «Итогах года» эффект остался."},
   ]},
