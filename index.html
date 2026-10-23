@@ -16221,6 +16221,9 @@ tr.is-me-row > td:first-child{box-shadow:inset 3px 0 0 var(--accent)!important}
 .mt-who{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .mt-ava{flex:0 0 46px;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--mc,var(--accent));color:#0b0d12;font-size:20px;font-weight:700}
 .mt-who b{display:block;font-size:20px}
+.mt-ava,.mt-chips button i,.mt-mini{position:relative;overflow:hidden}
+.mt-ava.av-ok,.mt-chips button i.av-ok,.mt-mini.av-ok{font-size:0}
+.mt-mini{flex:0 0 26px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--mc,var(--accent));color:#0b0d12;font-size:12px;font-weight:700}
 .mt-who span{color:var(--muted);font-size:13.5px}
 .mt-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .mt-num{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--text) 4%,transparent)}
@@ -16352,6 +16355,7 @@ tbody tr.qv-able{cursor:pointer}
   const nameOf = pk => (typeof NAMES !== "undefined" && NAMES[pk]) || `ID ${pk}`;
   const colorOf = pk => { try { return getStyle("u", pk).c[0] || "var(--accent)"; } catch (e) { return "var(--accent)"; } };
   const visible = pk => { try { return !!NAMES[pk] && (typeof isVisibleUser !== "function" || isVisibleUser(pk)); } catch (e) { return true; } };
+  const ava = pk => { const l = (nameOf(pk)[0] || "?").toUpperCase(); try { return window.AVATAR ? AVATAR.inner(pk, l) : esc(l); } catch (e) { return esc(l); } };
   const vib = p => { try { if (window.__haptics && window.__haptics.on()) navigator.vibrate(p); } catch (e) {} };
 
   /* ---------- «Я» ---------- */
@@ -16467,7 +16471,7 @@ tbody tr.qv-able{cursor:pointer}
     if (!me || !D.users.has(me) && !NAMES[me]) {
       const people = [...D.users.entries()].filter(([pk]) => visible(pk)).map(([pk, u]) => [pk, sumRange(u.daily, addD(L, -29), L)]).sort((a, b) => b[1] - a[1]).slice(0, 40);
       left = `<div class="mt-card mt-pick">${head("Кто ты?")}<p>Выбери себя — и сайт будет выделять тебя во всех таблицах, а здесь появится твоя сводка за день. Можно включить уведомления, когда тебя обгоняют.</p>
-        <div class="mt-chips">${people.map(([pk]) => `<button type="button" data-me-pick="${esc(pk)}" style="--mc:${colorOf(pk)}"><i>${esc(nameOf(pk)[0] || "?")}</i>${esc(nameOf(pk))}</button>`).join("")}</div></div>`;
+        <div class="mt-chips">${people.map(([pk]) => `<button type="button" data-me-pick="${esc(pk)}" style="--mc:${colorOf(pk)}"><i>${ava(pk)}</i>${esc(nameOf(pk))}</button>`).join("")}</div></div>`;
     } else {
       const u = D.users.get(me), dIdx = dayList.findIndex(x => x.pk === me), mIdx = monthList.findIndex(x => x.pk === me);
       const dv = u ? u.daily.get(L) || 0 : 0, mv = mIdx >= 0 ? monthList[mIdx].v : 0;
@@ -16476,7 +16480,7 @@ tbody tr.qv-able{cursor:pointer}
       const gap = above ? `До ${dIdx}-го места (${esc(nameOf(above.pk))}) — <b>${num(above.v - dv + 1)}</b> ${wordForm(above.v - dv + 1, ["сообщение","сообщения","сообщений"])}.` : dv > 0 ? `<b>Ты лидер дня!</b>` : `Сегодня ты ещё не писал(а).`;
       const lead = below && dv > 0 ? ` Отрыв от ${esc(nameOf(below.pk))}: <b>${num(dv - below.v)}</b>.` : "";
       left = `<div class="mt-card me" style="--mc:${colorOf(me)}">${head(isToday ? `Ты сегодня · ${dLong(L)}` : `Ты · ${dLong(L)}`, `<button type="button" data-me-notify class="${notifyOn ? "on" : ""}" title="Уведомлять, когда тебя обгоняют или ты обгоняешь">${notifyOn ? "🔔 Обгоны" : "🔕 Обгоны"}</button>`)}
-        <div class="mt-who"><div class="mt-ava">${esc(nameOf(me)[0] || "?")}</div><div><b>${esc(nameOf(me))}</b><span>${streak ? `серия ${streak} ${wordForm(streak, ["день","дня","дней"])} подряд 🔥` : "серии сейчас нет"}</span></div></div>
+        <div class="mt-who"><div class="mt-ava">${ava(me)}</div><div><b>${esc(nameOf(me))}</b><span>${streak ? `серия ${streak} ${wordForm(streak, ["день","дня","дней"])} подряд 🔥` : "серии сейчас нет"}</span></div></div>
         <div class="mt-nums">
           <div class="mt-num"><div class="l">За день</div><div class="v">${num(dv)}</div><div class="s">${dIdx >= 0 && dv > 0 ? `${dIdx + 1}-е место из ${dayList.filter(x => x.v > 0).length}` : "—"}</div></div>
           <div class="mt-num"><div class="l">За месяц</div><div class="v">${num(mv)}</div><div class="s">${mIdx >= 0 && mv > 0 ? `${mIdx + 1}-е место` : "—"}</div></div>
@@ -16487,10 +16491,10 @@ tbody tr.qv-able{cursor:pointer}
     }
     const top = dayList.filter(x => x.v > 0).slice(0, 5);
     const meIn = me && top.some(x => x.pk === me), meRow = me && !meIn ? dayList.find(x => x.pk === me) : null;
-    const rowH = (x, i) => `<div class="mt-row${x.pk === me ? " me" : ""}" data-me-qv="${esc(x.pk)}"><i>${i + 1}</i><span class="n">${esc(nameOf(x.pk))}</span><span class="c">${num(x.v)}</span></div>`;
+    const rowH = (x, i) => `<div class="mt-row${x.pk === me ? " me" : ""}" data-me-qv="${esc(x.pk)}"><i>${i + 1}</i><span class="mt-mini" style="--mc:${colorOf(x.pk)}">${ava(x.pk)}</span><span class="n">${esc(nameOf(x.pk))}</span><span class="c">${num(x.v)}</span></div>`;
     const right = `<div class="mt-card">${head(isToday ? `Чат сегодня · ${dLong(L)}` : `Чат · ${dLong(L)} (свежее пока нет)`, `<button type="button" data-me-refresh>${hubBusy ? "Обновляю…" : "Обновить"}</button>`)}
       <div class="mt-total"><b>${num(totL)}</b><span>сообщений${totY ? ` · вчера ${num(totY)}` : ""}</span></div>
-      <div class="mt-top">${top.length ? top.map(rowH).join("") : `<div class="hub-empty">Пока никто не писал</div>`}${meRow ? `<div class="mt-row me" data-me-qv="${esc(me)}"><i>${dayList.indexOf(meRow) + 1}</i><span class="n">${esc(nameOf(me))}</span><span class="c">${num(meRow.v)}</span></div>` : ""}</div></div>`;
+      <div class="mt-top">${top.length ? top.map(rowH).join("") : `<div class="hub-empty">Пока никто не писал</div>`}${meRow ? `<div class="mt-row me" data-me-qv="${esc(me)}"><i>${dayList.indexOf(meRow) + 1}</i><span class="mt-mini" style="--mc:${colorOf(me)}">${ava(me)}</span><span class="n">${esc(nameOf(me))}</span><span class="c">${num(meRow.v)}</span></div>` : ""}</div></div>`;
     box.innerHTML = left + right;
     mark();
   }
@@ -16522,7 +16526,7 @@ tbody tr.qv-able{cursor:pointer}
     qvBack = document.createElement("div"); qvBack.className = "qv-back"; qvBack.addEventListener("click", closeQV);
     qvEl = document.createElement("aside"); qvEl.className = "qv"; qvEl.setAttribute("role", "dialog"); qvEl.setAttribute("aria-label", "Быстрый просмотр: " + nameOf(pk));
     qvEl.style.setProperty("--mc", colorOf(pk));
-    qvEl.innerHTML = `<div class="qv-head"><div class="mt-ava">${esc(nameOf(pk)[0] || "?")}</div><div><b>${esc(nameOf(pk))}</b><span>Загружаю…</span></div><button type="button" class="qv-x" aria-label="Закрыть">✕</button></div><div class="qv-body"><div class="sk" style="height:200px;border-radius:14px"></div></div>`;
+    qvEl.innerHTML = `<div class="qv-head"><div class="mt-ava">${ava(pk)}</div><div><b>${esc(nameOf(pk))}</b><span class="qv-sub">Загружаю…</span></div><button type="button" class="qv-x" aria-label="Закрыть">✕</button></div><div class="qv-body"><div class="sk" style="height:200px;border-radius:14px"></div></div>`;
     document.body.append(qvBack, qvEl);
     qvEl.querySelector(".qv-x").addEventListener("click", closeQV);
     let D = dayStats();
@@ -16533,7 +16537,7 @@ tbody tr.qv-able{cursor:pointer}
     const d30 = []; for (let i = 29; i >= 0; i--) d30.push(u.daily.get(addD(L, -i)) || 0);
     let st = {current:0, maxStreak:0, activeDays:u.daily.size, best:null}; try { st = streakStats(u.daily); } catch (e) {}
     const days = u.daily.size, first = [...u.daily.keys()].sort()[0];
-    qvEl.querySelector(".qv-head span").textContent = first ? `в чате с ${dLong(first)} ${first.slice(0, 4)} · ${num(days)} ${wordForm(days, ["активный день","активных дня","активных дней"])}` : "нет сообщений";
+    qvEl.querySelector(".qv-sub").textContent = first ? `в чате с ${dLong(first)} ${first.slice(0, 4)} · ${num(days)} ${wordForm(days, ["активный день","активных дня","активных дней"])}` : "нет сообщений";
     qvEl.querySelector(".qv-body").innerHTML = `<div class="mt-nums">
         <div class="mt-num"><div class="l">${L === todayIso() ? "Сегодня" : dLong(L)}</div><div class="v">${num(u.daily.get(L) || 0)}</div><div class="s">${dIdx >= 0 && (u.daily.get(L) || 0) ? `${dIdx + 1}-е место` : "—"}</div></div>
         <div class="mt-num"><div class="l">За месяц</div><div class="v">${num(mIdx >= 0 ? mList[mIdx].v : 0)}</div><div class="s">${mIdx >= 0 && mList[mIdx].v ? `${mIdx + 1}-е место` : "—"}</div></div>
