@@ -1873,7 +1873,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     <h2>Эффекты</h2>
     <div class="filters"><label class="checkline" title="Имя первого места в таблицах, победитель дуэли, номинанты «Итогов года» и максимальные достижения переливаются голографическим градиентом. В скопированных картинках — обычный текст"><input type="checkbox" id="set-holo-text">Переливающийся текст у победителей</label><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
     <div class="filters" id="fx-list"></div>
-    <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
+    <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><button class="mini" type="button" id="fx-bg-toggle" title="Листопад и другие сезонные частицы, параллакс-фон, салют и конфетти">Выключить фоновые эффекты</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
     <h2>Шрифт</h2>
     <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label></div>
     <h2>Фильтры</h2>
@@ -13058,10 +13058,16 @@ function multiplesChart(){
   });
   document.getElementById("fx-all-on")?.addEventListener("click", () => { LIST.forEach(([k]) => FX[k] = true); save(); applyAll(); });
   document.getElementById("fx-all-off")?.addEventListener("click", () => { LIST.forEach(([k]) => FX[k] = false); save(); applyAll(); });
+  // Фоновые эффекты: всё, что летает или двигается поверх/позади страницы.
+  const BG = ["season", "parallax", "fireworks", "confetti"];
+  const bgAnyOn = () => BG.some(k => FX[k]);
+  function syncBgBtn(){ const b = document.getElementById("fx-bg-toggle"); if (b) b.textContent = bgAnyOn() ? "Выключить фоновые эффекты" : "Включить фоновые эффекты"; }
+  document.getElementById("fx-bg-toggle")?.addEventListener("click", () => { const v = !bgAnyOn(); BG.forEach(k => FX[k] = v); save(); applyAll(); });
 
   function applyAll(){
     LIST.forEach(([k]) => document.body.classList.toggle("fx-" + k, !!FX[k] && !RM));
-    syncBoxes(); decorate(document); bgSync(); seasonSync();
+    syncBoxes(); syncBgBtn(); decorate(document); bgSync(); seasonSync();
+    if (!FX.confetti && !FX.fireworks) { parts = []; }
   }
 
   // ---------- Огонь, печатная машинка, блеск: дорисовка элементов ----------
@@ -13268,6 +13274,9 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-5", date:"2026-10-23", title:"Кнопка для фоновых эффектов", items:[
+    {tag:"new", area:"Настройки", text:"В «Эффектах» кнопка «Выключить фоновые эффекты»: одним нажатием убирает листопад и другие сезонные частицы, параллакс-фон, салют и конфетти, остальные эффекты остаются. Повторное нажатие включает их обратно."},
+  ]},
   {v:"2026.10.23-4", date:"2026-10-23", title:"Большой набор эффектов", items:[
     {tag:"new", area:"Эффекты", text:"Счётчик-табло: цифры в плитках профиля, Хаба, «Сравнения» и «Матрицы» прокручиваются, как на табло."},
     {tag:"new", area:"Эффекты", text:"Золотой блеск раз в несколько секунд по большим цифрам; неоновое свечение имени цветом участника в профиле и «Сравнении»; огонёк 🔥 и тёплое мерцание у идущей серии."},
