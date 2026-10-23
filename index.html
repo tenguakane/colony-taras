@@ -1307,7 +1307,6 @@ body.fx-reveal .fx-in{opacity:1;transform:none;transition:opacity .55s ease-out,
 #fx-confetti,#fx-season{position:fixed;inset:0;pointer-events:none;width:100vw;height:100vh}
 #fx-confetti{z-index:200}
 #fx-season{z-index:-1;opacity:.8}
-#fx-season.fx-season-top{z-index:9000;opacity:.92}
 /* Свечение выделенной линии на графиках */
 body.fx-glow #c-out svg.fx-has-focus [data-n]:not([style*="opacity"]):is(path,line,polygon,circle),body.fx-glow #c-out svg.dimming .hl:is(path,line,polygon,circle){filter:url(#fx-glow)}
 /* Пульсирующая точка «сейчас» на конце линий */
@@ -1890,7 +1889,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     </div>
     <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><button class="mini" type="button" id="fx-bg-toggle" title="Листопад и другие сезонные частицы, параллакс-фон, салют и конфетти">Выключить фоновые эффекты</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
     <h2>Шрифт</h2>
-    <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label><label class="checkline" title="На телефоне: шапка в одну строку, фильтры прокручиваются одной строкой, плитки Хаба в три колонки, «Ещё» открывает шторку со всеми разделами"><input type="checkbox" id="set-m2" checked>Компактная мобильная версия</label></div>
+    <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label><label class="checkline" title="На телефоне: своя шапка с названием раздела, нижняя панель вкладок, страница «Меню» со всеми разделами и фильтры в шторке"><input type="checkbox" id="set-m2" checked>Мобильная версия в стиле приложения</label></div>
     <h2>Фильтры</h2>
     <p class="hint">Как выглядят панели фильтров над таблицами и графиками.</p>
     <div class="filters">
@@ -13553,6 +13552,19 @@ function multiplesChart(){
       flash -= .035; sctx.globalAlpha = 1;
     }
   }
+  // Эмодзи и значки рисуются один раз в маленький холст и дальше просто копируются: так в десятки раз быстрее, чем fillText каждый кадр.
+  const spriteCache = new Map();
+  function glyphSprite(ch, px, col){
+    px = Math.max(8, Math.round(px / 2) * 2);
+    const key = ch + "|" + px + "|" + col; let c = spriteCache.get(key); if (c) return c;
+    const d = Math.min(2, devicePixelRatio || 1), sz = Math.ceil(px * 1.5);
+    c = document.createElement("canvas"); c.width = c.height = Math.ceil(sz * d); c.__s = sz;
+    const x = c.getContext("2d"); x.scale(d, d);
+    x.font = `${px}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",system-ui,sans-serif`; x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = col || "#fff";
+    x.fillText(ch, sz / 2, sz / 2);
+    if (spriteCache.size > 400) spriteCache.clear();
+    spriteCache.set(key, c); return c;
+  }
   function drawAurora(){
     const t = performance.now() / 1000, W = innerWidth, H = innerHeight;
     sctx.globalCompositeOperation = "lighter";
@@ -13668,7 +13680,7 @@ function multiplesChart(){
     if (sel) sel.value = KINDS[PK.kind] ? PK.kind : "auto";
     if (den) den.value = DENSITY[PK.density] ? PK.density : "mid";
     if (!want) { cancelAnimationFrame(sraf); sraf = 0; sctx.clearRect(0, 0, sc.width, sc.height); sc.hidden = true; return; }
-    sc.hidden = false; sc.classList.toggle("fx-season-top", misha);
+    sc.hidden = false;
     const k = misha ? "clowns" : curKind();
     if (sraf && sKind === k + PK.density) return;
     cancelAnimationFrame(sraf); sKind = k + PK.density;
@@ -13735,7 +13747,8 @@ function multiplesChart(){
         else if (K.diamond) { sctx.beginPath(); sctx.moveTo(0, -f.r * 1.6); sctx.lineTo(f.r, 0); sctx.lineTo(0, f.r * 1.6); sctx.lineTo(-f.r, 0); sctx.closePath(); sctx.fill(); }
         else if (k === "flakes") { sctx.lineWidth = 1; for (let a = 0; a < 6; a++) { sctx.rotate(Math.PI / 3); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r); sctx.moveTo(0, f.r * .6); sctx.lineTo(f.r * .25, f.r * .8); sctx.moveTo(0, f.r * .6); sctx.lineTo(-f.r * .25, f.r * .8); sctx.stroke(); } }
         else if (K.fluff) { sctx.lineWidth = .8; for (let a = 0; a < 8; a++) { sctx.rotate(Math.PI / 4); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r * 1.8); sctx.stroke(); } }
-        else if (K.digits || K.emoji || K.glyph) { if (!K.tumble) sctx.rotate(-f.rot); sctx.textBaseline = "middle"; sctx.font = `${Math.round(f.r * 1.4)}px "Segoe UI Emoji","Apple Color Emoji",system-ui,sans-serif`; sctx.textAlign = "center"; sctx.fillText(f.ch || K.glyph, 0, 0); if (K.digits && Math.random() < .01) f.ch = String(Math.floor(Math.random() * 10)); }
+        else if (K.emoji || K.glyph) { if (!K.tumble) sctx.rotate(-f.rot); const sp = glyphSprite(f.ch || K.glyph, f.r * 1.4, f.c); sctx.drawImage(sp, -sp.__s / 2, -sp.__s / 2, sp.__s, sp.__s); }
+        else if (K.digits) { sctx.rotate(-f.rot); sctx.textBaseline = "middle"; sctx.font = `${Math.round(f.r * 1.4)}px "Segoe UI Emoji","Apple Color Emoji",system-ui,sans-serif`; sctx.textAlign = "center"; sctx.fillText(f.ch || K.glyph, 0, 0); if (K.digits && Math.random() < .01) f.ch = String(Math.floor(Math.random() * 10)); }
         else if (k === "snow" || k === "stars" || K.glow) { sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
         else { sctx.beginPath(); sctx.ellipse(0, 0, f.r, f.r * .55, 0, 0, 7); sctx.fill(); }
         sctx.restore();
@@ -13793,6 +13806,18 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-13", date:"2026-10-23", title:"Клоуны на фоне и крупные фильтры на ПК", items:[
+    {tag:"fix", area:"Профиль", text:"Клоуны в профиле «Миша А.» падают на фоне, как остальные частицы, а не поверх интерфейса."},
+    {tag:"imp", area:"Эффекты", text:"Эмодзи и значки в частицах рисуются заранее и только копируются на экран — страница больше не подвисает."},
+    {tag:"imp", area:"Везде", text:"На ПК поля и кнопки фильтров стали выше (46 px), шрифт в них крупнее; вкладки «Участники / Чаты» тоже выше."},
+  ]},
+  {v:"2026.10.23-12", date:"2026-10-23", title:"Мобильная версия в стиле приложения", items:[
+    {tag:"new", area:"Телефон", text:"Сверху — шапка с названием раздела, кнопкой фильтров и обновлением. Снизу — постоянная панель: Хаб, Профиль, Статистика, Графики и Меню."},
+    {tag:"new", area:"Телефон", text:"«Меню» — отдельная страница как в Telegram: все разделы списком с цветными иконками, поиск, переключатели Ultimate и VK, настройки."},
+    {tag:"new", area:"Телефон", text:"Фильтры убраны со страницы: под шапкой видна строка с текущими значениями, а по нажатию открывается шторка, где каждый фильтр — отдельная строка."},
+    {tag:"fix", area:"Телефон", text:"Кнопки «Профиль» и «Статистика» снова всегда видны в нижней панели."},
+    {tag:"imp", area:"Телефон", text:"Вкладки внутри разделов подчёркиваются, как в Telegram. Повторное нажатие на текущую вкладку прокручивает страницу наверх."},
+  ]},
   {v:"2026.10.23-11", date:"2026-10-23", title:"Компактная мобильная версия", items:[
     {tag:"fix", area:"Навигация", text:"На телефоне убрана кнопка «Навигация», которая ничего не делала: она нужна только боковой панели на ПК."},
     {tag:"imp", area:"Телефон", text:"Шапка уместилась в одну строку, нижняя панель стала легче: активная вкладка отмечена «таблеткой» под иконкой."},
@@ -14823,16 +14848,16 @@ body.filters-right .stats-quick{display:flex}
 /* ===================== Фильтры v4: крупнее, спокойнее, современнее =====================
    Работает поверх «Современного вида фильтров» (Настройки → Фильтры). Выключить: снять ту же галочку. */
 body:not(.fv3-off){--fv4-line:color-mix(in srgb,var(--text) 11%,transparent);--fv4-line-hi:color-mix(in srgb,var(--text) 22%,transparent);--fv4-fill:color-mix(in srgb,var(--text) 4%,var(--ctrl));--fv4-on:color-mix(in srgb,var(--text) 11%,transparent)}
-body:not(.fv3-off) .filters{--control-height:40px;gap:10px}
+body:not(.fv3-off) .filters{--control-height:46px;gap:10px}
 body:not(.fv3-off) .tab > .filters,body:not(.fv3-off) #shared > .filters,body:not(.fv3-off) .stat-content > .filters{padding:10px;border-radius:18px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--fv4-line);box-shadow:0 1px 0 #ffffff08 inset,0 14px 34px -26px #000;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 /* поле: подпись слева, значение справа, одна спокойная «капсула» */
 body:not(.fv3-off) .filters .field{border-radius:13px;background:var(--fv4-fill);box-shadow:inset 0 0 0 1px var(--fv4-line)}
 body:not(.fv3-off) .filters .field:hover{box-shadow:inset 0 0 0 1px var(--fv4-line-hi)}
 body:not(.fv3-off) .filters .field:focus-within{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,var(--fv4-line)),0 0 0 3px color-mix(in srgb,var(--accent) 9%,transparent)}
-body:not(.fv3-off) .filters .field > label{padding:0 4px 0 14px;font-size:13px;letter-spacing:0;color:var(--muted)}
+body:not(.fv3-off) .filters .field > label{padding:0 4px 0 16px;font-size:13.5px;letter-spacing:0;color:var(--muted)}
 body:not(.fv3-off) .filters .field > label::after{height:16px;margin-left:12px;background:var(--fv4-line)}
-body:not(.fv3-off) .filters .field select,body:not(.fv3-off) .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){font-size:14.5px;padding:0 12px}
-body:not(.fv3-off) .filters .field select{max-width:280px;padding-right:30px}
+body:not(.fv3-off) .filters .field select,body:not(.fv3-off) .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){font-size:15px;padding:0 14px}
+body:not(.fv3-off) .filters .field select{max-width:300px;padding-right:32px}
 @media (min-width:721px){
   body:not(.fv3-off) .filters .field input[type=date]{width:150px}
   body:not(.fv3-off) .filters .field input[type=month]{width:140px}
@@ -14841,29 +14866,30 @@ body:not(.fv3-off) .filters .field select{max-width:280px;padding-right:30px}
 }
 /* сегменты: активный — мягкая светлая подложка вместо яркого акцента */
 body:not(.fv3-off) .filters .seg,body:not(.fv3-off) .stat-subnav,body:not(.fv3-off) .group-tabs{gap:3px;padding:3px;border-radius:13px;background:var(--fv4-fill);box-shadow:inset 0 0 0 1px var(--fv4-line)}
-body:not(.fv3-off) .filters .seg button,body:not(.fv3-off) .stat-subnav button,body:not(.fv3-off) .group-tabs button{padding:0 14px;font-size:14px;font-weight:500;border-radius:10px;color:var(--muted)}
+body:not(.fv3-off) .filters .seg button,body:not(.fv3-off) .stat-subnav button,body:not(.fv3-off) .group-tabs button{padding:0 16px;font-size:15px;font-weight:500;border-radius:10px;color:var(--muted)}
 body:not(.fv3-off) .filters .seg button:hover,body:not(.fv3-off) .stat-subnav button:hover,body:not(.fv3-off) .group-tabs button:hover{color:var(--text);background:color-mix(in srgb,var(--text) 6%,transparent)}
 body:not(.fv3-off) .filters .seg button.active,body:not(.fv3-off) .stat-subnav button.active,body:not(.fv3-off) .group-tabs button.active{background:var(--fv4-on);color:var(--text);box-shadow:inset 0 0 0 1px var(--fv4-line),0 1px 2px #0003,inset 0 -2px 0 color-mix(in srgb,var(--accent) 38%,transparent)}
 body:not(.fv3-off) .filters .field > .seg{padding:3px;background:transparent;box-shadow:none}
-body:not(.fv3-off) .filters .field > .seg button{font-size:14px;padding:0 12px}
+body:not(.fv3-off) .filters .field > .seg button{height:calc(var(--control-height) - 8px)!important;font-size:15px;padding:0 14px}
 /* переключатели-галочки */
-body:not(.fv3-off) .checkline{min-height:var(--control-height,40px);padding:0 14px;gap:10px;border-radius:13px;font-size:14px;background:var(--fv4-fill,var(--ctrl));box-shadow:inset 0 0 0 1px var(--fv4-line,var(--line))}
+body:not(.fv3-off) .checkline{min-height:var(--control-height,46px);padding:0 16px;gap:10px;border-radius:13px;font-size:15px;background:var(--fv4-fill,var(--ctrl));box-shadow:inset 0 0 0 1px var(--fv4-line,var(--line))}
 body:not(.fv3-off) .checkline:has(input:checked){background:color-mix(in srgb,var(--text) 8%,var(--ctrl));box-shadow:inset 0 0 0 1px var(--fv4-line-hi,var(--line))}
 body:not(.fv3-off) .checkline input[type=checkbox]{flex-basis:30px;width:30px!important;height:17px!important;background:radial-gradient(circle at 8.5px 50%,#cfd5e3 0 5.5px,transparent 6.2px),color-mix(in srgb,var(--text) 18%,transparent)}
 body:not(.fv3-off) .checkline input[type=checkbox]:checked{background:radial-gradient(circle at 21.5px 50%,#fff 0 5.5px,transparent 6.2px),color-mix(in srgb,var(--accent) 70%,#7a8090)}
 /* кнопки и «Параметры» */
-body:not(.fv3-off) .filters button.mini,body:not(.fv3-off) .filters .table-export-actions .mini{height:var(--control-height);padding:0 14px;font-size:14px;border-radius:13px;border-color:var(--fv4-line);background:var(--fv4-fill)}
+body:not(.fv3-off) .filters button.mini,body:not(.fv3-off) .filters .table-export-actions .mini{height:var(--control-height);padding:0 16px;font-size:15px;border-radius:13px;border-color:var(--fv4-line);background:var(--fv4-fill)}
 body:not(.fv3-off) .filters button.mini:hover,body:not(.fv3-off) .filters .table-export-actions .mini:hover{border-color:var(--fv4-line-hi)}
 body:not(.fv3-off) .filters .field > .pbtn > .mini,body:not(.fv3-off) .filters .field > button.mini{border-radius:0;font-size:14px;padding:0 12px;background:transparent}
-body:not(.fv3-off) .filters .opt-pop>summary{padding:0 14px;font-size:14px;border-radius:13px;border-color:var(--fv4-line);background:var(--fv4-fill)}
+body:not(.fv3-off) .filters .opt-pop>summary{padding:0 16px;font-size:15px;border-radius:13px;border-color:var(--fv4-line);background:var(--fv4-fill)}
 body:not(.fv3-off) .opt-pop[open]>summary,body:not(.fv3-off) .opt-pop>summary:hover{border-color:var(--fv4-line-hi)}
 body:not(.fv3-off) .opt-pop .opt-n{background:color-mix(in srgb,var(--text) 12%,transparent);color:var(--text)}
 body:not(.fv3-off) .filters .field .pick summary{font-size:14.5px;padding:0 12px}
 /* цветные метки фильтров — тише */
 body.filter-colors:not(.fv3-off) .filters .field[data-fcat],body.filter-colors:not(.fv3-off) .filters .checkline[data-fcat]{box-shadow:inset 0 0 0 1px var(--fv4-line),inset 0 2px 0 color-mix(in srgb,var(--fc) 38%,transparent)}
+@media (min-width:721px){body:not(.fv3-off) .stat-subnav button,body:not(.fv3-off) .group-tabs button{height:40px;font-size:15px}}
 body.filter-colors:not(.fv3-off) .filters .field[data-fcat] > label{background:transparent;color:color-mix(in srgb,var(--fc) 30%,var(--muted))}
 /* ---------- выпадающий список: просторнее и крупнее ---------- */
-.msel{gap:8px;max-width:300px;padding:0 34px 0 12px;font-size:14.5px}
+.msel{gap:8px;max-width:320px;padding:0 36px 0 14px;font-size:15px}
 .msel::after{right:14px;width:7px;height:7px}
 .msel.solo{height:var(--control-height,40px);border-radius:13px;background:color-mix(in srgb,var(--text) 4%,var(--ctrl));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 11%,transparent)}
 .msel-pop{min-width:240px;max-width:min(440px,calc(100vw - 16px));padding:8px;gap:6px;border-radius:16px;background:color-mix(in srgb,var(--panel-2) 92%,#000);border:1px solid color-mix(in srgb,var(--text) 10%,transparent);box-shadow:0 24px 60px -16px #000e,0 1px 0 #ffffff0a inset}
@@ -15144,150 +15170,212 @@ body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(1
   setTimeout(apply, 0);
 })();
 </script>
-<style id="mobile-v2">
-/* ===================== Мобильная версия v2: компактная =====================
-   Включается в «Настройки → Шрифт и вид → Компактная мобильная версия» (по умолчанию включена). Работает только на экранах до 720 px. */
+<style id="mobile-app">
+/* ===================== Мобильная версия в стиле приложения =====================
+   Только экраны до 720 px. Выключается в «Настройки → Шрифт → Мобильная версия в стиле приложения».
+   Своя шапка с названием раздела, нижняя панель вкладок, страница «Меню» со всеми разделами и фильтры в шторке. */
+#ma-bar,#ma-tabs,#ma-menu,#ma-fsheet{display:none}
 @media (max-width:720px){
-  /* кнопка «Навигация» нужна только для боковой панели на ПК */
   nav .side-toggle,nav .side-sep{display:none!important}
+  body.mapp{--ma-hair:color-mix(in srgb,var(--text) 9%,transparent);--ma-tabs-h:56px;--ma-group:color-mix(in srgb,var(--text) 3.5%,var(--panel))}
+  body.mapp > header{display:none!important}
+  body.mapp .filters-summary{display:none!important}
 
-  /* ---------- шапка: одна строка ---------- */
-  body.m2 header{padding:8px 10px 0}
-  body.m2 .top{flex-wrap:nowrap;gap:8px;margin-bottom:2px;align-items:center}
-  body.m2 .top h1{flex:1 1 auto;min-width:0;font-size:15px;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  body.m2 .top h1::before{width:9px;height:9px;flex:0 0 9px;border-radius:3px}
-  body.m2 .top-actions{flex:0 0 auto;gap:4px;width:auto}
-  body.m2 .top-actions .ult-btn{height:28px;padding:0 9px;font-size:11.5px;gap:0;border-radius:999px}
-  body.m2 .top-actions .ult-btn i{display:none}
-  body.m2 .top-actions .ult-btn.on{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--text);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
-  body.m2 #filters-visibility-toggle,body.m2 #refresh{width:30px;height:28px;border-radius:9px}
+  /* ---------- верхняя панель ---------- */
+  body.mapp #ma-bar{display:block;position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top,0px);background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);border-bottom:1px solid var(--ma-hair)}
+  #ma-bar .ma-top{display:flex;align-items:center;gap:4px;height:52px;padding:0 6px 0 16px}
+  #ma-bar .ma-title{flex:1 1 auto;min-width:0;font-size:19px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #ma-bar .ma-ic{position:relative;flex:0 0 40px;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:transparent;color:var(--text);padding:0;cursor:pointer}
+  #ma-bar .ma-ic:active{background:color-mix(in srgb,var(--text) 10%,transparent)}
+  #ma-bar .ma-ic svg{width:22px;height:22px}
+  #ma-bar .ma-ic[hidden]{display:none}
+  #ma-bar .ma-ic .ma-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--bg)}
+  #ma-bar .ma-ic.spin svg{animation:maSpin .8s linear infinite}
+  #ma-bar .ma-sum{display:flex;gap:6px;overflow-x:auto;padding:0 12px 9px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  #ma-bar .ma-sum::-webkit-scrollbar{display:none}
+  #ma-bar .ma-sum[hidden]{display:none}
+  #ma-bar .ma-chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border:0;border-radius:999px;background:color-mix(in srgb,var(--text) 8%,transparent);color:var(--text);font:inherit;font-size:13px;white-space:nowrap;cursor:pointer}
+  #ma-bar .ma-chip.first{background:color-mix(in srgb,var(--accent) 20%,transparent)}
+  #ma-bar .ma-chip svg{width:14px;height:14px}
+  @keyframes maSpin{to{transform:rotate(360deg)}}
 
-  /* ---------- нижняя панель: 5 вкладок, активная — «таблетка» под иконкой ---------- */
-  body.m2 nav{padding:3px 4px calc(3px + env(safe-area-inset-bottom,0px));gap:0;background:color-mix(in srgb,var(--panel) 90%,transparent);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border-top:1px solid color-mix(in srgb,var(--text) 8%,transparent);box-shadow:0 -8px 24px -18px #000}
-  body.m2 nav button,body.m2 .nav-more-btn{min-height:52px;padding:4px 0!important;gap:3px;font-size:10.5px!important;font-weight:500;color:var(--muted);background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
-  body.m2 nav button::before,body.m2 .nav-more-btn::before{display:grid!important;place-items:center;width:52px;height:28px;border-radius:999px;font-size:17px;line-height:1;transition:background .2s,transform .2s}
-  body.m2 nav button.active,body.m2 .nav-more-btn.active,body.m2 .nav-more-btn[aria-expanded="true"]{color:var(--text)}
-  body.m2 nav button.active::before,body.m2 .nav-more-btn.active::before,body.m2 .nav-more-btn[aria-expanded="true"]::before{background:color-mix(in srgb,var(--accent) 22%,transparent);filter:none}
-  body.m2 nav button:active::before,body.m2 .nav-more-btn:active::before{transform:scale(.92)}
-  body.m2 .nav-sheet{display:none!important}
-  body.m2 .nav-more-btn{order:999!important}
+  /* ---------- нижняя панель вкладок ---------- */
+  body.mapp #ma-tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:70;height:calc(var(--ma-tabs-h) + env(safe-area-inset-bottom,0px));padding:0 4px env(safe-area-inset-bottom,0px);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);border-top:1px solid var(--ma-hair)}
+  #ma-tabs button{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:10.5px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  #ma-tabs button svg{width:25px;height:25px;transition:transform .18s}
+  #ma-tabs button.on{color:var(--accent)}
+  #ma-tabs button.on svg{transform:translateY(-1px)}
+  #ma-tabs button:active svg{transform:scale(.88)}
+  body.mapp main{padding:10px 10px calc(var(--ma-tabs-h) + 16px + env(safe-area-inset-bottom,0px))}
+  body.mapp .app-ver{padding-bottom:calc(var(--ma-tabs-h) + 16px + env(safe-area-inset-bottom,0px))}
+  body.mapp .toast,body.mapp .snackbar{bottom:calc(var(--ma-tabs-h) + 12px + env(safe-area-inset-bottom,0px))!important}
 
-  /* ---------- общие отступы и заголовки ---------- */
-  body.m2 main{padding:8px 10px 12px}
-  body.m2 h2{font-size:16px;margin:16px 0 8px}
-  body.m2 h3{font-size:14px}
-  body.m2 .hint,body.m2 .status{font-size:12.5px}
-  body.m2 .group-tabs{margin:0 -10px 10px!important;padding:0 4px}
-  body.m2 .group-tabs button{padding:7px 12px!important;font-size:13px!important}
-  body.m2 .sec-nav,body.m2 #bd-nav{margin:0 -10px 10px!important;padding:2px 10px 4px}
-  body.m2 .sec-nav .chip,body.m2 #bd-nav .chip{height:30px;font-size:12.5px}
+  /* ---------- фильтры спрятаны в шторку, на странице — только строка-сводка ---------- */
+  body.mapp :is(#shared,.tab:not(#tab-settings),.stat-content) > .filters{display:none!important}
+  body.mapp .quick-ranges{flex-wrap:nowrap;overflow-x:auto;margin:0 -10px 10px;padding:0 10px 2px;scrollbar-width:none}
 
-  /* ---------- фильтры: одна прокручиваемая строка вместо стопки ---------- */
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters{--control-height:36px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;align-items:center;gap:6px;margin:0 -10px 10px;padding:2px 10px 6px!important;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;scrollbar-width:none;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters::-webkit-scrollbar{display:none}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters > *{flex:0 0 auto!important;scroll-snap-align:start;max-width:none}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field{flex:0 0 auto!important;height:36px;border-radius:11px}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field > label{font-size:11px;padding:0 2px 0 10px}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field > label::after{margin-left:8px;height:14px}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field select,body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){width:auto!important;flex:0 0 auto!important;max-width:none;font-size:14px;padding:0 26px 0 8px}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field input[type=date]{width:136px!important;padding-right:6px}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field input[type=month]{width:128px!important;padding-right:6px}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field input[type=number]{width:70px!important;padding-right:6px}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .field > .seg{flex-wrap:nowrap!important;overflow:visible}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .seg button{flex:0 0 auto!important;padding:0 10px!important;font-size:13px!important;white-space:nowrap}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .checkline{flex:0 0 auto!important;min-height:36px;padding:0 11px;font-size:13px;white-space:nowrap}
-  body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters button.mini,body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .table-export-actions .mini,body.m2 :is(.tab:not(#tab-settings),#shared,.stat-content) > .filters .opt-pop>summary{height:36px;min-height:36px;padding:0 11px;font-size:13px;white-space:nowrap}
-  body.m2 .filters .table-export-actions{flex-wrap:nowrap}
-  body.m2 .filters .table-export-actions .hint{display:none}
-  /* выпадающие панели внутри строки фильтров открываются снизу экрана, а не обрезаются */
-  body.m2 .filters .opt-pop .opt-list,body.m2 .filters .pick .pop{position:fixed!important;left:8px!important;right:8px!important;top:auto!important;bottom:calc(66px + env(safe-area-inset-bottom,0px))!important;min-width:0;max-height:60vh;overflow:auto;z-index:70;border-radius:16px;box-shadow:0 -12px 40px #000b}
-  body.m2 .filters-summary{margin:0 0 8px;font-size:12px}
-  body.m2 .quick-ranges{margin:0 -10px 8px;padding:0 10px 2px}
+  /* ---------- вкладки внутри разделов: подчёркивание, как в Telegram ---------- */
+  body.mapp :is(.group-tabs,.stat-subnav){display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;gap:0!important;margin:0 -10px 12px!important;padding:0 8px!important;border:0!important;border-bottom:1px solid var(--ma-hair)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;scrollbar-width:none}
+  body.mapp :is(.group-tabs,.stat-subnav)::-webkit-scrollbar{display:none}
+  body.mapp :is(.group-tabs,.stat-subnav) button{flex:0 0 auto!important;height:42px!important;padding:0 14px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:var(--muted)!important;font-size:14.5px!important;font-weight:600;white-space:nowrap}
+  body.mapp :is(.group-tabs,.stat-subnav) button.active{color:var(--accent)!important;box-shadow:inset 0 -3px 0 -0.5px var(--accent)!important}
+  body.mapp .stats-topbar{margin-bottom:0}
 
-  /* ---------- карточки и плитки ---------- */
-  body.m2 .tiles{gap:6px}
-  body.m2 .tile{padding:9px 11px;border-radius:12px}
-  body.m2 .tile .num{font-size:19px}
-  body.m2 .tile .lbl{font-size:12px}
-  body.m2 .p-hero{padding:12px;gap:10px}
-  body.m2 .p-name{font-size:19px}
-  body.m2 .p-stats{gap:6px}
-  body.m2 .p-card{padding:12px}
+  /* ---------- плотнее карточки, таблицы и заголовки ---------- */
+  body.mapp h2{font-size:17px;margin:16px 0 8px}
+  body.mapp h3{font-size:14.5px}
+  body.mapp .hint,body.mapp .status{font-size:12.5px}
+  body.mapp .sec-nav,body.mapp #bd-nav{margin:0 -10px 10px!important;padding:2px 10px 4px}
+  body.mapp .tiles{gap:8px}
+  body.mapp .tile{padding:10px 12px;border-radius:14px}
+  body.mapp .tile .num{font-size:20px}
+  body.mapp .p-hero{padding:14px;gap:10px;border-radius:16px}
+  body.mapp .p-name{font-size:20px}
+  body.mapp .p-stats{gap:6px}
+  body.mapp .p-card{padding:12px;border-radius:16px}
+  body.mapp .wrap{border-radius:14px;margin-left:0;margin-right:0}
+  body.mapp .wrap th,body.mapp .wrap td{padding:8px;font-size:12.5px}
+  body.mapp .wrap th{font-size:11.5px}
+  body.mapp .section-head h2{margin:12px 0 6px}
+  body.mapp .hub-hero{margin:0 0 10px;gap:8px}
+  body.mapp .hub-hero > div:first-child:has(> h2 + .hint){display:none}
+  body.mapp .hub-hero h2{font-size:21px}
+  body.mapp .hub-kpis{gap:8px}
+  body.mapp .hub-kpi{padding:10px 12px;border-radius:14px}
+  body.mapp .hub-kpi .v{font-size:20px}
+  body.mapp .hub-sec{margin:18px 0 8px}
+  body.mapp .hub-sec h2{font-size:17px}
+  body.mapp .hub-feed{gap:8px}
+  body.mapp .hub-card{padding:10px 12px;border-radius:16px}
+  body.mapp .hub-card h3{font-size:14.5px;margin-bottom:6px}
+  body.mapp .hub-card h3 button{height:28px;min-height:0;padding:0 10px;font-size:12px;border-radius:999px}
+  body.mapp .hub-ev .tx{font-size:13.5px}
+  body.mapp .hub-find{flex:1 1 100%}
+  body.mapp .hub-find input{width:100%}
+  body.mapp .hub-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  body.mapp .hub-tile{flex-direction:column;align-items:center;text-align:center;gap:6px;padding:12px 4px;border-radius:16px}
+  body.mapp .hub-tile .ic{flex:0 0 auto;width:42px;height:42px;border-radius:13px;font-size:21px}
+  body.mapp .hub-tile b{font-size:12.5px;line-height:1.2}
+  body.mapp .hub-tile span.d,body.mapp .hub-tile span.m{display:none}
 
-  /* ---------- Хаб ---------- */
-  body.m2 .hub-hero{margin:0 0 10px;gap:8px}
-  body.m2 .hub-hero h2{font-size:20px}
-  body.m2 .hub-kpis{gap:6px}
-  body.m2 .hub-kpi{padding:9px 11px;border-radius:12px}
-  body.m2 .hub-kpi .l{font-size:11.5px}
-  body.m2 .hub-kpi .v{font-size:19px}
-  body.m2 .hub-kpi .s{font-size:11.5px}
-  body.m2 .hub-sec{margin:16px 0 8px}
-  body.m2 .hub-sec h2{font-size:16px}
-  body.m2 .hub-feed{gap:8px}
-  body.m2 .hub-card{padding:10px 12px;border-radius:12px}
-  body.m2 .hub-card h3{font-size:14px;margin-bottom:6px}
-  body.m2 .hub-card h3 button{height:28px;min-height:0;padding:0 9px;font-size:12px}
-  body.m2 .hub-ev{padding:6px 2px;gap:8px}
-  body.m2 .hub-ev .ic{flex-basis:26px;height:26px;font-size:14px}
-  body.m2 .hub-ev .tx{font-size:13px}
-  body.m2 .hub-empty{font-size:12.5px;padding:2px}
-  body.m2 .hub-find{flex:1 1 100%}
-  body.m2 .hub-find input{width:100%}
-  body.m2 .hub-cat{margin:0 0 12px}
-  body.m2 .hub-cat h3{font-size:11.5px;margin-bottom:6px}
-  body.m2 .hub-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-  body.m2 .hub-tile{flex-direction:column;align-items:center;text-align:center;gap:6px;padding:10px 4px;border-radius:12px}
-  body.m2 .hub-tile .ic{flex:0 0 auto;width:38px;height:38px;border-radius:11px;font-size:19px}
-  body.m2 .hub-tile b{font-size:12px;line-height:1.2}
-  body.m2 .hub-tile span.d,body.m2 .hub-tile span.m{display:none}
+  /* ---------- страница «Меню» ---------- */
+  body.mapp #ma-menu{position:fixed;left:0;right:0;top:0;bottom:calc(var(--ma-tabs-h) + env(safe-area-inset-bottom,0px));z-index:65;overflow-y:auto;overscroll-behavior:contain;padding:calc(10px + env(safe-area-inset-top,0px)) 0 20px;background:var(--bg)}
+  body.mapp #ma-menu.open{display:block;animation:maIn .2s ease-out}
+  #ma-menu .ma-h{margin:6px 16px 12px;font-size:30px;font-weight:800;letter-spacing:-.02em}
+  #ma-menu .ma-search{display:block;margin:0 12px 16px;position:relative}
+  #ma-menu .ma-search input{display:block;width:100%!important;height:40px!important;min-height:0!important;margin:0!important;padding:0 12px 0 38px!important;border:0!important;border-radius:12px!important;background:color-mix(in srgb,var(--text) 8%,transparent)!important;box-shadow:none!important;color:var(--text);font:inherit;font-size:16px!important}
+  #ma-menu .ma-search svg{position:absolute;left:12px;top:11px;width:18px;height:18px;color:var(--muted)}
+  #ma-menu .ma-app{display:flex;align-items:center;gap:14px;margin:0 12px 18px;padding:14px;border-radius:16px;background:var(--ma-group)}
+  #ma-menu .ma-logo{flex:0 0 52px;height:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent-2,var(--accent)));color:#fff}
+  #ma-menu .ma-logo svg{width:28px;height:28px}
+  #ma-menu .ma-app b{display:block;font-size:17px}
+  #ma-menu .ma-app span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+  #ma-menu .ma-gt{margin:0 28px 6px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  #ma-menu .ma-grp{margin:0 12px 20px;border-radius:14px;background:var(--ma-group);overflow:hidden}
+  .ma-row{display:flex;align-items:center;gap:13px;width:100%;padding:0 0 0 14px;border:0;background:transparent;color:var(--text);font:inherit;font-size:16px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .ma-row:active{background:color-mix(in srgb,var(--text) 7%,transparent)}
+  .ma-ico{flex:0 0 30px;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--c,#7aa2f7);font-size:16px;line-height:1}
+  .ma-txt{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;min-height:48px;padding-right:14px}
+  .ma-row + .ma-row .ma-txt{box-shadow:inset 0 1px 0 var(--ma-hair)}
+  .ma-txt > span:first-child{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ma-txt small{color:var(--muted);font-size:14px}
+  .ma-chev{color:var(--muted);opacity:.6;font-size:20px;line-height:1}
+  .ma-row.cur .ma-txt > span:first-child{color:var(--accent);font-weight:600}
+  .ma-sw{flex:0 0 46px;width:46px;height:28px;border-radius:999px;background:color-mix(in srgb,var(--text) 18%,transparent);position:relative;transition:background .18s}
+  .ma-sw::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0005;transition:transform .18s}
+  .ma-row.on .ma-sw{background:#34c759}
+  .ma-row.on .ma-sw::after{transform:translateX(18px)}
+  #ma-menu .ma-empty{margin:20px;text-align:center;color:var(--muted)}
+  @keyframes maIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-  /* ---------- таблицы ---------- */
-  body.m2 .wrap{border-radius:12px;margin-left:0;margin-right:0}
-  body.m2 .wrap th,body.m2 .wrap td{padding:7px 8px;font-size:12.5px}
-  body.m2 .wrap th{font-size:11.5px}
-  body.m2 .section-head{gap:6px;margin-bottom:6px}
-  body.m2 .section-head h2{margin:12px 0 6px}
-  body.m2 .app-ver{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
-
-  /* ---------- шторка «Ещё»: все разделы ---------- */
-  #m2-sheet{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end}
-  #m2-sheet[hidden]{display:none}
-  #m2-sheet .m2-bd{position:absolute;inset:0;background:#000a;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);animation:m2Fade .2s ease-out}
-  #m2-sheet .m2-panel{position:relative;width:100%;max-height:82vh;display:flex;flex-direction:column;padding:6px 12px calc(12px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:var(--panel);border-top:1px solid color-mix(in srgb,var(--text) 10%,transparent);box-shadow:0 -20px 50px -10px #000;animation:m2Up .24s cubic-bezier(.2,.8,.2,1);touch-action:pan-y}
-  #m2-sheet .m2-grip{width:40px;height:4px;margin:4px auto 10px;border-radius:99px;background:color-mix(in srgb,var(--text) 25%,transparent)}
-  #m2-sheet .m2-top{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-  #m2-sheet .m2-top input{flex:1 1 auto;min-width:0;height:38px;padding:0 12px;border-radius:12px;border:0;background:color-mix(in srgb,var(--text) 6%,var(--ctrl));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 10%,transparent);color:var(--text);font:inherit;font-size:15px}
-  #m2-sheet .m2-top button{flex:0 0 38px;height:38px;border-radius:12px;border:0;background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text);font-size:18px}
-  #m2-sheet .m2-body{overflow:auto;overscroll-behavior:contain;padding-bottom:4px}
-  #m2-sheet .m2-grp{margin:6px 2px 6px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-  #m2-sheet .m2-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:10px}
-  #m2-sheet .m2-it{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 2px 8px;border:0;border-radius:14px;background:color-mix(in srgb,var(--text) 4%,transparent);color:var(--text);font:inherit;font-size:11.5px;line-height:1.2;text-align:center;min-width:0}
-  #m2-sheet .m2-it i{font-style:normal;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--text) 7%,transparent);font-size:19px}
-  #m2-sheet .m2-it span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
-  #m2-sheet .m2-it.active{background:color-mix(in srgb,var(--accent) 16%,transparent)}
-  #m2-sheet .m2-it.active i{background:color-mix(in srgb,var(--accent) 28%,transparent)}
-  #m2-sheet .m2-it:active{transform:scale(.96)}
-  #m2-sheet .m2-empty{padding:16px;text-align:center;color:var(--muted);font-size:13px}
-  @keyframes m2Up{from{transform:translateY(100%)}to{transform:none}}
-  @keyframes m2Fade{from{opacity:0}to{opacity:1}}
+  /* ---------- шторка фильтров ---------- */
+  body.mapp #ma-fsheet.open{display:flex;position:fixed;inset:0;z-index:80;align-items:flex-end}
+  #ma-fsheet .ma-bd{position:absolute;inset:0;background:#0009;animation:maFade .2s ease-out}
+  #ma-fsheet .ma-panel{position:relative;width:100%;max-height:88vh;display:flex;flex-direction:column;border-radius:20px 20px 0 0;background:var(--bg);box-shadow:0 -20px 50px -10px #000;animation:maUp .26s cubic-bezier(.2,.8,.2,1);padding-bottom:env(safe-area-inset-bottom,0px)}
+  #ma-fsheet .ma-grip{width:38px;height:5px;margin:7px auto 0;border-radius:99px;background:color-mix(in srgb,var(--text) 25%,transparent)}
+  #ma-fsheet .ma-fhead{display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 8px 0 18px}
+  #ma-fsheet .ma-fhead b{font-size:18px}
+  #ma-fsheet .ma-done{height:36px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--accent);font:inherit;font-size:16px;font-weight:600}
+  #ma-fsheet .ma-fbody{overflow-y:auto;overscroll-behavior:contain;padding:4px 12px 16px}
+  #ma-fsheet .filters{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;gap:0!important;margin:0 0 14px!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:14px!important;background:var(--ma-group)!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;--control-height:46px}
+  #ma-fsheet .filters > *{width:100%!important;max-width:none!important;flex:0 0 auto!important;margin:0!important}
+  #ma-fsheet .filters > * + *{border-top:1px solid var(--ma-hair)!important}
+  #ma-fsheet .filters > [hidden],#ma-fsheet .filters .field[hidden]{display:none!important}
+  #ma-fsheet .filters .field{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between;height:auto!important;min-height:48px;padding:0 4px 0 0;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+  #ma-fsheet .filters .field > label{flex:1 1 0;min-width:0;display:flex;align-items:center;min-height:48px;padding:6px 10px 6px 14px!important;background:transparent!important;border:0!important;color:var(--text)!important;font-size:15.5px!important;line-height:1.25;white-space:normal}
+  #ma-fsheet .filters .field > label::after{display:none!important}
+  #ma-fsheet .filters .field select,#ma-fsheet .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){flex:0 1 auto!important;width:auto!important;min-width:0!important;max-width:64%!important;height:46px!important;padding:0 28px 0 8px!important;border:0!important;background-color:transparent!important;box-shadow:none!important;color:var(--muted)!important;font-size:15.5px!important;text-align:right;text-align-last:right}
+  #ma-fsheet .filters .field input[type=date],#ma-fsheet .filters .field input[type=month],#ma-fsheet .filters .field input[type=number]{padding-right:10px!important}
+  #ma-fsheet .filters .field > .seg,#ma-fsheet .filters .field > .pbtn{flex:1 1 100%!important;order:5;display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin:0 10px 10px 14px!important;padding:3px!important;height:auto!important;border-radius:11px!important;background:color-mix(in srgb,var(--text) 7%,transparent)!important;box-shadow:none!important;overflow:visible!important}
+  #ma-fsheet .filters > .seg{display:flex!important;flex-wrap:wrap!important;gap:4px!important;padding:10px 14px!important;height:auto!important;background:transparent!important;box-shadow:none!important;border-radius:0!important}
+  #ma-fsheet .filters .seg button,#ma-fsheet .filters .field > .pbtn > .mini{flex:1 1 auto!important;height:34px!important;min-height:0;padding:0 10px!important;border:0!important;border-radius:9px!important;background:transparent!important;color:var(--text)!important;font-size:14px!important;box-shadow:none!important}
+  #ma-fsheet .filters > .seg button{background:color-mix(in srgb,var(--text) 7%,transparent)!important}
+  #ma-fsheet .filters .seg button.active{background:var(--panel-2,var(--panel))!important;color:var(--text)!important;font-weight:600;box-shadow:0 1px 3px #0004!important}
+  #ma-fsheet .filters .field > .pbtn .hint{flex:1 1 100%;padding:2px 4px}
+  #ma-fsheet .checkline{display:flex!important;flex-direction:row-reverse!important;justify-content:space-between!important;align-items:center!important;min-height:48px;height:auto!important;padding:0 14px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:var(--text)!important;font-size:15.5px!important}
+  #ma-fsheet .checkline input[type=checkbox]{flex:0 0 46px!important;width:46px!important;height:28px!important;background:radial-gradient(circle at 14px 50%,#fff 0 11px,transparent 11.6px),color-mix(in srgb,var(--text) 18%,transparent)!important}
+  #ma-fsheet .checkline input[type=checkbox]:checked{background:radial-gradient(circle at 32px 50%,#fff 0 11px,transparent 11.6px),#34c759!important}
+  #ma-fsheet .opt-pop>summary{display:none!important}
+  #ma-fsheet .opt-pop .opt-list{position:static!important;display:flex!important;flex-direction:column;gap:0;min-width:0;padding:0;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+  #ma-fsheet .opt-pop .opt-list > * + *{border-top:1px solid var(--ma-hair)!important}
+  #ma-fsheet .table-export-actions{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:0!important}
+  #ma-fsheet .table-export-actions > * + *{border-top:1px solid var(--ma-hair)}
+  #ma-fsheet .filters > button.mini,#ma-fsheet .table-export-actions .mini{display:flex!important;align-items:center;justify-content:flex-start!important;height:48px!important;width:100%;padding:0 14px!important;border:0!important;border-radius:0!important;background:transparent!important;color:var(--accent)!important;font-size:15.5px!important;box-shadow:none!important}
+  #ma-fsheet .table-export-actions .hint{padding:8px 14px;font-size:13px}
+  #ma-fsheet .pick .pop{position:static!important;box-shadow:none}
+  #ma-fsheet [data-fcat]{box-shadow:none!important}
+  #ma-fsheet .ma-ftitle{margin:4px 16px 6px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  @keyframes maUp{from{transform:translateY(100%)}to{transform:none}}
+  @keyframes maFade{from{opacity:0}to{opacity:1}}
 }
-@media (max-width:360px){#m2-sheet .m2-grid{grid-template-columns:repeat(3,minmax(0,1fr))}body.m2 .hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (prefers-reduced-motion:reduce){#m2-sheet .m2-panel,#m2-sheet .m2-bd{animation:none}}
+@media (max-width:360px){body.mapp .hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){#ma-menu.open,#ma-fsheet .ma-panel,#ma-fsheet .ma-bd{animation:none!important}}
 </style>
-<script id="mobile-v2-js">
-/* ===================== Мобильная версия v2: переключатель и шторка «Все разделы» ===================== */
+<script id="mobile-app-js">
+/* ===================== Мобильная версия в стиле приложения ===================== */
 (function(){
   const KEY = "chatstats.mobileV2.v1";
   const mq = matchMedia("(max-width:720px)");
   let on = true; try { on = localStorage.getItem(KEY) !== "0"; } catch (e) {}
   const nav = document.querySelector("nav");
-  const ICON = {hub:"🧭", profile:"👤", stats:"📊", compare:"⚖️", daymatrix:"🗓️", charts:"📈", records:"🏆", months:"📅", days:"📆", forecast:"🔮", marathons:"🏁", time:"⏳", yearreview:"🎬", achievements:"🏅", chronicle:"📜", birthdays:"🎂", selfie:"📸", usermap:"🗺️", vk:"🅥", settings:"⚙️"};
-  const GROUPS = [["Основное", ["hub", "profile", "stats", "compare", "daymatrix", "charts"]], ["Разделы", ["records", "months", "days", "forecast", "marathons", "time", "yearreview", "achievements", "chronicle", "birthdays", "selfie", "usermap", "vk"]], ["Сервис", ["settings"]]];
-  const sheet = document.createElement("div"); sheet.id = "m2-sheet"; sheet.hidden = true;
-  sheet.innerHTML = `<div class="m2-bd"></div><div class="m2-panel" role="dialog" aria-modal="true" aria-label="Все разделы"><div class="m2-grip" aria-hidden="true"></div><div class="m2-top"><input type="search" placeholder="Найти раздел…" aria-label="Найти раздел"><button type="button" class="m2-x" aria-label="Закрыть">✕</button></div><div class="m2-body"></div></div>`;
-  document.body.appendChild(sheet);
-  const body = sheet.querySelector(".m2-body"), search = sheet.querySelector("input"), panel = sheet.querySelector(".m2-panel");
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[c]));
+  const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const I = {
+    hub:svg('<path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v10.5h4.5v-6h4v6h4.5V9"/>'),
+    profile:svg('<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1.2-3.8 4-5.5 7.5-5.5s6.3 1.7 7.5 5.5"/>'),
+    stats:svg('<path d="M4 20.5h16"/><rect x="5" y="11" width="3.4" height="7" rx="1"/><rect x="10.3" y="5" width="3.4" height="13" rx="1"/><rect x="15.6" y="8.5" width="3.4" height="9.5" rx="1"/>'),
+    charts:svg('<path d="M3.5 17.5 9 12l4 3.5 7.5-8"/><path d="M15.5 7.5h5v5"/>'),
+    menu:svg('<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>'),
+    filter:svg('<path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/>'),
+    refresh:svg('<path d="M20 11.5A8 8 0 1 0 17.7 17"/><path d="M20 5v6.5h-6.5"/>'),
+    search:svg('<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>'),
+    logo:svg('<path d="M5 19V11"/><path d="M12 19V5"/><path d="M19 19v-6"/>'),
+  };
+  const TABS = [["hub", "Хаб"], ["profile", "Профиль"], ["stats", "Статистика"], ["charts", "Графики"], ["menu", "Меню"]];
+  const META = {
+    hub:["🧭", "#5e8bff"], profile:["👤", "#4cb3ff"], stats:["📊", "#34c759"], compare:["⚖️", "#ff9f0a"], daymatrix:["🗓️", "#5ac8fa"], charts:["📈", "#af52de"],
+    records:["🏆", "#ffb340"], months:["📅", "#ff6482"], days:["📆", "#ff453a"], forecast:["🔮", "#bf5af2"], marathons:["🏁", "#30b0c7"], time:["⏳", "#a2845e"],
+    yearreview:["🎬", "#ff375f"], achievements:["🏅", "#ffcc00"], chronicle:["📜", "#8e8e93"], birthdays:["🎂", "#ff2d55"], selfie:["📸", "#64d2ff"], usermap:["🗺️", "#32d74b"], vk:["🅥", "#0a84ff"], settings:["⚙️", "#8e8e93"]
+  };
+  const GROUPS = [["Основное", ["hub", "profile", "stats", "compare", "daymatrix", "charts"]], ["Разделы", ["records", "months", "days", "forecast", "marathons", "time", "yearreview", "achievements", "chronicle", "birthdays", "selfie", "usermap", "vk"]]];
+
+  // ---------- разметка ----------
+  const bar = document.createElement("div"); bar.id = "ma-bar";
+  bar.innerHTML = `<div class="ma-top"><div class="ma-title" id="ma-title"></div><button type="button" class="ma-ic" id="ma-filter" aria-label="Фильтры">${I.filter}<i class="ma-dot" hidden></i></button><button type="button" class="ma-ic" id="ma-refresh" aria-label="Обновить данные">${I.refresh}</button></div><div class="ma-sum" id="ma-sum" hidden></div>`;
+  document.body.prepend(bar);
+  const tabs = document.createElement("div"); tabs.id = "ma-tabs"; tabs.setAttribute("role", "tablist");
+  tabs.innerHTML = TABS.map(([k, l]) => `<button type="button" data-ma="${k}" role="tab">${I[k]}<span>${l}</span></button>`).join("");
+  document.body.appendChild(tabs);
+  const menu = document.createElement("div"); menu.id = "ma-menu"; menu.setAttribute("aria-label", "Меню");
+  document.body.appendChild(menu);
+  const fs = document.createElement("div"); fs.id = "ma-fsheet";
+  fs.innerHTML = `<div class="ma-bd"></div><div class="ma-panel" role="dialog" aria-modal="true" aria-label="Фильтры"><div class="ma-grip" aria-hidden="true"></div><div class="ma-fhead"><b>Фильтры</b><button type="button" class="ma-done">Готово</button></div><div class="ma-fbody"></div></div>`;
+  document.body.appendChild(fs);
+  const fbody = fs.querySelector(".ma-fbody"), fpanel = fs.querySelector(".ma-panel");
+
+  // ---------- вкладки сайта ----------
+  const active = () => on && mq.matches;
   const curTab = () => (document.querySelector("main > .tab.active")?.id || "").replace(/^tab-/, "");
   function btnFor(tab){
     const all = [...nav.querySelectorAll(`button[data-tab="${tab}"]`)];
@@ -15297,44 +15385,146 @@ body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(1
     const b = [...nav.querySelectorAll(`button[data-tab="${tab}"]`)].find(x => x.dataset.group !== "other");
     return b ? b.textContent.trim() : tab;
   }
-  function fill(){
-    const cur = curTab(), q = search.value.trim().toLowerCase().replace(/ё/g, "е");
-    let html = "", any = false;
-    GROUPS.forEach(([title, tabs]) => {
-      const items = tabs.filter(t => btnFor(t)).map(t => ({t, l:labelFor(t)})).filter(x => !q || x.l.toLowerCase().replace(/ё/g, "е").includes(q));
+  function go(tab){ const b = btnFor(tab); if (b) b.click(); closeMenu(); scrollTo({top:0}); setTimeout(sync, 30); }
+
+  // ---------- меню ----------
+  let menuOpen = false;
+  const row = (inner, attrs, cls) => `<button type="button" class="ma-row ${cls || ""}" ${attrs}>${inner}</button>`;
+  const ico = t => `<i class="ma-ico" style="--c:${META[t]?.[1] || "#7aa2f7"}" aria-hidden="true">${META[t]?.[0] || "•"}</i>`;
+  function renderMenu(q){
+    q = (q || "").trim().toLowerCase().replace(/ё/g, "е");
+    const cur = curTab(), match = s => !q || s.toLowerCase().replace(/ё/g, "е").includes(q);
+    let html = "";
+    if (!q) {
+      const vm = (document.querySelector(".app-ver")?.textContent || "").match(/\d{4}\.\d{2}\.\d{2}-\d+/), ver = vm ? "Версия " + vm[0] : "";
+      html += `<div class="ma-app"><div class="ma-logo">${I.logo}</div><div><b>Статистика чата</b><span>${esc(ver || "Colony Stats")}</span></div></div>`;
+      const ult = $("ult-toggle"), vk = $("vk-toggle");
+      const sw = (el, t, c, icon) => el ? row(`<i class="ma-ico" style="--c:${c}" aria-hidden="true">${icon}</i><span class="ma-txt"><span>${t}</span><i class="ma-sw" aria-hidden="true"></i></span>`, `data-ma-sw="${el.id}" role="switch" aria-checked="${el.classList.contains("on")}"`, el.classList.contains("on") ? "on" : "") : "";
+      html += `<div class="ma-gt">Данные</div><div class="ma-grp">${sw(ult, "Colony Ultimate", "#5856d6", "🔗")}${sw(vk, "Данные VK", "#0a84ff", "🅥")}${row(`<i class="ma-ico" style="--c:#34c759" aria-hidden="true">⟳</i><span class="ma-txt"><span>Обновить данные</span><span class="ma-chev">›</span></span>`, `data-ma-refresh="1"`)}</div>`;
+    }
+    let any = !q;
+    GROUPS.forEach(([title, list]) => {
+      const items = list.filter(t => btnFor(t) && match(labelFor(t)));
       if (!items.length) return; any = true;
-      html += `<div class="m2-grp">${title}</div><div class="m2-grid">` + items.map(x => `<button type="button" class="m2-it${x.t === cur ? " active" : ""}" data-m2go="${x.t}"><i aria-hidden="true">${ICON[x.t] || "•"}</i><span>${x.l.replace(/[<>&]/g, "")}</span></button>`).join("") + `</div>`;
+      html += `<div class="ma-gt">${title}</div><div class="ma-grp">` + items.map(t => row(`${ico(t)}<span class="ma-txt"><span>${esc(labelFor(t))}</span><span class="ma-chev">›</span></span>`, `data-ma-go="${t}"`, t === cur ? "cur" : "")).join("") + `</div>`;
     });
-    body.innerHTML = any ? html : `<div class="m2-empty">Ничего не найдено</div>`;
+    if (match("Настройки") && btnFor("settings")) { any = true; html += `<div class="ma-gt">Сервис</div><div class="ma-grp">${row(`${ico("settings")}<span class="ma-txt"><span>Настройки</span><span class="ma-chev">›</span></span>`, `data-ma-go="settings"`, cur === "settings" ? "cur" : "")}</div>`; }
+    if (!any) html += `<div class="ma-empty">Ничего не найдено</div>`;
+    return html;
   }
-  const more = () => nav.querySelector(".nav-more-btn");
-  function open(){ search.value = ""; fill(); sheet.hidden = false; more()?.setAttribute("aria-expanded", "true"); document.documentElement.style.overflow = "hidden"; }
-  function close(){ if (sheet.hidden) return; sheet.hidden = true; more()?.setAttribute("aria-expanded", "false"); document.documentElement.style.overflow = ""; }
-  const active = () => on && mq.matches;
-  // Перехватываем кнопку «Ещё» раньше старого меню.
-  document.addEventListener("click", e => {
-    const m = e.target.closest && e.target.closest(".nav-more-btn");
-    if (!m || !active()) return;
-    e.preventDefault(); e.stopImmediatePropagation();
-    sheet.hidden ? open() : close();
-  }, true);
-  sheet.addEventListener("click", e => {
-    if (e.target.closest(".m2-bd") || e.target.closest(".m2-x")) { close(); return; }
-    const it = e.target.closest("[data-m2go]"); if (!it) return;
-    const b = btnFor(it.dataset.m2go); close();
-    if (b) { b.click(); scrollTo({top:0}); }
+  function fillMenu(){
+    const q = menu.querySelector(".ma-search input")?.value || "";
+    const list = menu.querySelector(".ma-list");
+    if (!list) {
+      menu.innerHTML = `<div class="ma-h">Меню</div><label class="ma-search">${I.search}<input type="search" placeholder="Поиск по разделам" aria-label="Поиск по разделам"></label><div class="ma-list"></div>`;
+      menu.querySelector("input").addEventListener("input", () => { menu.querySelector(".ma-list").innerHTML = renderMenu(menu.querySelector("input").value); });
+    }
+    menu.querySelector(".ma-list").innerHTML = renderMenu(q);
+  }
+  function openMenu(){ menuOpen = true; const s = menu.querySelector("input"); if (s) s.value = ""; fillMenu(); menu.classList.add("open"); menu.scrollTop = 0; sync(); }
+  function closeMenu(){ if (!menuOpen) return; menuOpen = false; menu.classList.remove("open"); sync(); }
+  menu.addEventListener("click", e => {
+    const g = e.target.closest("[data-ma-go]"); if (g) { go(g.dataset.maGo); return; }
+    const s = e.target.closest("[data-ma-sw]"); if (s) { $(s.dataset.maSw)?.click(); setTimeout(fillMenu, 80); return; }
+    if (e.target.closest("[data-ma-refresh]")) { refresh(); closeMenu(); }
   });
-  search.addEventListener("input", fill);
-  document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
-  // Шторку можно смахнуть вниз.
+
+  // ---------- нижняя панель ----------
+  const MAIN = ["hub", "profile", "stats", "charts"];
+  tabs.addEventListener("click", e => {
+    const b = e.target.closest("[data-ma]"); if (!b) return;
+    const k = b.dataset.ma;
+    if (k === "menu") { menuOpen ? closeMenu() : openMenu(); return; }
+    if (!menuOpen && curTab() === k) { scrollTo({top:0, behavior:"smooth"}); return; }
+    go(k);
+  });
+
+  // ---------- фильтры: шторка и сводка ----------
+  let moved = [];
+  function panels(){
+    const t = document.querySelector("main > .tab.active"); if (!t || t.id === "tab-settings") return [];
+    const sh = $("shared");
+    const cand = [...(sh ? sh.querySelectorAll(":scope > .filters") : []), ...t.querySelectorAll(":scope > .filters, .stat-content > .filters")];
+    return cand.filter(f => !f.hidden && f.parentElement && f.parentElement.getClientRects().length && f.children.length && !f.closest("[hidden]"));
+  }
+  const shown = el => !el.hidden && getComputedStyle(el).display !== "none" && !el.classList.contains("filters-user-hidden-x");
+  function valOf(f){
+    const s = f.querySelector("select"); if (s && s.options.length) return (s.options[s.selectedIndex]?.textContent || "").trim();
+    const i = f.querySelector("input:not([type=checkbox]):not([type=hidden]):not([type=search])");
+    if (i && i.value && shown(i)) { if (i.type === "date") return i.value.split("-").reverse().join("."); if (i.type === "month") { const [y, m] = i.value.split("-"); return `${m}.${y}`; } return i.value; }
+    const a = f.querySelector(".seg button.active"); if (a) return a.textContent.trim();
+    return "";
+  }
+  function summary(){
+    const out = [];
+    panels().forEach(p => [...p.children].forEach(c => {
+      if (!shown(c)) return;
+      if (c.classList.contains("field")) { const v = valOf(c); if (v) out.push(v); }
+      else if (c.classList.contains("seg")) { const a = c.querySelector("button.active"); if (a) out.push(a.textContent.trim()); }
+      else if (c.classList.contains("checkline")) { const cb = c.querySelector("input[type=checkbox]"); if (cb && cb.checked) out.push(c.textContent.trim()); }
+    }));
+    return out.filter(Boolean).slice(0, 8);
+  }
+  function renderSummary(){
+    const ps = panels(), sum = $("ma-sum"), fb = $("ma-filter");
+    fb.hidden = !ps.length;
+    if (!ps.length) { sum.hidden = true; sum.innerHTML = ""; return; }
+    const vals = summary();
+    sum.hidden = false;
+    sum.innerHTML = `<button type="button" class="ma-chip first" data-ma-open="1">${I.filter}Фильтры</button>` + vals.map(v => `<button type="button" class="ma-chip" data-ma-open="1">${esc(v.length > 28 ? v.slice(0, 27) + "…" : v)}</button>`).join("");
+  }
+  function openFilters(){
+    const ps = panels(); if (!ps.length) return;
+    closeMenu();
+    moved = ps.map(p => {
+      const mk = document.createComment("ma-filters"); p.before(mk);
+      const det = [...p.querySelectorAll("details.opt-pop")].map(d => [d, d.open]);
+      det.forEach(([d]) => d.open = true);
+      return {p, mk, det};
+    });
+    fbody.innerHTML = "";
+    moved.forEach(({p}) => fbody.appendChild(p));
+    fs.classList.add("open"); document.documentElement.style.overflow = "hidden";
+  }
+  function closeFilters(){
+    if (!fs.classList.contains("open")) return;
+    moved.forEach(({p, mk, det}) => { mk.parentNode ? mk.replaceWith(p) : null; det.forEach(([d, o]) => d.open = o); });
+    moved = []; fs.classList.remove("open"); document.documentElement.style.overflow = "";
+    renderSummary();
+  }
+  $("ma-filter").addEventListener("click", openFilters);
+  bar.addEventListener("click", e => { if (e.target.closest("[data-ma-open]")) openFilters(); });
+  fs.addEventListener("click", e => { if (e.target.closest(".ma-bd") || e.target.closest(".ma-done")) closeFilters(); });
   let y0 = null, dy = 0;
-  panel.addEventListener("touchstart", e => { if (body.scrollTop > 0 && !e.target.closest(".m2-grip,.m2-top")) { y0 = null; return; } y0 = e.touches[0].clientY; dy = 0; }, {passive:true});
-  panel.addEventListener("touchmove", e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); panel.style.transform = dy ? `translateY(${dy}px)` : ""; }, {passive:true});
-  panel.addEventListener("touchend", () => { if (y0 == null) return; panel.style.transform = ""; if (dy > 90) close(); y0 = null; });
+  fpanel.addEventListener("touchstart", e => { if (fbody.scrollTop > 0 && !e.target.closest(".ma-grip,.ma-fhead")) { y0 = null; return; } y0 = e.touches[0].clientY; dy = 0; }, {passive:true});
+  fpanel.addEventListener("touchmove", e => { if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); fpanel.style.transform = dy ? `translateY(${dy}px)` : ""; }, {passive:true});
+  fpanel.addEventListener("touchend", () => { if (y0 == null) return; fpanel.style.transform = ""; if (dy > 90) closeFilters(); y0 = null; });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { closeFilters(); closeMenu(); } });
+
+  // ---------- обновление ----------
+  function refresh(){ const r = $("refresh"); if (!r) return; const b = $("ma-refresh"); b.classList.add("spin"); r.click(); setTimeout(() => b.classList.remove("spin"), 1200); }
+  $("ma-refresh").addEventListener("click", refresh);
+
+  // ---------- синхронизация ----------
+  function sync(){
+    if (!active()) return;
+    const cur = curTab();
+    const key = menuOpen ? "menu" : MAIN.includes(cur) ? cur : cur === "achievements" ? "profile" : "menu";
+    tabs.querySelectorAll("[data-ma]").forEach(b => { const o = b.dataset.ma === key; b.classList.toggle("on", o); b.setAttribute("aria-selected", String(o)); });
+    $("ma-title").textContent = labelFor(cur === "achievements" ? "achievements" : cur) || "Статистика чата";
+    if (!fs.classList.contains("open")) renderSummary();
+  }
+  let t = 0; const later = () => { clearTimeout(t); t = setTimeout(sync, 120); };
+  new MutationObserver(later).observe(document.querySelector("main"), {subtree:true, attributes:true, attributeFilter:["class", "hidden"], childList:true});
+  const sh = $("shared"); if (sh) new MutationObserver(later).observe(sh, {subtree:true, attributes:true, attributeFilter:["class", "hidden", "value"], childList:true});
+  document.addEventListener("change", later); document.addEventListener("input", later);
+  ["ult-toggle", "vk-toggle"].forEach(id => { const el = $(id); if (el) new MutationObserver(() => { if (menuOpen) fillMenu(); }).observe(el, {attributes:true, attributeFilter:["class"]}); });
+
   function apply(){
-    document.body.classList.toggle("m2", on);
-    const c = document.getElementById("set-m2"); if (c) c.checked = on;
-    if (!active()) close();
+    document.body.classList.toggle("mapp", on);
+    const c = $("set-m2"); if (c) c.checked = on;
+    if (!active()) { closeFilters(); closeMenu(); }
+    sync();
   }
   document.addEventListener("change", e => { if (e.target.id === "set-m2") { on = e.target.checked; try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (err) {} apply(); } });
   mq.addEventListener ? mq.addEventListener("change", apply) : mq.addListener(apply);
