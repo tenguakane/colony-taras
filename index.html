@@ -1822,6 +1822,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     <div class="seg group-tabs" data-group-seg="other"><button type="button" data-gtab="records" class="">Рекорды</button><button type="button" data-gtab="months" class="">Топ месяцев</button><button type="button" data-gtab="days" class="">Топ дней</button><button type="button" data-gtab="forecast" class="">Прогноз</button><button type="button" data-gtab="marathons" class="">Марафоны</button><button type="button" data-gtab="time" class="">Время</button><button type="button" data-gtab="yearreview" class="">Итоги года</button><button type="button" data-gtab="chronicle" class="">Хроника</button><button type="button" data-gtab="birthdays" class="">Дни рождения</button><button type="button" data-gtab="selfie" class="active">Селфи</button><button type="button" data-gtab="usermap" class="">Карта</button><button type="button" data-gtab="vk" class="">VK</button></div>
     <div class="filters">
       <div class="field"><label>База селфи</label><div class="pbtn"><button class="mini" id="s-import" type="button">Импорт из Excel</button><button class="mini" id="s-export" type="button">Экспорт в Excel</button><button class="mini" id="s-undo" type="button" disabled>Отменить изменение</button><button class="mini" id="s-builtin" type="button" title="Вернуть базу селфи, встроенную в сайт">Встроенная база</button></div><input type="file" id="s-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></div>
+      <div class="field s-cloud-field"><label>Облако</label><div class="pbtn"><button class="mini s-cloud-badge sc-off" id="s-cloud-badge" type="button" title="Обновить из облака">💾 Только в этом браузере</button><button class="mini" id="s-cloud-key" type="button">🔑 Ключ редактора</button></div></div>
       <div class="field"><label for="s-range">Период</label><select id="s-range"></select></div>
       <div class="field"><label for="s-sort">Сортировка участников</label><select id="s-sort"><option value="total">По количеству селфи</option><option value="att">По посещаемости</option><option value="streak">По текущей серии</option><option value="missed">По пропускам</option></select></div>
       <label class="checkline"><input type="checkbox" id="hide-left-selfie">Убрать вышедших</label>
@@ -1880,7 +1881,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     <div class="filters" id="fx-list"></div>
     <div class="filters">
       <div class="field"><label for="fx-season-kind">Частицы на фоне</label><select id="fx-season-kind"></select></div>
-      <div class="field"><label for="fx-season-density">Сколько</label><select id="fx-season-density"><option value="low">Мало</option><option value="mid">Средне</option><option value="high">Много</option></select></div>
+      <div class="field"><label for="fx-season-density">Сколько</label><select id="fx-season-density"><option value="low">Мало</option><option value="mid">Средне</option><option value="high">Много</option><option value="max">Ещё больше</option></select></div>
     </div>
     <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><button class="mini" type="button" id="fx-bg-toggle" title="Листопад и другие сезонные частицы, параллакс-фон, салют и конфетти">Выключить фоновые эффекты</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
     <h2>Шрифт</h2>
@@ -1889,6 +1890,8 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     <p class="hint">Как выглядят панели фильтров над таблицами и графиками.</p>
     <div class="filters">
       <label class="checkline" title="Галочки вроде «Убрать вышедших», «Сравнение», «Тепловая заливка» собираются в одно выпадающее меню"><input type="checkbox" id="set-compact-filters">Компактные фильтры: галочки в меню «Параметры»</label>
+      <label class="checkline" title="Скруглённые панели, переключатели вместо галочек, своя стрелка у списков"><input type="checkbox" id="set-filters-v3" checked>Современный вид фильтров</label>
+      <label class="checkline" title="Вместо системных выпадающих списков — аккуратное меню с отметкой выбранного и поиском в длинных списках. Только на ПК"><input type="checkbox" id="set-modern-select" checked>Современные выпадающие списки</label>
       <label class="checkline" title="Тонкая цветная линия у каждого фильтра: цвет зависит от смысла (период, чат, показатель, количество, вид, экспорт)"><input type="checkbox" id="set-filter-colors">Цветные метки у фильтров</label>
       <label class="checkline"><input type="checkbox" id="set-statrows">Строки «Среднее» и «Медиана» в итогах таблиц</label>
       <label class="checkline"><input type="checkbox" id="set-statrows-toggle">Показывать переключатель «Среднее и медиана» над таблицами</label>
@@ -6568,8 +6571,9 @@ function saveSelfie(){
   catch (e) { selfieMsg("Не удалось сохранить базу в браузере: " + (e.message || e), true); }
 }
 function selfieChanged(dirty = true){
-  selfieModelCache = null; selfieDirty = dirty; try { localStorage.setItem(SELFIE_SRC_KEY, "user"); } catch (e) {} saveSelfie();
+  selfieModelCache = null; selfieDirty = dirty && !scOn(); try { localStorage.setItem(SELFIE_SRC_KEY, "user"); } catch (e) {} saveSelfie();
   if ($("s-undo")) $("s-undo").disabled = !selfieUndo;
+  if (scOn()) { scQueue(); scRenderBadge(); }
 }
 function selfieNameOf(pk){
   const m = selfieModel();
@@ -6577,6 +6581,7 @@ function selfieNameOf(pk){
 }
 // Отметить / снять селфи участника в окне пятницы, к которому относится дата.
 function selfieSet(pk, name, date, on){
+  if (!scCanEdit()) return false;
   pk = String(pk);
   const F = fridayOf(date), has = SELFIE.some(r => r.pk === pk && fridayOf(r.date) === F);
   if (on === has) return false;
@@ -6770,11 +6775,12 @@ async function exportSelfieXlsx(){
 $("s-import").onclick = () => { $("s-file").value = ""; $("s-file").click(); };
 $("s-file").onchange = async () => {
   const file = $("s-file").files?.[0]; if (!file) return;
+  if (!scCanEdit()) { scDenied(); return; }
   selfieMsg("Читаю файл…");
   try {
     const res = await readSelfieXlsx(file);
     if (!res.rows.length) throw new Error("в таблице нет записей");
-    if (SELFIE.length && !confirm(`Заменить текущую базу (записей: ${fmt(SELFIE.length)}) данными из файла (записей: ${fmt(res.rows.length)})?`)) { selfieMsg("Импорт отменён"); return; }
+    if (SELFIE.length && !confirm(`Заменить ${scOn() ? "общую базу в облаке — её увидят все участники —" : "текущую базу"} (записей: ${fmt(SELFIE.length)}) данными из файла (записей: ${fmt(res.rows.length)})?`)) { selfieMsg("Импорт отменён"); return; }
     selfieUndo = SELFIE.length ? SELFIE.map(r => ({...r})) : null;
     SELFIE = res.rows; selfieChanged(false);
     selfieMsg(`Импортировано ${fmt(res.rows.length)} ${wordForm(res.rows.length, ["запись","записи","записей"])}${res.table ? " из таблицы SLF" : ` с листа «${res.sheet}»`}${res.skipped ? `, пропущено строк с ошибками: ${res.skipped}` : ""}`);
@@ -6801,8 +6807,194 @@ $("s-export").onclick = async () => {
 };
 $("s-undo").onclick = () => {
   if (!selfieUndo) return;
+  if (!scCanEdit()) { scDenied(); return; }
   SELFIE = selfieUndo; selfieUndo = null; selfieChanged(); renderSelfie(); selfieMsg("Последнее изменение отменено");
 };
+/* ---------- Облако селфи: общая база для всех участников ----------
+   Смотреть может любой, отмечать — тот, у кого есть ключ редактора.
+   Изменения сначала сохраняются в браузере, потом уходят в облако; если связи нет — уйдут, как только она появится. */
+const SC_URL_KEY = "chatselfie.cloudUrl.v1", SC_EDIT_KEY = "chatselfie.editKey.v1", SC_BY_KEY = "chatselfie.editBy.v1";
+const SC_REV_KEY = "chatselfie.cloudRev.v1", SC_BASE_KEY = "chatselfie.cloudBase.v1", SC_PEND_KEY = "chatselfie.cloudPending.v1";
+const SC_DEFAULT_URL = "https://chat-selfie.tenguakane.workers.dev";
+const SC = {url:"", key:"", by:"", rev:-1, base:null, pending:false, state:"idle", err:"", at:0, last:null, busy:null, empty:false, timer:0};
+try {
+  const u = localStorage.getItem(SC_URL_KEY);
+  SC.url = u === "off" ? "" : (u && /^https?:\/\//i.test(u) ? u.replace(/\/+$/, "") : SC_DEFAULT_URL);
+  SC.key = localStorage.getItem(SC_EDIT_KEY) || ""; SC.by = localStorage.getItem(SC_BY_KEY) || "";
+  SC.rev = Number(localStorage.getItem(SC_REV_KEY) ?? -1); if (!Number.isFinite(SC.rev)) SC.rev = -1;
+  const b = JSON.parse(localStorage.getItem(SC_BASE_KEY) || "null"); if (Array.isArray(b)) SC.base = new Map(b.map(r => [r[0] + "|" + r[2], r]));
+  SC.pending = localStorage.getItem(SC_PEND_KEY) === "1";
+} catch (e) {}
+const scOn = () => Boolean(SC.url);
+const scCanEdit = () => !scOn() || Boolean(SC.key);
+function scDenied(where){
+  const t = "Отмечать селфи могут только редакторы. Нажми «🔑 Ключ редактора» и введи ключ.";
+  if (where && where.textContent !== undefined) where.textContent = t; else selfieMsg(t, true);
+}
+function scSaveLocal(){
+  try {
+    localStorage.setItem(SC_REV_KEY, String(SC.rev));
+    localStorage.setItem(SC_PEND_KEY, SC.pending ? "1" : "0");
+    localStorage.setItem(SC_BASE_KEY, JSON.stringify(SC.base ? [...SC.base.values()] : null));
+  } catch (e) {}
+}
+const scRowsOf = list => list.map(r => [String(r.pk), String(r.name || ""), r.date, Math.max(1, Math.round(Number(r.count) || 1))]);
+function scAdopt(res, own = false){
+  const rows = (res.rows || []).filter(r => Array.isArray(r) && r[0] != null && /^\d{4}-\d{2}-\d{2}$/.test(String(r[2])));
+  // Облако ещё пустое: свою базу не стираем — её можно выгрузить кнопкой или она уйдёт с первой отметкой редактора.
+  if (!rows.length && !own) { SC.empty = true; SC.base = new Map(); SC.rev = Number(res.rev) || 0; SC.last = res.last || null; scSaveLocal(); scRenderBadge(); return; }
+  SC.base = new Map(rows.map(r => [String(r[0]) + "|" + r[2], [String(r[0]), String(r[1] || ""), r[2], Math.max(1, Math.round(Number(r[3]) || 1))]]));
+  SC.rev = Number(res.rev) || 0; SC.last = res.last || SC.last; SC.empty = rows.length === 0;
+  SELFIE = [...SC.base.values()].map(([pk, name, date, count]) => ({pk, name, date, count}));
+  selfieModelCache = null; selfieDirty = false; if (!own) selfieUndo = null;
+  try { localStorage.setItem(SELFIE_SRC_KEY, "cloud"); } catch (e) {}
+  saveSelfie(); scSaveLocal(); scRerender();
+}
+function scRerender(){
+  try {
+    if ($("tab-selfie")?.classList.contains("active")) renderSelfie();
+    else if ($("tab-profile")?.classList.contains("active") && typeof renderProfile === "function") renderProfile();
+  } catch (e) {}
+  scRenderBadge();
+}
+async function scFetch(path, opt = {}){
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const headers = {...(opt.body ? {"Content-Type":"application/json"} : {}), ...(opt.key ? {"X-Edit-Key":SC.key} : {})};
+    const res = await fetch(SC.url + path, {method:opt.method || "GET", headers, body:opt.body ? JSON.stringify(opt.body) : undefined, signal:ctl.signal, cache:"no-store"});
+    const j = await res.json().catch(() => ({}));
+    if (!res.ok) { const e = new Error(j.error || ("облако ответило " + res.status)); e.status = res.status; throw e; }
+    return j;
+  } catch (e) {
+    if (e.name === "AbortError") throw new Error("облако не ответило за 15 секунд");
+    if (e instanceof TypeError) throw new Error("нет связи с облаком");
+    throw e;
+  } finally { clearTimeout(t); }
+}
+function scDiff(){
+  const local = new Map(scRowsOf(SELFIE).map(r => [r[0] + "|" + r[2], r])), base = SC.base || new Map(), ops = [];
+  local.forEach((r, k) => { const b = base.get(k); if (!b || b[3] !== r[3] || (r[1] && b[1] !== r[1])) ops.push({op:"set", pk:r[0], name:r[1], date:r[2], count:r[3]}); });
+  base.forEach((b, k) => { if (!local.has(k)) ops.push({op:"del", pk:b[0], date:b[2]}); });
+  return ops;
+}
+async function scPush(){
+  if (!scOn() || !SC.key) return;
+  const ops = scDiff();
+  if (!ops.length) { SC.pending = false; scSaveLocal(); scRenderBadge(); return; }
+  SC.state = "saving"; scRenderBadge();
+  const by = SC.by || "редактор";
+  const res = ops.length > 400 || !SC.base
+    ? await scFetch("/selfie", {method:"PUT", key:true, body:{by, rows:scRowsOf(SELFIE)}})
+    : await scFetch("/selfie/ops", {method:"POST", key:true, body:{by, ops}});
+  SC.pending = false; SC.state = "ok"; SC.err = ""; SC.at = Date.now();
+  scAdopt(res, true);
+}
+async function scPull(){
+  if (!scOn()) return;
+  if (SC.pending && SC.key) return scPush();
+  SC.state = SC.state === "ok" ? "ok" : "loading"; scRenderBadge();
+  const res = await scFetch("/selfie" + (SC.base && SC.rev >= 0 ? "?rev=" + SC.rev : ""));
+  SC.state = "ok"; SC.err = ""; SC.at = Date.now();
+  if (res.same) { SC.last = res.last || SC.last; scRenderBadge(); return; }
+  scAdopt(res);
+}
+// Одна операция за раз: отметки, сделанные подряд, уходят следующим запросом.
+function scSync(kind = "pull"){
+  if (!scOn()) return Promise.resolve();
+  if (SC.busy) { SC.again = SC.again === "push" ? "push" : kind; return SC.busy; }
+  SC.busy = (kind === "push" ? scPush() : scPull()).catch(e => {
+    SC.state = "err"; SC.err = e.message || String(e);
+    if (e.status === 403) { SC.err = "ключ редактора не подошёл — изменения сохранены только в этом браузере"; }
+    scRenderBadge();
+  }).finally(() => {
+    SC.busy = null;
+    if (SC.again) { const k = SC.again; SC.again = ""; scSync(k); }
+  });
+  return SC.busy;
+}
+function scQueue(){ if (!scOn()) return; SC.pending = true; scSaveLocal(); clearTimeout(SC.qt); SC.qt = setTimeout(() => scSync("push"), 350); }
+function scFmtAt(ms){ const d = new Date(ms); return d.toLocaleString("ru-RU", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}); }
+function scBadgeText(){
+  if (!scOn()) return {cls:"off", ic:"💾", t:"Только в этом браузере"};
+  if (SC.state === "saving") return {cls:"busy", ic:"⏳", t:"Сохраняю в облако…"};
+  if (SC.state === "loading") return {cls:"busy", ic:"⏳", t:"Загружаю из облака…"};
+  if (SC.state === "err") return {cls:"err", ic:"⚠️", t:SC.pending ? "Не отправлено — повторю позже" : "Нет связи с облаком"};
+  if (SC.pending) return {cls:"busy", ic:"⏳", t:"Ждёт отправки"};
+  return {cls:"ok", ic:"☁️", t:SC.key ? "Облако · ты редактор" : "Облако · только просмотр"};
+}
+function scRenderBadge(){
+  const b = $("s-cloud-badge"); if (!b) return;
+  const s = scBadgeText();
+  b.className = "mini s-cloud-badge sc-" + s.cls;
+  b.innerHTML = `<span aria-hidden="true">${s.ic}</span>${escH(s.t)}`;
+  b.title = SC.err ? "Ошибка: " + SC.err : SC.at ? "Проверено " + scFmtAt(SC.at) : "";
+  const kb = $("s-cloud-key"); if (kb) { kb.textContent = SC.key ? "🔑 " + (SC.by || "Редактор") : "🔑 Ключ редактора"; kb.hidden = !scOn(); }
+  const bi = $("s-builtin"); if (bi) bi.hidden = scOn() && SC.state === "ok";
+  if ($("tab-selfie")?.classList.contains("active")) { try { renderSelfieStatus(selfieModel()); } catch (e) {} }
+}
+function scStatusTail(){
+  if (!scOn()) return "";
+  if (SC.state === "err") return ` · <span class="s-dirty">облако: ${escH(SC.err)}</span>`;
+  if (SC.state !== "ok") return "";
+  const who = SC.last ? ` · последнее изменение: ${escH(SC.last.by || "редактор")}, ${scFmtAt(SC.last.at)}` : "";
+  const seed = SC.empty && SC.key && SELFIE.length ? ` · <button class="mini" type="button" id="s-cloud-seed">Выгрузить базу в облако</button>` : SC.empty && !SELFIE.length ? " · облако пока пустое" : "";
+  return ` · <span class="s-cloud-ok">общая база — видна всем участникам</span>${who}${seed}`;
+}
+function scDialog(){
+  document.querySelector(".s-cloud-dlg")?.remove();
+  const d = document.createElement("div"); d.className = "s-cloud-dlg"; d.setAttribute("role", "dialog"); d.setAttribute("aria-label", "Редактор селфи");
+  d.innerHTML = `<div class="s-cloud-box">
+    <h3>Редактор селфи</h3>
+    <p class="hint">Смотреть общую базу может каждый. Отмечать селфи — только с ключом редактора (его задаёт владелец в настройках облака).</p>
+    <label>Твоё имя<input id="sc-by" maxlength="40" placeholder="Например, Моня" value="${escH(SC.by)}"></label>
+    <label>Ключ редактора<input id="sc-key" type="password" autocomplete="off" placeholder="Ключ" value="${escH(SC.key)}"></label>
+    <details><summary>Адрес облака</summary><label>Адрес Worker<input id="sc-url" placeholder="${SC_DEFAULT_URL}" value="${escH(SC.url)}"></label><p class="hint">Пусто — работать без облака, база только в этом браузере.</p></details>
+    <p class="hint" id="sc-msg" role="status" aria-live="polite"></p>
+    <div class="pbtn"><button class="mini" type="button" id="sc-save">Сохранить</button>${SC.key ? '<button class="mini" type="button" id="sc-logout">Выйти из редактора</button>' : ""}<button class="mini" type="button" id="sc-close">Закрыть</button></div>
+  </div>`;
+  document.body.appendChild(d);
+  const close = () => d.remove();
+  d.addEventListener("click", e => { if (e.target === d) close(); });
+  d.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  d.querySelector("#sc-close").onclick = close;
+  d.querySelector("#sc-logout")?.addEventListener("click", () => { SC.key = ""; try { localStorage.removeItem(SC_EDIT_KEY); } catch (e) {} scRenderBadge(); close(); scRerender(); });
+  d.querySelector("#sc-save").onclick = async () => {
+    const msg = d.querySelector("#sc-msg"), key = d.querySelector("#sc-key").value.trim(), by = d.querySelector("#sc-by").value.trim();
+    const rawUrl = d.querySelector("#sc-url").value.trim(), url = rawUrl ? rawUrl.replace(/\/+$/, "") : "";
+    if (url && !/^https?:\/\//i.test(url)) { msg.textContent = "Адрес должен начинаться с https://"; return; }
+    const urlChanged = url !== SC.url;
+    SC.url = url; try { localStorage.setItem(SC_URL_KEY, url || "off"); } catch (e) {}
+    if (urlChanged) { SC.base = null; SC.rev = -1; SC.state = "idle"; }
+    SC.by = by; try { localStorage.setItem(SC_BY_KEY, by); } catch (e) {}
+    if (key && url) {
+      msg.textContent = "Проверяю ключ…";
+      const old = SC.key; SC.key = key;
+      try { await scFetch("/selfie/check", {key:true}); }
+      catch (e) { SC.key = old; msg.textContent = e.status === 403 ? "Ключ не подошёл" : "Не удалось проверить: " + e.message; return; }
+    } else SC.key = key;
+    try { if (SC.key) localStorage.setItem(SC_EDIT_KEY, SC.key); else localStorage.removeItem(SC_EDIT_KEY); } catch (e) {}
+    close(); scRenderBadge(); scRerender(); scSync(SC.pending ? "push" : "pull");
+  };
+  setTimeout(() => d.querySelector(SC.by ? "#sc-key" : "#sc-by")?.focus(), 30);
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("#s-cloud-key")) scDialog();
+  else if (e.target.closest("#s-cloud-badge")) scSync(SC.pending ? "push" : "pull");
+  else if (e.target.closest("#s-cloud-seed")) {
+    if (!confirm(`Выгрузить текущую базу (записей: ${fmt(SELFIE.length)}) в облако? Её увидят все участники.`)) return;
+    SC.base = null; SC.pending = true; scSync("push");
+  }
+});
+// Проверяем облако при открытии сайта, при возвращении на вкладку и раз в полминуты, пока открыты «Селфи» или «Профиль».
+function scTick(){
+  clearTimeout(SC.timer);
+  const watching = $("tab-selfie")?.classList.contains("active") || $("tab-profile")?.classList.contains("active");
+  SC.timer = setTimeout(() => { if (!document.hidden) scSync(SC.pending && SC.key ? "push" : "pull"); scTick(); }, watching ? 30000 : 180000);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) scSync(SC.pending && SC.key ? "push" : "pull"); });
+addEventListener("online", () => scSync(SC.pending && SC.key ? "push" : "pull"));
+setTimeout(() => { scRenderBadge(); scSync(SC.pending && SC.key ? "push" : "pull"); scTick(); }, 300);
+
 
 /* ---------- Отметки ---------- */
 const sNorm = t => String(t).trim().toLowerCase().replace(/ё/g, "е");
@@ -6825,6 +7017,7 @@ function renderSelfieMark(m){
 }
 $("s-people").addEventListener("click", e => {
   const chip = e.target.closest("[data-s-pk]"); if (!chip) return;
+  if (!scCanEdit()) { scDenied(); return; }
   const date = $("s-date").value || iso(new Date()), on = chip.getAttribute("aria-pressed") !== "true";
   if (selfieSet(chip.dataset.sPk, "", date, on)) {
     selfieMsg(`${selfieNameOf(chip.dataset.sPk)}: ${on ? "селфи засчитано" : "отметка снята"} (${sFmtDate(fridayOf(date))})`);
@@ -6834,6 +7027,7 @@ $("s-people").addEventListener("click", e => {
 $("s-date").addEventListener("input", () => renderSelfieMark(selfieModel()));
 function sAddByName(){
   const raw = $("s-name").value.trim(); if (!raw) return;
+  if (!scCanEdit()) { scDenied(); return; }
   const m = selfieModel(), date = $("s-date").value || iso(new Date());
   const byName = new Map(); sKnownPeople(m).forEach(u => byName.set(sNorm(u.name), u.pk));
   Object.entries(NAMES).forEach(([pk, n]) => { if (!byName.has(sNorm(n))) byName.set(sNorm(n), pk); });
@@ -6853,9 +7047,9 @@ $("s-name").addEventListener("keydown", e => { if (e.key === "Enter") { e.preven
 /* ---------- Отрисовка вкладки ---------- */
 function renderSelfieStatus(m){
   const el = $("s-status"); if (!el) return;
-  if (!SELFIE.length) { el.innerHTML = "База селфи пуста. Нажми «Импорт из Excel» и выбери файл с таблицей SLF или начни отмечать вручную."; return; }
+  if (!SELFIE.length) { el.innerHTML = "База селфи пуста. Нажми «Импорт из Excel» и выбери файл с таблицей SLF или начни отмечать вручную." + scStatusTail(); return; }
   el.innerHTML = `В базе ${fmt(SELFIE.length)} ${wordForm(SELFIE.length, ["запись","записи","записей"])} · ${fmt(m.days.length)} ${wordForm(m.days.length, ["селфи-пятница","селфи-пятницы","селфи-пятниц"])} · ${sFmtDate(m.days[0])} — ${sFmtDate(m.days[m.days.length - 1])}`
-    + (selfieDirty ? ' · <span class="s-dirty">есть изменения, которые ещё не выгружены в Excel</span>' : "");
+    + (selfieDirty && !scOn() ? ' · <span class="s-dirty">есть изменения, которые ещё не выгружены в Excel</span>' : "") + scStatusTail();
 }
 function renderSelfieRange(m){
   const sel = $("s-range"), cur = sel.value || (() => { try { return localStorage.getItem("chatstats.selfieRange.v1") || "26"; } catch (e) { return "26"; } })();
@@ -6867,6 +7061,7 @@ $("s-range").onchange = () => { try { localStorage.setItem("chatstats.selfieRang
 $("s-sort").onchange = () => renderSelfie();
 function loadSelfie(){
   if (!$("s-date").value) $("s-date").value = iso(new Date());
+  scSync(SC.pending && SC.key ? "push" : "pull"); scTick();
   renderSelfie();
   if (hideLeft && !userMetricRows) ensureUserMetrics().then(() => { if ($("tab-selfie").classList.contains("active")) renderSelfie(); }).catch(() => {});
 }
@@ -7179,11 +7374,12 @@ $("p-out").addEventListener("input", e => {
 $("p-out").addEventListener("click", e => {
   const mark = e.target.closest("#p-s-mark"), unmark = e.target.closest("#p-s-unmark");
   if (!mark && !unmark) return;
+  if (!scCanEdit()) { scDenied($("p-s-msg")); return; }
   const date = $("p-s-date").value || iso(new Date()), pk = String(person.value), on = Boolean(mark);
   const changed = selfieSet(pk, "", date, on), F = sFmtDate(fridayOf(date));
   renderProfile();
   const msg = $("p-s-msg");
-  if (msg) msg.textContent = changed ? (on ? `Селфи засчитано за ${F}. Не забудь выгрузить базу в Excel.` : `Отметка за ${F} снята.`) : (on ? `Уже отмечено за ${F}` : `За ${F} отметки нет`);
+  if (msg) msg.textContent = changed ? (on ? `Селфи засчитано за ${F}. ${scOn() ? "Видно всем в облаке." : "Не забудь выгрузить базу в Excel."}` : `Отметка за ${F} снята.`) : (on ? `Уже отмечено за ${F}` : `За ${F} отметки нет`);
   if ($("p-s-date")) $("p-s-date").value = date;
 });
 
@@ -13221,52 +13417,175 @@ function multiplesChart(){
   // Виды частиц: цвета, размер, движение и отрисовка.
   const KINDS = {
     snow:{name:"❄️ Снег", col:["#ffffff"], r:[1, 3.2], vy:[.25, .8], vx:.4},
+    blizzard:{name:"🌨 Метель", col:["#ffffff", "#eaf4ff"], r:[.8, 3], vy:[1.4, 3.2], vx:0, blizzard:true, base:110},
     flakes:{name:"✳️ Снежинки-кристаллы", col:["#e8f4ff", "#ffffff", "#cfe6ff"], r:[3, 6], vy:[.2, .6], vx:.3, spin:true},
     petals:{name:"🌸 Лепестки сакуры", col:["#ffc2d9", "#ffd6e8", "#ffb3c6"], r:[3, 6], vy:[.3, .8], vx:.5, spin:true},
     fireflies:{name:"✨ Светлячки", col:["#fff3a0", "#d9ff8a"], r:[1.2, 2.8], vy:[-.15, .15], vx:.25, glow:true},
     leaves:{name:"🍂 Листопад", col:["#e8a04b", "#d9712b", "#f2c14e", "#b5562a"], r:[3, 6], vy:[.35, .9], vx:.5, spin:true},
     stars:{name:"⭐ Мерцающие звёзды", col:["#ffffff", "#fff6d5", "#d5e6ff"], r:[.6, 1.8], vy:[0, 0], vx:0, twinkle:true},
     shooting:{name:"🌠 Звездопад", col:["#ffffff", "#d5e6ff"], r:[1, 1.8], vy:[2.5, 4.5], vx:0, shoot:true},
+    rain:{name:"🌧 Дождь", col:["#c9dcf2"], r:[0, 0], vy:[0, 0], vx:0, rain:true, base:150},
+    storm:{name:"⛈ Гроза", col:["#c9dcf2"], r:[0, 0], vy:[0, 0], vx:0, rain:true, storm:true, base:190},
     bubbles:{name:"🫧 Пузыри", col:["#9fd8ff", "#c7f0ff", "#b9b3ff"], r:[3, 9], vy:[-.7, -.25], vx:.3, ring:true},
-    rain:{name:"🌧 Дождь", col:["#9fb8d6"], r:[8, 16], vy:[6, 10], vx:-.8, streak:true},
+    bokeh:{name:"🔵 Боке", col:["#7aa2f7", "#bb9af7", "#7dcfff", "#ff9ecf", "#ffd166"], r:[18, 58], vy:[-.18, .18], vx:.35, bokeh:true, base:16},
+    dust:{name:"🌤 Пылинки в луче", col:["#fff4d6", "#ffe9b0", "#ffffff"], r:[.5, 1.6], vy:[-.08, .12], vx:.12, dust:true, base:80},
     hearts:{name:"💗 Сердечки", col:["#ff6b9d", "#ff9ecf", "#ff4d6d"], r:[4, 8], vy:[-.6, -.2], vx:.4, glyph:"♥"},
     glitter:{name:"💎 Блёстки", col:["#ffd166", "#ffffff", "#67e8f9", "#ff9ecf", "#a78bfa"], r:[1, 2.4], vy:[.15, .45], vx:.3, twinkle:true, diamond:true},
+    confetti:{name:"🎊 Конфетти", col:["#ff6b9d", "#ffd166", "#76f0b6", "#7aa2f7", "#bb9af7", "#ff9e64"], r:[3, 6], vy:[.8, 2], vx:.8, confetti:true, base:60},
+    coins:{name:"🪙 Золотые монеты", col:["#f6c445", "#ffd977", "#e0a526"], r:[5, 9], vy:[.9, 2], vx:.3, coin:true, base:22},
     embers:{name:"🔥 Искры костра", col:["#ffb347", "#ff7a1a", "#ffd166"], r:[1, 2.4], vy:[-1.1, -.4], vx:.5, glow:true},
+    lanterns:{name:"🏮 Небесные фонарики", col:["#ffb347", "#ff9640", "#ffc870"], r:[6, 11], vy:[-.55, -.22], vx:.3, lantern:true, base:14},
+    balloons:{name:"🎈 Воздушные шары", col:["#ff6b9d", "#7aa2f7", "#ffd166", "#76f0b6", "#bb9af7"], r:[10, 17], vy:[-.9, -.4], vx:.35, balloon:true, base:12},
+    butterflies:{name:"🦋 Бабочки", col:["#ffffff"], r:[10, 16], vy:[-.25, .25], vx:.7, butterfly:true, base:10},
     fluff:{name:"🌼 Пух одуванчика", col:["#f4f1e8", "#ffffff"], r:[2, 3.5], vy:[-.1, .3], vx:.7, fluff:true},
     digits:{name:"🔢 Падающие цифры", col:["#76f0b6", "#7aa2f7"], r:[9, 14], vy:[.6, 1.6], vx:0, digits:true},
     chat:{name:"💬 Сообщения", col:["#ffffff"], r:[9, 15], vy:[-.5, -.2], vx:.3, emoji:["💬", "😂", "👍", "❤️", "🔥", "🎉", "😮"]},
     notes:{name:"🎵 Ноты", col:["#c792ea", "#7dcfff", "#ffd166"], r:[9, 14], vy:[-.5, -.2], vx:.4, glyph:"♪"},
   };
+  const DENSITY = {low:.5, mid:1, high:1.9, max:3.2};
   const seasonKind = () => { const m = new Date().getMonth(); return m === 11 || m <= 1 ? "snow" : m <= 4 ? "petals" : m <= 7 ? "fireflies" : "leaves"; };
   const curKind = () => KINDS[PK.kind] ? PK.kind : seasonKind();
   const rnd = (a, b) => a + Math.random() * (b - a);
+  // Дождь: у капли есть «глубина» — дальние короче, медленнее и бледнее, ближние длинные, быстрые и разбиваются брызгами.
+  let splashes = [], wind = 0, windT = 0, flash = 0, bolt = null, nextBolt = 0;
+  function makeDrop(K, initial){
+    const z = Math.pow(Math.random(), 1.6), vy = 9 + z * 13;
+    return {z, x:Math.random() * (innerWidth + 200) - 100, y:initial ? Math.random() * innerHeight : -40 - Math.random() * innerHeight * .3,
+      vy, len:10 + z * 22, w:.5 + z * 1.1, a:.1 + z * .36, ground:innerHeight * (.82 + Math.random() * .18)};
+  }
   function makeFlake(k, initial){
     const K = KINDS[k];
-    const f = {x:Math.random() * innerWidth, y:initial ? Math.random() * innerHeight : (K.vy[1] < 0 ? innerHeight + 10 : -12), r:rnd(K.r[0], K.r[1]), vy:rnd(K.vy[0], K.vy[1]), vx:(Math.random() - .5) * K.vx, ph:Math.random() * 6, rot:Math.random() * 6, c:K.col[Math.floor(Math.random() * K.col.length)]};
+    if (K.rain) return makeDrop(K, initial);
+    const f = {x:Math.random() * innerWidth, y:initial ? Math.random() * innerHeight : (K.vy[1] < 0 ? innerHeight + 20 : -20), r:rnd(K.r[0], K.r[1]), vy:rnd(K.vy[0], K.vy[1]), vx:(Math.random() - .5) * K.vx, ph:Math.random() * 6, rot:Math.random() * 6, c:K.col[Math.floor(Math.random() * K.col.length)]};
     if (K.shoot) { f.x = Math.random() * innerWidth * 1.2; f.y = initial ? Math.random() * innerHeight * .5 : -20; f.vx = -f.vy * .8; f.wait = Math.random() * 400; }
     if (K.digits) f.ch = String(Math.floor(Math.random() * 10));
     if (K.emoji) f.ch = K.emoji[Math.floor(Math.random() * K.emoji.length)];
+    if (K.blizzard) { f.vx = 1.6 + Math.random() * 2.4; f.vy *= .6 + f.r / 4; }
+    if (K.bokeh) { f.a = .05 + Math.random() * .12; f.vx = (Math.random() - .5) * K.vx; }
+    if (K.confetti) { f.w = f.r * 1.6; f.h = f.r * .8; f.flip = Math.random() * 6; f.fs = .06 + Math.random() * .1; }
+    if (K.coin) { f.spin = Math.random() * 6; f.ss = .05 + Math.random() * .06; }
+    if (K.butterfly) { f.vx = (Math.random() < .5 ? -1 : 1) * (.3 + Math.random() * .6); f.flap = Math.random() * 6; f.hue = Math.floor(Math.random() * 360); }
+    if (K.lantern) { f.fl = Math.random() * 6; }
     return f;
+  }
+  function drawRain(K){
+    windT += .004; const gust = K.storm ? 2.2 : 1; wind = (Math.sin(windT) * .5 + Math.sin(windT * 2.7) * .25 + (K.storm ? .9 : .35)) * gust;
+    sctx.lineCap = "round";
+    for (let i = 0; i < flakes.length; i++) {
+      const f = flakes[i], vx = wind * (2 + f.z * 2.5);
+      f.x += vx; f.y += f.vy;
+      const hx = f.x, hy = f.y, tx = f.x - vx / f.vy * f.len, ty = f.y - f.len;
+      const g = sctx.createLinearGradient(tx, ty, hx, hy);
+      g.addColorStop(0, "rgba(201,220,242,0)"); g.addColorStop(1, `rgba(214,230,250,${f.a})`);
+      sctx.strokeStyle = g; sctx.lineWidth = f.w;
+      sctx.beginPath(); sctx.moveTo(tx, ty); sctx.lineTo(hx, hy); sctx.stroke();
+      if (f.z > .5 && f.y >= f.ground) {
+        const n = 2 + Math.floor(Math.random() * 3);
+        for (let j = 0; j < n; j++) splashes.push({x:f.x, y:f.ground, vx:(Math.random() - .5) * 2.6 + vx * .2, vy:-(1.2 + Math.random() * 2.2) * f.z, life:1, kind:"drop", r:.6 + f.z * .7});
+        splashes.push({x:f.x, y:f.ground, life:1, kind:"ring", w:2 + f.z * 6});
+        Object.assign(f, makeDrop(K, false));
+      } else if (f.y > innerHeight + 30 || f.x > innerWidth + 120 || f.x < -120) Object.assign(f, makeDrop(K, false));
+    }
+    for (let i = splashes.length - 1; i >= 0; i--) {
+      const s = splashes[i];
+      if (s.kind === "drop") {
+        s.vy += .18; s.x += s.vx; s.y += s.vy; s.life -= .045;
+        sctx.globalAlpha = Math.max(0, s.life) * .55; sctx.fillStyle = "#dbe8f8";
+        sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, 7); sctx.fill();
+      } else {
+        s.life -= .05;
+        const k = 1 - s.life; sctx.globalAlpha = Math.max(0, s.life) * .35; sctx.strokeStyle = "#dbe8f8"; sctx.lineWidth = .8;
+        sctx.beginPath(); sctx.ellipse(s.x, s.y, s.w * (.4 + k * 1.6), s.w * (.12 + k * .4), 0, 0, 7); sctx.stroke();
+      }
+      if (s.life <= 0) splashes.splice(i, 1);
+    }
+    sctx.globalAlpha = 1;
+    if (splashes.length > 600) splashes.splice(0, splashes.length - 600);
+    if (K.storm) drawStorm();
+  }
+  function boltPath(){
+    const pts = [[innerWidth * (.15 + Math.random() * .7), -10]];
+    let [x, y] = pts[0]; const end = innerHeight * (.35 + Math.random() * .35);
+    while (y < end) { x += (Math.random() - .5) * 70; y += 18 + Math.random() * 32; pts.push([x, y]); }
+    const br = [];
+    for (let i = 2; i < pts.length - 1; i += 2) if (Math.random() < .55) {
+      let [bx, by] = pts[i]; const b = [[bx, by]], dir = Math.random() < .5 ? -1 : 1;
+      for (let j = 0; j < 3; j++) { bx += dir * (14 + Math.random() * 30); by += 16 + Math.random() * 24; b.push([bx, by]); }
+      br.push(b);
+    }
+    return {pts, br, life:1};
+  }
+  function strokePath(p, w, c, a){ sctx.globalAlpha = a; sctx.strokeStyle = c; sctx.lineWidth = w; sctx.beginPath(); p.forEach(([x, y], i) => i ? sctx.lineTo(x, y) : sctx.moveTo(x, y)); sctx.stroke(); }
+  function drawStorm(){
+    const t = performance.now();
+    if (!nextBolt) nextBolt = t + 3000 + Math.random() * 6000;
+    if (t > nextBolt) { flash = 1; bolt = Math.random() < .7 ? boltPath() : null; nextBolt = t + 5000 + Math.random() * 9000; }
+    if (flash > 0) {
+      // двойная вспышка: свет, провал, второй разряд
+      const f = flash > .82 ? 1 : flash > .7 ? .25 : flash > .58 ? .8 : flash * .9;
+      sctx.globalAlpha = .16 * f; sctx.fillStyle = "#dfe8ff"; sctx.fillRect(0, 0, innerWidth, innerHeight);
+      if (bolt && flash > .45) {
+        sctx.lineCap = "round"; sctx.lineJoin = "round";
+        [bolt.pts, ...bolt.br].forEach((p, i) => { const k = i ? .55 : 1; strokePath(p, 7 * k, "#8fb4ff", .18 * f); strokePath(p, 2.4 * k, "#dce8ff", .7 * f); strokePath(p, 1 * k, "#ffffff", .95 * f); });
+      }
+      flash -= .035; sctx.globalAlpha = 1;
+    }
+  }
+  function drawLantern(f){
+    const w = f.r, h = f.r * 1.35, fl = .75 + .25 * Math.sin(f.fl);
+    sctx.shadowColor = "rgba(255,160,60,.9)"; sctx.shadowBlur = 14 * fl;
+    const g = sctx.createLinearGradient(0, -h / 2, 0, h / 2);
+    g.addColorStop(0, "rgba(255,120,40,.85)"); g.addColorStop(.6, `rgba(255,190,90,${.8 * fl + .15})`); g.addColorStop(1, "rgba(255,230,160,.95)");
+    sctx.fillStyle = g; sctx.globalAlpha = .85;
+    sctx.beginPath(); sctx.moveTo(-w * .42, -h / 2); sctx.lineTo(w * .42, -h / 2); sctx.quadraticCurveTo(w * .6, 0, w * .36, h / 2); sctx.lineTo(-w * .36, h / 2); sctx.quadraticCurveTo(-w * .6, 0, -w * .42, -h / 2); sctx.fill();
+    sctx.shadowBlur = 0; sctx.fillStyle = "#fff3c4"; sctx.globalAlpha = .9 * fl; sctx.beginPath(); sctx.ellipse(0, h * .36, w * .18, h * .1, 0, 0, 7); sctx.fill();
+  }
+  function drawBalloon(f){
+    const r = f.r;
+    sctx.globalAlpha = .7; sctx.strokeStyle = "rgba(255,255,255,.45)"; sctx.lineWidth = .8;
+    sctx.beginPath(); sctx.moveTo(0, r * 1.2); sctx.bezierCurveTo(r * .3, r * 1.8, -r * .3, r * 2.4, r * .1, r * 3.1); sctx.stroke();
+    const g = sctx.createRadialGradient(-r * .35, -r * .45, r * .1, 0, 0, r * 1.3);
+    g.addColorStop(0, "#ffffffcc"); g.addColorStop(.25, f.c); g.addColorStop(1, f.c);
+    sctx.fillStyle = g; sctx.globalAlpha = .62;
+    sctx.beginPath(); sctx.ellipse(0, 0, r * .85, r * 1.05, 0, 0, 7); sctx.fill();
+    sctx.beginPath(); sctx.moveTo(-r * .14, r * 1.02); sctx.lineTo(r * .14, r * 1.02); sctx.lineTo(0, r * 1.2); sctx.fill();
+  }
+  function drawButterfly(f){
+    const s = f.r, k = Math.abs(Math.sin(f.flap));
+    sctx.rotate(Math.sin(f.ph) * .3 + (f.vx < 0 ? -.2 : .2));
+    sctx.globalAlpha = .7;
+    const wing = (dir, col) => {
+      sctx.save(); sctx.scale(dir * (.25 + k * .75), 1);
+      sctx.fillStyle = col;
+      sctx.beginPath(); sctx.moveTo(0, 0); sctx.bezierCurveTo(s * .2, -s * .9, s * 1.05, -s * .8, s * .85, -s * .1); sctx.bezierCurveTo(s * .75, s * .2, s * .3, s * .15, 0, 0); sctx.fill();
+      sctx.beginPath(); sctx.moveTo(0, 0); sctx.bezierCurveTo(s * .55, s * .1, s * .75, s * .55, s * .4, s * .7); sctx.bezierCurveTo(s * .2, s * .75, s * .05, s * .35, 0, 0); sctx.fill();
+      sctx.restore();
+    };
+    const c1 = `hsl(${f.hue} 85% 68%)`, c2 = `hsl(${(f.hue + 30) % 360} 90% 76%)`;
+    wing(1, c1); wing(-1, c2);
+    sctx.fillStyle = "#2b2233"; sctx.globalAlpha = .8; sctx.beginPath(); sctx.ellipse(0, s * .05, s * .07, s * .42, 0, 0, 7); sctx.fill();
   }
   function seasonSync(){
     const want = on("season");
     const sel = document.getElementById("fx-season-kind"), den = document.getElementById("fx-season-density");
     if (sel && !sel.options.length) sel.innerHTML = `<option value="auto">По сезону (сейчас: ${KINDS[seasonKind()].name})</option>` + Object.entries(KINDS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
     if (sel) sel.value = KINDS[PK.kind] ? PK.kind : "auto";
-    if (den) den.value = PK.density;
+    if (den) den.value = DENSITY[PK.density] ? PK.density : "mid";
     if (!want) { cancelAnimationFrame(sraf); sraf = 0; sctx.clearRect(0, 0, sc.width, sc.height); sc.hidden = true; return; }
     sc.hidden = false;
     const k = curKind();
     if (sraf && sKind === k + PK.density) return;
     cancelAnimationFrame(sraf); sKind = k + PK.density;
     sizeCv(sc);
-    const K = KINDS[k], mult = {low:.5, mid:1, high:1.9}[PK.density] || 1;
-    const base = K.stars || K.twinkle ? 70 : K.rain ? 90 : K.shoot ? 6 : K.digits || K.emoji || K.glyph ? 22 : 46;
-    const n = Math.round(Math.min(base * 1.6, base * mult * Math.min(1.4, innerWidth / 1300)));
+    const K = KINDS[k], mult = DENSITY[PK.density] || 1;
+    const base = K.base || (K.stars || K.twinkle ? 70 : K.shoot ? 6 : K.digits || K.emoji || K.glyph ? 22 : 46);
+    const n = Math.round(Math.min(base * 3.6, base * mult * Math.min(1.4, innerWidth / 1300)));
     flakes = Array.from({length:Math.max(3, n)}, () => makeFlake(k, true));
+    splashes = []; flash = 0; bolt = null; nextBolt = 0;
     const tick = () => {
       if (document.hidden) { sraf = requestAnimationFrame(tick); return; }
       sctx.clearRect(0, 0, innerWidth, innerHeight);
+      if (K.rain) { drawRain(K); sraf = requestAnimationFrame(tick); return; }
       flakes.forEach((f, i) => {
         if (K.shoot) {
           if (f.wait > 0) { f.wait--; return; }
@@ -13278,16 +13597,27 @@ function multiplesChart(){
           return;
         }
         f.ph += .015; f.rot += K.spin ? .012 : 0;
-        f.x += f.vx + (K.rain || K.digits ? 0 : Math.sin(f.ph) * (K.fluff ? .6 : .3)); f.y += f.vy;
-        if (f.y > innerHeight + 20) { Object.assign(f, makeFlake(k, false)); f.y = -15; }
-        if (f.y < -20) { Object.assign(f, makeFlake(k, false)); f.y = innerHeight + 15; }
-        if (f.x > innerWidth + 20) f.x = -20; if (f.x < -20) f.x = innerWidth + 20;
+        const sway = K.digits || K.blizzard || K.coin ? 0 : K.butterfly ? Math.sin(f.ph * 3) * 1.1 : K.confetti ? Math.sin(f.ph * 4) * 1.2 : Math.sin(f.ph) * (K.fluff ? .6 : K.lantern || K.balloon ? .35 : .3);
+        f.x += f.vx + sway; f.y += f.vy + (K.butterfly ? Math.cos(f.ph * 2.3) * .6 : 0);
+        if (K.blizzard) f.x += Math.sin(f.ph * 3 + f.y * .01) * .8;
+        if (f.y > innerHeight + 40) { Object.assign(f, makeFlake(k, false)); f.y = -30; }
+        if (f.y < -60) { Object.assign(f, makeFlake(k, false)); f.y = innerHeight + 40; }
+        const pad = K.bokeh ? 70 : 30;
+        if (f.x > innerWidth + pad) f.x = -pad; if (f.x < -pad) f.x = innerWidth + pad;
         sctx.save(); sctx.translate(f.x, f.y); sctx.rotate(f.rot); sctx.fillStyle = f.c; sctx.strokeStyle = f.c;
         if (K.twinkle) sctx.globalAlpha = .25 + .6 * Math.abs(Math.sin(f.ph * 2.2));
         else if (K.glow) { sctx.globalAlpha = .35 + .4 * Math.sin(f.ph * 3); sctx.shadowColor = f.c; sctx.shadowBlur = 8; }
-        else sctx.globalAlpha = K.rain ? .35 : .55;
-        if (K.rain) { sctx.lineWidth = 1; sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(f.vx * 2, f.r); sctx.stroke(); }
-        else if (K.ring) { sctx.lineWidth = 1.2; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.stroke(); sctx.globalAlpha *= .6; sctx.beginPath(); sctx.arc(-f.r * .35, -f.r * .35, f.r * .25, 0, 7); sctx.fill(); }
+        else if (K.dust) sctx.globalAlpha = .18 + .5 * Math.abs(Math.sin(f.ph * 1.3));
+        else sctx.globalAlpha = .55;
+        if (K.ring) { sctx.lineWidth = 1.2; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.stroke(); sctx.globalAlpha *= .6; sctx.beginPath(); sctx.arc(-f.r * .35, -f.r * .35, f.r * .25, 0, 7); sctx.fill(); }
+        else if (K.bokeh) { sctx.rotate(-f.rot); const g = sctx.createRadialGradient(0, 0, 0, 0, 0, f.r); g.addColorStop(0, f.c); g.addColorStop(.7, f.c); g.addColorStop(1, "transparent"); sctx.globalAlpha = f.a * (.7 + .3 * Math.sin(f.ph * 1.7)); sctx.fillStyle = g; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
+        else if (K.dust) { sctx.shadowColor = f.c; sctx.shadowBlur = 4; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
+        else if (K.confetti) { f.flip += f.fs; sctx.scale(1, Math.cos(f.flip)); sctx.globalAlpha = .8; sctx.fillRect(-f.w / 2, -f.h / 2, f.w, f.h); }
+        else if (K.coin) { sctx.rotate(-f.rot); f.spin += f.ss; const sx = Math.cos(f.spin); sctx.scale(Math.max(.08, Math.abs(sx)), 1); sctx.globalAlpha = .8; sctx.fillStyle = sx > 0 ? "#f6c445" : "#d99a1e"; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); sctx.strokeStyle = "#fff1b0"; sctx.lineWidth = 1; sctx.globalAlpha = .7; sctx.beginPath(); sctx.arc(0, 0, f.r * .68, 0, 7); sctx.stroke(); }
+        else if (K.lantern) { sctx.rotate(-f.rot + Math.sin(f.ph * 1.4) * .08); f.fl += .09 + Math.random() * .05; drawLantern(f); }
+        else if (K.balloon) { sctx.rotate(-f.rot + Math.sin(f.ph) * .12); drawBalloon(f); }
+        else if (K.butterfly) { sctx.rotate(-f.rot); f.flap += .22; drawButterfly(f); }
+        else if (K.blizzard) { sctx.rotate(-f.rot); sctx.globalAlpha = .35 + f.r * .12; sctx.beginPath(); sctx.ellipse(0, 0, f.r * 1.8, f.r * .8, Math.atan2(f.vy, f.vx), 0, 7); sctx.fill(); }
         else if (K.diamond) { sctx.beginPath(); sctx.moveTo(0, -f.r * 1.6); sctx.lineTo(f.r, 0); sctx.lineTo(0, f.r * 1.6); sctx.lineTo(-f.r, 0); sctx.closePath(); sctx.fill(); }
         else if (k === "flakes") { sctx.lineWidth = 1; for (let a = 0; a < 6; a++) { sctx.rotate(Math.PI / 3); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r); sctx.moveTo(0, f.r * .6); sctx.lineTo(f.r * .25, f.r * .8); sctx.moveTo(0, f.r * .6); sctx.lineTo(-f.r * .25, f.r * .8); sctx.stroke(); } }
         else if (K.fluff) { sctx.lineWidth = .8; for (let a = 0; a < 8; a++) { sctx.rotate(Math.PI / 4); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r * 1.8); sctx.stroke(); } }
@@ -13349,6 +13679,13 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-9", date:"2026-10-23", title:"Селфи в облаке, новые частицы и современные фильтры", items:[
+    {tag:"new", area:"Селфи", text:"Общая база селфи в облаке: отметки видны всем участникам и обновляются сами каждые полминуты. Отмечать может редактор с ключом — кнопка «🔑 Ключ редактора». Если связи нет, отметки сохраняются в браузере и уходят в облако, как только она появится."},
+    {tag:"new", area:"Настройки", text:"Частицы на фоне: появился вариант «Ещё больше» и 9 новых видов — гроза с молниями, метель, боке, пылинки в луче, конфетти, золотые монеты, небесные фонарики, воздушные шары и бабочки."},
+    {tag:"imp", area:"Настройки", text:"Дождь переделан: у капель есть глубина (дальние тоньше и бледнее), их сносит ветер, а ближние разбиваются брызгами и кругами внизу экрана."},
+    {tag:"new", area:"Статистика", text:"В режиме «Фильтры справа» рядом с «Участники / Чаты» — быстрый выбор периода (сегодня, вчера, 7 дней, этот и прошлый месяц, этот год, всё время) и точная дата."},
+    {tag:"imp", area:"Везде", text:"Современный вид фильтров: скруглённые панели, переключатели вместо галочек, на ПК — аккуратные выпадающие меню с отметкой выбранного и поиском в длинных списках. Включается и выключается в «Настройки → Фильтры»."},
+  ]},
   {v:"2026.10.23-8", date:"2026-10-23", title:"Выбор частиц на фоне", items:[
     {tag:"new", area:"Настройки", text:"В «Эффектах» можно выбрать, что летает на фоне: по сезону (как раньше) или любой из 16 видов — снег, снежинки-кристаллы, лепестки сакуры, светлячки, листопад, мерцающие звёзды, звездопад, пузыри, дождь, сердечки, блёстки, искры костра, пух одуванчика, падающие цифры, сообщения-эмодзи и ноты. И сколько: мало, средне или много."},
   ]},
@@ -14265,6 +14602,301 @@ window.CHANGELOG = [
     } catch (err) { msg.textContent = "Не удалось: " + (err.message || err); }
   });
   window.__chron = {model, chronicle, digest, drawDigest, weekOptions};
+})();
+</script>
+<style id="filters-v3">
+/* ===================== Фильтры v3: современный вид ===================== */
+body:not(.fv3-off) .tab > .filters,body:not(.fv3-off) #shared > .filters,body:not(.fv3-off) .stat-content > .filters,body:not(.fv3-off) #fd-body > .filters{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--panel-2) 94%,transparent),color-mix(in srgb,var(--panel) 90%,transparent));
+  border:1px solid color-mix(in srgb,var(--line) 85%,transparent);border-radius:14px;padding:8px;gap:8px;
+  box-shadow:inset 0 1px 0 #ffffff0a,0 10px 28px -18px #000c}
+body:not(.fv3-off) .filters .field{border:0;border-radius:11px;background:var(--ctrl);box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .15s,background .15s}
+body:not(.fv3-off) .filters .field:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 40%,var(--line))}
+body:not(.fv3-off) .filters .field:focus-within{box-shadow:inset 0 0 0 1.5px var(--accent),0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+body:not(.fv3-off) .filters .field > label{background:transparent;border-right:0;padding:0 2px 0 11px;font-size:11.5px;letter-spacing:.01em;color:var(--muted)}
+body:not(.fv3-off) .filters .field > label::after{content:"";display:inline-block;width:1px;height:14px;margin-left:9px;background:var(--line)}
+body:not(.fv3-off) .filters .field select{font-weight:500;cursor:pointer}
+/* нативный список (телефон или выключенные «современные списки»): своя стрелка вместо системной */
+body:not(.fv3-off) select:not([multiple]):not([size]){-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238b93a7' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;background-size:10px 7px;padding-right:27px!important}
+/* переключатели-сегменты: «таблетки» в общей капсуле */
+body:not(.fv3-off) .filters .seg,body:not(.fv3-off) .stat-subnav,body:not(.fv3-off) .group-tabs{gap:2px;padding:2px;border:0;border-radius:11px;background:var(--ctrl);box-shadow:inset 0 0 0 1px var(--line);overflow:visible}
+body:not(.fv3-off) .filters .seg button,body:not(.fv3-off) .stat-subnav button,body:not(.fv3-off) .group-tabs button{border:0!important;border-radius:9px;background:transparent;color:var(--muted);transition:background .15s,color .15s,box-shadow .15s}
+body:not(.fv3-off) .filters .seg button:hover,body:not(.fv3-off) .stat-subnav button:hover,body:not(.fv3-off) .group-tabs button:hover{color:var(--text);background:#ffffff08}
+body:not(.fv3-off) .filters .seg button.active,body:not(.fv3-off) .stat-subnav button.active,body:not(.fv3-off) .group-tabs button.active{background:var(--accent-bg);color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent),0 2px 8px -3px color-mix(in srgb,var(--accent) 45%,transparent)}
+body:not(.fv3-off) .filters .field > .seg{box-shadow:none;background:transparent;padding:2px;border-radius:0}
+body:not(.fv3-off) .filters .field > .seg button{height:auto;border-radius:8px}
+/* галочки → переключатели */
+body:not(.fv3-off) .checkline{border:0;border-radius:11px;background:var(--ctrl);box-shadow:inset 0 0 0 1px var(--line);color:var(--muted);transition:box-shadow .15s,color .15s,background .15s}
+body:not(.fv3-off) .checkline:hover{color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 40%,var(--line))}
+body:not(.fv3-off) .checkline:has(input:checked){background:color-mix(in srgb,var(--accent-bg) 70%,var(--ctrl));color:var(--text);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 38%,transparent)}
+body:not(.fv3-off) .checkline input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:0 0 26px;width:26px!important;height:15px!important;border-radius:999px;margin:0;cursor:pointer;background:radial-gradient(circle at 7.5px 50%,#cfd5e3 0 5px,transparent 5.6px),var(--line);transition:background .18s}
+body:not(.fv3-off) .checkline input[type=checkbox]:checked{background:radial-gradient(circle at 18.5px 50%,#fff 0 5px,transparent 5.6px),var(--accent)}
+body:not(.fv3-off) .checkline input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* кнопки на панелях */
+body:not(.fv3-off) .filters button.mini,body:not(.fv3-off) .filters .table-export-actions .mini{border-radius:10px}
+body:not(.fv3-off) .filters .field > .pbtn > .mini,body:not(.fv3-off) .filters .field > button.mini{border-radius:0}
+/* ---------- современный выпадающий список ---------- */
+.msel-native{position:absolute!important;width:1px!important;height:1px!important;min-width:0!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;padding:0!important;border:0!important}
+.msel{position:relative;display:inline-flex;align-items:center;gap:6px;max-width:260px;min-width:0;height:100%;padding:0 28px 0 10px;border:0;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:500;line-height:1;cursor:pointer;white-space:nowrap;text-align:left}
+.msel > span{overflow:hidden;text-overflow:ellipsis}
+.msel::after{content:"";position:absolute;right:11px;top:50%;width:6px;height:6px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:translateY(-70%) rotate(45deg);opacity:.55;transition:transform .18s,opacity .15s}
+.msel[aria-expanded="true"]::after{transform:translateY(-25%) rotate(-135deg);opacity:.9}
+.msel:hover::after{opacity:.9}
+.msel:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:8px}
+.msel[disabled]{opacity:.5;cursor:default}
+.msel.solo{height:var(--control-height,30px);border-radius:11px;background:var(--ctrl);box-shadow:inset 0 0 0 1px var(--line)}
+.msel.solo:hover{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 40%,var(--line))}
+.msel-pop{position:fixed;z-index:10050;min-width:180px;max-width:min(380px,calc(100vw - 16px));padding:6px;border-radius:14px;background:color-mix(in srgb,var(--panel-2) 96%,#000);border:1px solid color-mix(in srgb,var(--line) 70%,#ffffff22);box-shadow:0 18px 48px -12px #000d,0 2px 0 #ffffff08 inset;display:flex;flex-direction:column;gap:4px;animation:mselIn .14s ease-out;transform-origin:top left}
+.msel-pop.up{transform-origin:bottom left}
+@keyframes mselIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.msel-pop input{width:100%;min-width:0;height:30px;padding:0 10px;border-radius:9px;border:0;box-shadow:inset 0 0 0 1px var(--line);background:var(--ctrl);color:var(--text);font:inherit;font-size:13px}
+.msel-pop input:focus{outline:none;box-shadow:inset 0 0 0 1.5px var(--accent)}
+.msel-list{overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:1px;scrollbar-width:thin}
+.msel-opt{display:flex;align-items:center;gap:8px;width:100%;min-height:30px;padding:6px 10px 6px 28px;border:0;border-radius:8px;background:transparent;color:var(--text);font:inherit;font-size:13.5px;text-align:left;cursor:pointer;position:relative}
+.msel-opt:hover,.msel-opt.hl{background:#ffffff0d}
+.msel-opt[aria-selected="true"]{color:var(--accent);background:var(--accent-bg)}
+.msel-opt[aria-selected="true"]::before{content:"";position:absolute;left:11px;top:50%;width:8px;height:4px;border-left:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:translateY(-70%) rotate(-45deg)}
+.msel-opt[disabled]{opacity:.4;cursor:default}
+.msel-grp{padding:8px 10px 3px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.msel-empty{padding:10px;color:var(--muted);font-size:13px}
+/* ---------- Быстрый период рядом с «Участники / Чаты» ---------- */
+.stats-topbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:12px}
+.stats-topbar > .stat-subnav{margin-bottom:0}
+.stats-quick{display:none;align-items:center;gap:8px;flex-wrap:wrap}
+body.filters-right .stats-quick{display:flex}
+.sq-seg{display:flex;gap:2px;padding:2px;border-radius:11px;background:var(--ctrl);box-shadow:inset 0 0 0 1px var(--line)}
+.sq-seg button{height:28px;padding:0 11px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.sq-seg button:hover{color:var(--text);background:#ffffff08}
+.sq-seg button.active{background:var(--accent-bg);color:var(--accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 35%,transparent)}
+.sq-date{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 4px 0 10px;border-radius:11px;background:var(--ctrl);box-shadow:inset 0 0 0 1px var(--line);color:var(--muted);font-size:12px}
+.sq-date:focus-within{box-shadow:inset 0 0 0 1.5px var(--accent),0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+.sq-date input{height:28px;min-width:0;padding:0 6px;border:0;background:transparent;color:var(--text);font:inherit;font-size:13px}
+.sq-date input[type=date]{width:128px}.sq-date input[type=month]{width:122px}.sq-date input[type=number]{width:70px}
+.sq-date input[hidden]{display:none}
+.sq-range{font-size:12.5px;color:var(--muted);white-space:nowrap}
+/* ---------- Облако селфи ---------- */
+.s-cloud-badge{display:inline-flex;align-items:center;gap:6px}
+.s-cloud-badge.sc-ok{color:#9ece6a}.s-cloud-badge.sc-err{color:#f7768e}.s-cloud-badge.sc-busy{color:#e0af68}.s-cloud-badge.sc-off{color:var(--muted)}
+.s-cloud-ok{color:#9ece6a}
+.s-cloud-dlg{position:fixed;inset:0;z-index:10060;display:grid;place-items:center;padding:16px;background:#0008;backdrop-filter:blur(3px)}
+.s-cloud-box{width:min(420px,100%);display:grid;gap:10px;padding:18px;border-radius:16px;background:var(--panel-2);border:1px solid var(--line);box-shadow:0 24px 60px -16px #000}
+.s-cloud-box h3{margin:0}
+.s-cloud-box label{display:grid;gap:5px;font-size:13px;color:var(--muted)}
+.s-cloud-box input{width:100%;min-width:0}
+.s-cloud-box details summary{cursor:pointer;color:var(--muted);font-size:13px}
+.s-cloud-box details label{margin-top:8px}
+.s-people .s-chip[disabled]{opacity:.65;cursor:not-allowed}
+#filter-drawer .filters .field > label::after{display:none}
+#filter-drawer .msel{max-width:none;width:100%}
+@media (max-width:720px){.msel{max-width:100%}}
+</style>
+<script id="ui-v3">
+/* ===================== Быстрый период в «Статистике» (рядом с «Участники / Чаты») ===================== */
+(function(){
+  const $ = id => document.getElementById(id);
+  const sub = $("stats-subnav"); if (!sub || !$("mode")) return;
+  const bar = document.createElement("div"); bar.className = "stats-topbar";
+  sub.before(bar); bar.appendChild(sub);
+  const q = document.createElement("div"); q.className = "stats-quick"; q.id = "stats-quick"; q.setAttribute("role", "group"); q.setAttribute("aria-label", "Период");
+  q.innerHTML = `<div class="sq-seg">
+      <button type="button" data-sq="today">Сегодня</button><button type="button" data-sq="yday">Вчера</button><button type="button" data-sq="7">7 дней</button><button type="button" data-sq="month">Этот месяц</button><button type="button" data-sq="pmonth">Прошлый месяц</button><button type="button" data-sq="year">Этот год</button><button type="button" data-sq="all">Всё время</button>
+    </div>
+    <label class="sq-date" title="Точная дата, месяц или год"><span aria-hidden="true">📅</span><input type="date" id="sq-day" aria-label="Дата"><input type="month" id="sq-month" aria-label="Месяц" hidden><input type="number" id="sq-year" min="2000" max="2100" aria-label="Год" hidden></label>
+    <span class="sq-range" id="sq-range"></span>`;
+  bar.appendChild(q);
+  const pad = n => String(n).padStart(2, "0");
+  const isoD = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const curMode = () => (document.querySelector("#mode button.active") || {}).dataset?.m || "day";
+  function setMode(m){ const b = document.querySelector(`#mode button[data-m="${m}"]`); if (b) b.click(); }
+  function setVal(id, v, fire){ const el = $(id); if (!el) return; el.value = v; if (fire) el.dispatchEvent(new Event("change", {bubbles:true})); }
+  function pick(k){
+    const t = new Date(), today = isoD(t);
+    if (k === "today" || k === "yday") { setVal("day", k === "today" ? today : isoD(new Date(t.getFullYear(), t.getMonth(), t.getDate() - 1))); setMode("day"); }
+    else if (k === "7") { setVal("day", today); setMode("week"); }
+    else if (k === "month" || k === "pmonth") { const d = new Date(t.getFullYear(), t.getMonth() - (k === "pmonth" ? 1 : 0), 1); setVal("month", `${d.getFullYear()}-${pad(d.getMonth() + 1)}`); setMode("month"); }
+    else if (k === "year") { setVal("year", t.getFullYear()); setMode("year"); }
+    else if (k === "all") setMode("all");
+    setTimeout(sync, 0);
+  }
+  q.querySelector(".sq-seg").addEventListener("click", e => { const b = e.target.closest("[data-sq]"); if (b) pick(b.dataset.sq); });
+  $("sq-day").addEventListener("change", e => {
+    if (!e.target.value) return;
+    const m = curMode();
+    setVal("day", e.target.value, m === "day" || m === "week");
+    if (m !== "day" && m !== "week") setMode("day");
+    setTimeout(sync, 0);
+  });
+  $("sq-month").addEventListener("change", e => { if (e.target.value) { setVal("month", e.target.value, true); setTimeout(sync, 0); } });
+  $("sq-year").addEventListener("change", e => { if (e.target.value) { setVal("year", e.target.value, true); setTimeout(sync, 0); } });
+  function fmtR(a, b){ const f = s => s.split("-").reverse().join("."); return a === b ? f(a) : `${f(a)} — ${f(b)}`; }
+  function sync(){
+    const m = curMode(), t = new Date(), today = isoD(t), yday = isoD(new Date(t.getFullYear(), t.getMonth(), t.getDate() - 1));
+    const day = $("day")?.value || "", month = $("month")?.value || "", year = String($("year")?.value || "");
+    const thisM = `${t.getFullYear()}-${pad(t.getMonth() + 1)}`, pm = new Date(t.getFullYear(), t.getMonth() - 1, 1), prevM = `${pm.getFullYear()}-${pad(pm.getMonth() + 1)}`;
+    const act = m === "day" && day === today ? "today" : m === "day" && day === yday ? "yday" : m === "week" && day === today ? "7"
+      : m === "month" && month === thisM ? "month" : m === "month" && month === prevM ? "pmonth" : m === "year" && year === String(t.getFullYear()) ? "year" : m === "all" ? "all" : "";
+    q.querySelectorAll("[data-sq]").forEach(b => b.classList.toggle("active", b.dataset.sq === act));
+    $("sq-day").hidden = m === "month" || m === "year"; $("sq-month").hidden = m !== "month"; $("sq-year").hidden = m !== "year";
+    if (document.activeElement !== $("sq-day")) $("sq-day").value = day;
+    if (document.activeElement !== $("sq-month")) $("sq-month").value = month;
+    if (document.activeElement !== $("sq-year")) $("sq-year").value = year;
+    let r = "";
+    try { const x = typeof range === "function" ? range() : null; if (x && m !== "all") r = fmtR(x[0], x[1]); else if (m === "all") r = "все данные"; } catch (e) {}
+    $("sq-range").textContent = r;
+  }
+  new MutationObserver(sync).observe($("mode"), {subtree:true, attributes:true, attributeFilter:["class"]});
+  ["day", "month", "year"].forEach(id => $(id)?.addEventListener("change", () => setTimeout(sync, 0)));
+  const st = $("status"); if (st) new MutationObserver(() => sync()).observe(st, {childList:true, characterData:true, subtree:true});
+  sub.addEventListener("click", () => setTimeout(sync, 0));
+  sync();
+})();
+
+/* ===================== Современные выпадающие списки (ПК) ===================== */
+(function(){
+  const KEY = "chatstats.modernSelect.v1";
+  const mq = matchMedia("(min-width:721px) and (pointer:fine)");
+  const SCOPE = ".filters select, .section-head select, #filter-drawer select, .race-ctl select, .stats-quick select";
+  const SKIP = ".chart-settings-panel, .chart-settings-content, .msel-pop, .s-cloud-dlg, table";
+  let on = true; try { on = localStorage.getItem(KEY) !== "0"; } catch (e) {}
+  const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
+  const descI = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "selectedIndex");
+  const list = new Set();
+  let pop = null, popSel = null, popBtn = null;
+  const label = sel => { const o = sel.options[sel.selectedIndex]; return o ? o.textContent.trim() : ""; };
+  function refresh(sel){
+    const b = sel.__msel; if (!b) return;
+    const t = label(sel) || "—";
+    if (b.__t !== t) { b.__t = t; b.firstChild.textContent = t; b.title = t.length > 28 ? t : (sel.title || ""); }
+    b.disabled = sel.disabled;
+    const hid = sel.hidden || sel.style.display === "none";
+    if (b.hidden !== hid) b.hidden = hid;
+  }
+  function enhance(sel){
+    if (sel.__msel || sel.multiple || sel.size > 1 || sel.hasAttribute("data-native") || sel.closest(SKIP)) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "msel" + (sel.closest(".field") ? "" : " solo");
+    b.setAttribute("aria-haspopup", "listbox"); b.setAttribute("aria-expanded", "false");
+    const lab = sel.id && document.querySelector(`label[for="${CSS.escape(sel.id)}"]`);
+    if (lab) b.setAttribute("aria-label", lab.textContent.trim()); else if (sel.getAttribute("aria-label")) b.setAttribute("aria-label", sel.getAttribute("aria-label"));
+    b.appendChild(document.createElement("span"));
+    const mw = sel.style.minWidth; if (mw) b.style.minWidth = mw;
+    sel.after(b); sel.classList.add("msel-native"); sel.tabIndex = -1; sel.__msel = b; b.__sel = sel; list.add(sel);
+    // Значение, выставленное кодом сайта, сразу отражается на кнопке.
+    try {
+      Object.defineProperty(sel, "value", {configurable:true, get(){ return desc.get.call(this); }, set(v){ desc.set.call(this, v); refresh(this); }});
+      Object.defineProperty(sel, "selectedIndex", {configurable:true, get(){ return descI.get.call(this); }, set(v){ descI.set.call(this, v); refresh(this); }});
+    } catch (e) {}
+    new MutationObserver(() => refresh(sel)).observe(sel, {childList:true, subtree:true, attributes:true, attributeFilter:["disabled", "hidden", "style", "selected", "label"]});
+    sel.addEventListener("change", () => refresh(sel));
+    b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); pop && popSel === sel ? close() : open(sel); });
+    b.addEventListener("keydown", e => {
+      if (["ArrowDown", "ArrowUp", "Enter", " "].includes(e.key)) { e.preventDefault(); open(sel); }
+    });
+    refresh(sel);
+  }
+  function unenhance(sel){
+    const b = sel.__msel; if (!b) return;
+    b.remove(); sel.classList.remove("msel-native"); sel.removeAttribute("tabindex");
+    delete sel.value; delete sel.selectedIndex; sel.__msel = null; list.delete(sel);
+  }
+  function choose(sel, i){
+    if (i < 0 || sel.options[i]?.disabled) return;
+    const changed = descI.get.call(sel) !== i;
+    descI.set.call(sel, i); refresh(sel); close(true);
+    if (changed) { sel.dispatchEvent(new Event("input", {bubbles:true})); sel.dispatchEvent(new Event("change", {bubbles:true})); }
+  }
+  function close(focus){
+    if (!pop) return;
+    pop.remove(); pop = null;
+    if (popBtn) { popBtn.setAttribute("aria-expanded", "false"); if (focus && popBtn.isConnected) popBtn.focus({preventScroll:true}); }
+    popSel = popBtn = null;
+  }
+  function open(sel){
+    close(); refresh(sel);
+    const b = sel.__msel; if (!b || b.disabled) return;
+    popSel = sel; popBtn = b; b.setAttribute("aria-expanded", "true");
+    pop = document.createElement("div"); pop.className = "msel-pop"; pop.setAttribute("role", "listbox");
+    const many = sel.options.length > 12;
+    if (many) { const s = document.createElement("input"); s.type = "search"; s.placeholder = "Поиск…"; s.setAttribute("aria-label", "Поиск"); pop.appendChild(s); }
+    const box = document.createElement("div"); box.className = "msel-list"; pop.appendChild(box);
+    const items = [];
+    let lastGroup = null;
+    [...sel.options].forEach((o, i) => {
+      const g = o.parentElement && o.parentElement.tagName === "OPTGROUP" ? o.parentElement : null;
+      if (g && g !== lastGroup) { const h = document.createElement("div"); h.className = "msel-grp"; h.textContent = g.label; box.appendChild(h); h.__grp = g; }
+      lastGroup = g;
+      if (o.hidden) return;
+      const it = document.createElement("button"); it.type = "button"; it.className = "msel-opt"; it.setAttribute("role", "option");
+      it.textContent = o.textContent.trim() || "—"; it.dataset.i = i; if (o.disabled) it.disabled = true;
+      it.setAttribute("aria-selected", String(i === sel.selectedIndex));
+      box.appendChild(it); items.push(it);
+    });
+    document.body.appendChild(pop);
+    // позиция: под кнопкой, если не помещается — над ней
+    const r = (b.closest(".field") || b).getBoundingClientRect(), vh = innerHeight, vw = innerWidth;
+    const w = Math.min(Math.max(r.width, 190), 380);
+    const below = vh - r.bottom - 10, above = r.top - 10, up = below < 220 && above > below;
+    const maxH = Math.max(140, Math.min(380, up ? above : below));
+    pop.style.width = w + "px"; box.style.maxHeight = (maxH - (many ? 44 : 12)) + "px";
+    pop.style.left = Math.max(8, Math.min(r.left, vw - w - 8)) + "px";
+    if (up) { pop.classList.add("up"); pop.style.bottom = (vh - r.top + 6) + "px"; } else pop.style.top = (r.bottom + 6) + "px";
+    let hl = Math.max(0, items.findIndex(x => x.getAttribute("aria-selected") === "true"));
+    const vis = () => items.filter(x => !x.hidden && !x.disabled);
+    const mark = el => { items.forEach(x => x.classList.toggle("hl", x === el)); if (el) el.scrollIntoView({block:"nearest"}); };
+    mark(items[hl]);
+    box.addEventListener("click", e => { const it = e.target.closest(".msel-opt"); if (it) choose(sel, Number(it.dataset.i)); });
+    box.addEventListener("pointermove", e => { const it = e.target.closest(".msel-opt"); if (it && !it.disabled) mark(it); });
+    const search = pop.querySelector("input");
+    if (search) search.addEventListener("input", () => {
+      const v = search.value.trim().toLowerCase().replace(/ё/g, "е");
+      items.forEach(x => { x.hidden = v && !x.textContent.toLowerCase().replace(/ё/g, "е").includes(v); });
+      box.querySelectorAll(".msel-grp").forEach(h => { let n = h.nextElementSibling, any = false; while (n && !n.classList.contains("msel-grp")) { if (!n.hidden) any = true; n = n.nextElementSibling; } h.hidden = !any; });
+      let empty = box.querySelector(".msel-empty");
+      if (!vis().length) { if (!empty) { empty = document.createElement("div"); empty.className = "msel-empty"; empty.textContent = "Ничего не найдено"; box.appendChild(empty); } } else if (empty) empty.remove();
+      mark(vis()[0]);
+    });
+    let typed = "", typedT = 0;
+    pop.addEventListener("keydown", e => {
+      const v = vis(), cur = v.indexOf(items.find(x => x.classList.contains("hl")));
+      if (e.key === "ArrowDown") { e.preventDefault(); mark(v[Math.min(v.length - 1, cur + 1)] || v[0]); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); mark(v[Math.max(0, cur - 1)] || v[0]); }
+      else if (e.key === "Home") { e.preventDefault(); mark(v[0]); }
+      else if (e.key === "End") { e.preventDefault(); mark(v[v.length - 1]); }
+      else if (e.key === "Enter") { e.preventDefault(); const h = items.find(x => x.classList.contains("hl")); if (h) choose(sel, Number(h.dataset.i)); }
+      else if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); close(true); }
+      else if (!search && e.key.length === 1) {
+        clearTimeout(typedT); typed += e.key.toLowerCase(); typedT = setTimeout(() => { typed = ""; }, 700);
+        const f = v.find(x => x.textContent.toLowerCase().startsWith(typed)); if (f) mark(f);
+      }
+    });
+    (search || items[hl] || pop).focus({preventScroll:true});
+    if (!search && !items[hl]) pop.tabIndex = -1;
+  }
+  document.addEventListener("pointerdown", e => { if (pop && !pop.contains(e.target) && !(popBtn && popBtn.contains(e.target))) close(); }, true);
+  addEventListener("resize", () => close());
+  document.addEventListener("scroll", e => { if (pop && !pop.contains(e.target)) close(); }, true);
+  function scan(root){
+    if (!on || !mq.matches) return;
+    (root || document).querySelectorAll(SCOPE).forEach(enhance);
+  }
+  let pend = 0;
+  new MutationObserver(muts => {
+    if (!on || !mq.matches || pend) return;
+    for (const m of muts) for (const n of m.addedNodes) if (n.nodeType === 1 && (n.tagName === "SELECT" || n.querySelector?.("select"))) { pend = requestAnimationFrame(() => { pend = 0; scan(); }); return; }
+  }).observe(document.body, {childList:true, subtree:true});
+  // На всякий случай раз в полторы секунды сверяем подписи (если код сайта поменял option.selected напрямую).
+  setInterval(() => { list.forEach(sel => { if (!sel.isConnected) { list.delete(sel); return; } refresh(sel); }); }, 1500);
+  function apply(){
+    if (on && mq.matches) scan(); else { close(); [...list].forEach(unenhance); }
+    const cb = document.getElementById("set-modern-select"); if (cb) cb.checked = on;
+  }
+  document.addEventListener("change", e => {
+    if (e.target.id === "set-modern-select") { on = e.target.checked; try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (err) {} apply(); }
+    if (e.target.id === "set-filters-v3") { document.body.classList.toggle("fv3-off", !e.target.checked); try { localStorage.setItem("chatstats.filtersV3.v1", e.target.checked ? "1" : "0"); } catch (err) {} }
+  });
+  try { const v3 = localStorage.getItem("chatstats.filtersV3.v1") !== "0"; document.body.classList.toggle("fv3-off", !v3); const c = document.getElementById("set-filters-v3"); if (c) c.checked = v3; } catch (e) {}
+  mq.addEventListener ? mq.addEventListener("change", apply) : mq.addListener(apply);
+  setTimeout(apply, 0);
 })();
 </script>
 </body>
