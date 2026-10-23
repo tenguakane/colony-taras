@@ -4922,6 +4922,8 @@ async function tableImageBlob(tableId, title, rowLimit = null){
   table.removeAttribute("id");
   table.querySelectorAll("[id]").forEach(el => el.removeAttribute("id"));
   table.querySelectorAll("[data-no-export]").forEach(el => el.remove());
+  table.querySelectorAll(".is-me-row").forEach(el => el.classList.remove("is-me-row"));
+  table.querySelectorAll(".is-me").forEach(el => el.classList.remove("is-me"));
   table.querySelectorAll(".column-resize-handle").forEach(el => el.remove());
   table.querySelectorAll("button.row-exclude-btn").forEach(el => el.remove());
   if (Number.isInteger(rowLimit) && rowLimit > 0) {
@@ -13891,6 +13893,7 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.24-2", date:"2026-10-24", title:"Ненавязчивая подсветка себя", items:[{tag:"imp", area:"Везде", text:"Подсветка себя в таблицах стала аккуратнее: тонкая полоска слева у строки и маленькая точка у имени вместо заливки и метки «ты»."},{tag:"fix", area:"Таблицы", text:"В картинках, скопированных или скачанных из таблиц, ты больше не выделен(а)."}]},
   {v:"2026.10.24-1", date:"2026-10-24", title:"«Я» в Хабе, быстрый просмотр, карточки и приложение", items:[
     {tag:"new", area:"Хаб", text:"Выбери себя в Хабе — и ты выделен(а) во всех таблицах цветной полосой и меткой «ты», а профиль по умолчанию открывается на тебе."},
     {tag:"new", area:"Хаб", text:"Блок «Сегодня»: твои сообщения за день и месяц с местом, серия, сколько не хватает до следующего места и отрыв от догоняющего; рядом — сообщения чата за день и топ-5. Кнопка «Обновить» догружает только последние дни."},
@@ -16203,10 +16206,8 @@ body.filters-right .st-today{display:none}
 .st-card details summary{cursor:pointer}
 .status.err:has(.st-card){color:inherit;background:none;border:0;padding:0}
 /* ---------- «Я»: выделение во всех таблицах ---------- */
-tr.is-me-row > td{background-image:linear-gradient(color-mix(in srgb,var(--accent) 13%,transparent),color-mix(in srgb,var(--accent) 13%,transparent))!important}
-tr.is-me-row > td:first-child{box-shadow:inset 3px 0 0 var(--accent)!important}
-.pname.is-me{font-weight:700;color:var(--accent)}
-.pname.is-me::after{content:"ты";display:inline-block;margin-left:6px;padding:0 6px;border-radius:999px;background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--text);font-size:11px;font-weight:600;line-height:17px;vertical-align:2px}
+tr.is-me-row > td:first-child{box-shadow:inset 2px 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}
+.pname.is-me::after{content:"";display:inline-block;width:6px;height:6px;margin-left:6px;border-radius:50%;background:var(--accent);opacity:.75;vertical-align:2px}
 /* ---------- Хаб: «Сегодня» и выбор себя ---------- */
 .me-today{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;margin:0 0 18px}
 @media (max-width:900px){.me-today{grid-template-columns:1fr}}
@@ -16328,7 +16329,7 @@ tbody tr.qv-able{cursor:pointer}
   table.tv-cards > :is(tbody,tfoot) > tr > [colspan]{grid-column:1/-1!important}
   table.tv-cards > :is(tbody,tfoot) > tr > [colspan]::before{display:none}
   table.tv-cards > :is(tbody,tfoot) > tr:has(> [colspan]:only-child){padding:10px 14px}
-  table.tv-cards > :is(tbody,tfoot) > tr.is-me-row{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+  table.tv-cards > :is(tbody,tfoot) > tr.is-me-row{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
   table.tv-cards .row-name-with-action{width:100%;max-width:none!important;justify-content:space-between}
   table.tv-cards :is(.spark-cell,.cell-hist,.mini-spark){max-width:100%}
 }
