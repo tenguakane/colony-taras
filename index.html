@@ -1878,6 +1878,10 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     <h2>Эффекты</h2>
     <div class="filters"><label class="checkline" title="Призовые места в таблицах (1 — радужный перелив, 2 — серебряный, 3 — бронзовый), победитель дуэли, номинанты «Итогов года» и максимальные достижения переливаются голографическим градиентом. В скопированных картинках — обычный текст"><input type="checkbox" id="set-holo-text">Переливающийся текст у победителей</label><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
     <div class="filters" id="fx-list"></div>
+    <div class="filters">
+      <div class="field"><label for="fx-season-kind">Частицы на фоне</label><select id="fx-season-kind"></select></div>
+      <div class="field"><label for="fx-season-density">Сколько</label><select id="fx-season-density"><option value="low">Мало</option><option value="mid">Средне</option><option value="high">Много</option></select></div>
+    </div>
     <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><button class="mini" type="button" id="fx-bg-toggle" title="Листопад и другие сезонные частицы, параллакс-фон, салют и конфетти">Выключить фоновые эффекты</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
     <h2>Шрифт</h2>
     <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label></div>
@@ -13042,7 +13046,7 @@ function multiplesChart(){
     ["reveal", "Плавное появление блоков при прокрутке"],
     ["confetti", "Конфетти: день рождения, новое достижение, победа в дуэли"],
     ["fireworks", "Салют в «Итогах года» (декабрь и январь)"],
-    ["season", "Сезонные частицы: снег, лепестки, листопад"],
+    ["season", "Частицы на фоне (вид выбирается ниже)"],
     ["glow", "Свечение выделенной линии на графиках"],
     ["pulse", "Пульсирующая точка «сейчас» на линиях"],
     ["morph", "Плавная перестройка столбцов при смене периода"],
@@ -13208,37 +13212,102 @@ function multiplesChart(){
   let cT = 0;
   new MutationObserver(() => { clearTimeout(cT); cT = setTimeout(confettiCheck, 400); }).observe(document.querySelector("main") || document.body, {childList:true, subtree:true});
 
-  // ---------- Сезонные частицы ----------
+  // ---------- Частицы на фоне ----------
   const sc = document.createElement("canvas"); sc.id = "fx-season"; document.body.appendChild(sc);
-  const sctx = sc.getContext("2d"); let flakes = [], sraf = 0;
-  const season = () => { const m = new Date().getMonth(); return m === 11 || m <= 1 ? "snow" : m <= 4 ? "petals" : m <= 7 ? "fireflies" : "leaves"; };
+  const sctx = sc.getContext("2d"); let flakes = [], sraf = 0, sKind = "";
+  const PK_KEY = "chatstats.fxParticles.v1";
+  let PK = {kind:"auto", density:"mid"};
+  try { Object.assign(PK, JSON.parse(localStorage.getItem(PK_KEY) || "{}")); } catch (e) {}
+  // Виды частиц: цвета, размер, движение и отрисовка.
+  const KINDS = {
+    snow:{name:"❄️ Снег", col:["#ffffff"], r:[1, 3.2], vy:[.25, .8], vx:.4},
+    flakes:{name:"✳️ Снежинки-кристаллы", col:["#e8f4ff", "#ffffff", "#cfe6ff"], r:[3, 6], vy:[.2, .6], vx:.3, spin:true},
+    petals:{name:"🌸 Лепестки сакуры", col:["#ffc2d9", "#ffd6e8", "#ffb3c6"], r:[3, 6], vy:[.3, .8], vx:.5, spin:true},
+    fireflies:{name:"✨ Светлячки", col:["#fff3a0", "#d9ff8a"], r:[1.2, 2.8], vy:[-.15, .15], vx:.25, glow:true},
+    leaves:{name:"🍂 Листопад", col:["#e8a04b", "#d9712b", "#f2c14e", "#b5562a"], r:[3, 6], vy:[.35, .9], vx:.5, spin:true},
+    stars:{name:"⭐ Мерцающие звёзды", col:["#ffffff", "#fff6d5", "#d5e6ff"], r:[.6, 1.8], vy:[0, 0], vx:0, twinkle:true},
+    shooting:{name:"🌠 Звездопад", col:["#ffffff", "#d5e6ff"], r:[1, 1.8], vy:[2.5, 4.5], vx:0, shoot:true},
+    bubbles:{name:"🫧 Пузыри", col:["#9fd8ff", "#c7f0ff", "#b9b3ff"], r:[3, 9], vy:[-.7, -.25], vx:.3, ring:true},
+    rain:{name:"🌧 Дождь", col:["#9fb8d6"], r:[8, 16], vy:[6, 10], vx:-.8, streak:true},
+    hearts:{name:"💗 Сердечки", col:["#ff6b9d", "#ff9ecf", "#ff4d6d"], r:[4, 8], vy:[-.6, -.2], vx:.4, glyph:"♥"},
+    glitter:{name:"💎 Блёстки", col:["#ffd166", "#ffffff", "#67e8f9", "#ff9ecf", "#a78bfa"], r:[1, 2.4], vy:[.15, .45], vx:.3, twinkle:true, diamond:true},
+    embers:{name:"🔥 Искры костра", col:["#ffb347", "#ff7a1a", "#ffd166"], r:[1, 2.4], vy:[-1.1, -.4], vx:.5, glow:true},
+    fluff:{name:"🌼 Пух одуванчика", col:["#f4f1e8", "#ffffff"], r:[2, 3.5], vy:[-.1, .3], vx:.7, fluff:true},
+    digits:{name:"🔢 Падающие цифры", col:["#76f0b6", "#7aa2f7"], r:[9, 14], vy:[.6, 1.6], vx:0, digits:true},
+    chat:{name:"💬 Сообщения", col:["#ffffff"], r:[9, 15], vy:[-.5, -.2], vx:.3, emoji:["💬", "😂", "👍", "❤️", "🔥", "🎉", "😮"]},
+    notes:{name:"🎵 Ноты", col:["#c792ea", "#7dcfff", "#ffd166"], r:[9, 14], vy:[-.5, -.2], vx:.4, glyph:"♪"},
+  };
+  const seasonKind = () => { const m = new Date().getMonth(); return m === 11 || m <= 1 ? "snow" : m <= 4 ? "petals" : m <= 7 ? "fireflies" : "leaves"; };
+  const curKind = () => KINDS[PK.kind] ? PK.kind : seasonKind();
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function makeFlake(k, initial){
+    const K = KINDS[k];
+    const f = {x:Math.random() * innerWidth, y:initial ? Math.random() * innerHeight : (K.vy[1] < 0 ? innerHeight + 10 : -12), r:rnd(K.r[0], K.r[1]), vy:rnd(K.vy[0], K.vy[1]), vx:(Math.random() - .5) * K.vx, ph:Math.random() * 6, rot:Math.random() * 6, c:K.col[Math.floor(Math.random() * K.col.length)]};
+    if (K.shoot) { f.x = Math.random() * innerWidth * 1.2; f.y = initial ? Math.random() * innerHeight * .5 : -20; f.vx = -f.vy * .8; f.wait = Math.random() * 400; }
+    if (K.digits) f.ch = String(Math.floor(Math.random() * 10));
+    if (K.emoji) f.ch = K.emoji[Math.floor(Math.random() * K.emoji.length)];
+    return f;
+  }
   function seasonSync(){
     const want = on("season");
+    const sel = document.getElementById("fx-season-kind"), den = document.getElementById("fx-season-density");
+    if (sel && !sel.options.length) sel.innerHTML = `<option value="auto">По сезону (сейчас: ${KINDS[seasonKind()].name})</option>` + Object.entries(KINDS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+    if (sel) sel.value = KINDS[PK.kind] ? PK.kind : "auto";
+    if (den) den.value = PK.density;
     if (!want) { cancelAnimationFrame(sraf); sraf = 0; sctx.clearRect(0, 0, sc.width, sc.height); sc.hidden = true; return; }
-    sc.hidden = false; if (sraf) return;
+    sc.hidden = false;
+    const k = curKind();
+    if (sraf && sKind === k + PK.density) return;
+    cancelAnimationFrame(sraf); sKind = k + PK.density;
     sizeCv(sc);
-    const kind = season(), n = Math.round(Math.min(46, innerWidth / 36));
-    const col = {snow:["#ffffff"], petals:["#ffc2d9", "#ffd6e8", "#ffb3c6"], fireflies:["#fff3a0", "#d9ff8a"], leaves:["#e8a04b", "#d9712b", "#f2c14e", "#b5562a"]}[kind];
-    flakes = Array.from({length:n}, () => ({x:Math.random() * innerWidth, y:Math.random() * innerHeight, r:kind === "snow" ? 1 + Math.random() * 2.2 : kind === "fireflies" ? 1.2 + Math.random() * 1.6 : 3 + Math.random() * 3,
-      vy:kind === "fireflies" ? (Math.random() - .5) * .25 : .25 + Math.random() * .6, vx:(Math.random() - .5) * .4, ph:Math.random() * 6, rot:Math.random() * 6, c:col[Math.floor(Math.random() * col.length)]}));
+    const K = KINDS[k], mult = {low:.5, mid:1, high:1.9}[PK.density] || 1;
+    const base = K.stars || K.twinkle ? 70 : K.rain ? 90 : K.shoot ? 6 : K.digits || K.emoji || K.glyph ? 22 : 46;
+    const n = Math.round(Math.min(base * 1.6, base * mult * Math.min(1.4, innerWidth / 1300)));
+    flakes = Array.from({length:Math.max(3, n)}, () => makeFlake(k, true));
     const tick = () => {
       if (document.hidden) { sraf = requestAnimationFrame(tick); return; }
       sctx.clearRect(0, 0, innerWidth, innerHeight);
-      flakes.forEach(f => {
-        f.ph += .015; f.x += f.vx + Math.sin(f.ph) * .3; f.y += f.vy; f.rot += .01;
-        if (f.y > innerHeight + 10) { f.y = -10; f.x = Math.random() * innerWidth; } if (f.y < -12) f.y = innerHeight + 8;
-        if (f.x > innerWidth + 10) f.x = -10; if (f.x < -10) f.x = innerWidth + 10;
-        sctx.save(); sctx.translate(f.x, f.y); sctx.rotate(f.rot); sctx.fillStyle = f.c;
-        if (kind === "fireflies") { sctx.globalAlpha = .35 + .35 * Math.sin(f.ph * 3); sctx.shadowColor = f.c; sctx.shadowBlur = 8; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
-        else if (kind === "snow") { sctx.globalAlpha = .55; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
-        else { sctx.globalAlpha = .5; sctx.beginPath(); sctx.ellipse(0, 0, f.r, f.r * .55, 0, 0, 7); sctx.fill(); }
+      flakes.forEach((f, i) => {
+        if (K.shoot) {
+          if (f.wait > 0) { f.wait--; return; }
+          f.x += f.vx; f.y += f.vy;
+          if (f.y > innerHeight * .8 || f.x < -40) { flakes[i] = makeFlake(k, false); flakes[i].wait = 120 + Math.random() * 500; return; }
+          const g = sctx.createLinearGradient(f.x, f.y, f.x - f.vx * 18, f.y - f.vy * 18);
+          g.addColorStop(0, "rgba(255,255,255,.9)"); g.addColorStop(1, "rgba(255,255,255,0)");
+          sctx.strokeStyle = g; sctx.lineWidth = f.r; sctx.beginPath(); sctx.moveTo(f.x, f.y); sctx.lineTo(f.x - f.vx * 18, f.y - f.vy * 18); sctx.stroke();
+          return;
+        }
+        f.ph += .015; f.rot += K.spin ? .012 : 0;
+        f.x += f.vx + (K.rain || K.digits ? 0 : Math.sin(f.ph) * (K.fluff ? .6 : .3)); f.y += f.vy;
+        if (f.y > innerHeight + 20) { Object.assign(f, makeFlake(k, false)); f.y = -15; }
+        if (f.y < -20) { Object.assign(f, makeFlake(k, false)); f.y = innerHeight + 15; }
+        if (f.x > innerWidth + 20) f.x = -20; if (f.x < -20) f.x = innerWidth + 20;
+        sctx.save(); sctx.translate(f.x, f.y); sctx.rotate(f.rot); sctx.fillStyle = f.c; sctx.strokeStyle = f.c;
+        if (K.twinkle) sctx.globalAlpha = .25 + .6 * Math.abs(Math.sin(f.ph * 2.2));
+        else if (K.glow) { sctx.globalAlpha = .35 + .4 * Math.sin(f.ph * 3); sctx.shadowColor = f.c; sctx.shadowBlur = 8; }
+        else sctx.globalAlpha = K.rain ? .35 : .55;
+        if (K.rain) { sctx.lineWidth = 1; sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(f.vx * 2, f.r); sctx.stroke(); }
+        else if (K.ring) { sctx.lineWidth = 1.2; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.stroke(); sctx.globalAlpha *= .6; sctx.beginPath(); sctx.arc(-f.r * .35, -f.r * .35, f.r * .25, 0, 7); sctx.fill(); }
+        else if (K.diamond) { sctx.beginPath(); sctx.moveTo(0, -f.r * 1.6); sctx.lineTo(f.r, 0); sctx.lineTo(0, f.r * 1.6); sctx.lineTo(-f.r, 0); sctx.closePath(); sctx.fill(); }
+        else if (k === "flakes") { sctx.lineWidth = 1; for (let a = 0; a < 6; a++) { sctx.rotate(Math.PI / 3); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r); sctx.moveTo(0, f.r * .6); sctx.lineTo(f.r * .25, f.r * .8); sctx.moveTo(0, f.r * .6); sctx.lineTo(-f.r * .25, f.r * .8); sctx.stroke(); } }
+        else if (K.fluff) { sctx.lineWidth = .8; for (let a = 0; a < 8; a++) { sctx.rotate(Math.PI / 4); sctx.beginPath(); sctx.moveTo(0, 0); sctx.lineTo(0, f.r * 1.8); sctx.stroke(); } }
+        else if (K.digits || K.emoji || K.glyph) { sctx.rotate(-f.rot); sctx.font = `${Math.round(f.r * 1.4)}px "Segoe UI Emoji","Apple Color Emoji",system-ui,sans-serif`; sctx.textAlign = "center"; sctx.fillText(f.ch || K.glyph, 0, 0); if (K.digits && Math.random() < .01) f.ch = String(Math.floor(Math.random() * 10)); }
+        else if (k === "snow" || k === "stars" || K.glow) { sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
+        else { sctx.beginPath(); sctx.ellipse(0, 0, f.r, f.r * .55, 0, 0, 7); sctx.fill(); }
         sctx.restore();
       });
       sraf = requestAnimationFrame(tick);
     };
     sraf = requestAnimationFrame(tick);
   }
-  addEventListener("resize", () => { if (sraf) { cancelAnimationFrame(sraf); sraf = 0; seasonSync(); } });
+  document.addEventListener("change", e => {
+    if (e.target.id === "fx-season-kind") { PK.kind = e.target.value; }
+    else if (e.target.id === "fx-season-density") { PK.density = e.target.value; }
+    else return;
+    try { localStorage.setItem(PK_KEY, JSON.stringify(PK)); } catch (err) {}
+    if (!FX.season) { FX.season = true; save(); applyAll(); } else seasonSync();
+  });
+  addEventListener("resize", () => { if (sraf) { cancelAnimationFrame(sraf); sraf = 0; sKind = ""; seasonSync(); } });
 
   // ---------- Свечение выделенной линии ----------
   function glowDefs(svg){
@@ -13280,6 +13349,9 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-8", date:"2026-10-23", title:"Выбор частиц на фоне", items:[
+    {tag:"new", area:"Настройки", text:"В «Эффектах» можно выбрать, что летает на фоне: по сезону (как раньше) или любой из 16 видов — снег, снежинки-кристаллы, лепестки сакуры, светлячки, листопад, мерцающие звёзды, звездопад, пузыри, дождь, сердечки, блёстки, искры костра, пух одуванчика, падающие цифры, сообщения-эмодзи и ноты. И сколько: мало, средне или много."},
+  ]},
   {v:"2026.10.23-7", date:"2026-10-23", title:"Аккуратные края карточек", items:[
     {tag:"fix", area:"Достижения", text:"Эффекты больше не выступают за карточку: цветная полоса слева повторяет скругление углов, бегущая рамка идёт ровно по границе, а при наклоне не появляется лишняя внешняя обводка сверху и снизу."},
   ]},
