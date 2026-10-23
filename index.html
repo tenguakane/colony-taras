@@ -1223,6 +1223,26 @@ body.filter-colors .filters .field[data-fcat] > label{background:color-mix(in sr
 [data-fcat="period"]{--fc:#7aa2f7}[data-fcat="scope"]{--fc:#9ece6a}[data-fcat="what"]{--fc:#bb9af7}[data-fcat="amount"]{--fc:#e0af68}[data-fcat="look"]{--fc:#2ac3de}[data-fcat="export"]{--fc:#8a90a2}[data-fcat="opts"]{--fc:#f7768e}[data-fcat="data"]{--fc:#ff9e64}
 .fcat-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 0;font-size:12.5px;color:var(--muted)}
 .fcat-legend i{display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--fc);margin-right:6px;vertical-align:3px}
+/* ===================== 3D-наклон и голографические блики ===================== */
+.holo-on{position:relative;transform-style:preserve-3d;will-change:transform;transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.holo-on.holo-active{transition:transform .08s linear,box-shadow .3s;transform:perspective(var(--hp,900px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0) scale(var(--hs,1.015))}
+.holo-glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;transition:opacity .35s;overflow:hidden}
+.holo-active > .holo-glare{opacity:1}
+/* блик, который бегает за курсором */
+.holo-glare::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,var(--ga,.22)) 0%,rgba(255,255,255,0) 55%);mix-blend-mode:overlay}
+/* металл: диагональная полоса */
+.holo-k-metal > .holo-glare::after,.holo-k-gold > .holo-glare::after{content:"";position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.18) 48%,rgba(255,255,255,.04) 52%,transparent 60%);transform:translate(calc((var(--mxn,0.5) - .5) * 60%),calc((var(--myn,0.5) - .5) * 60%));mix-blend-mode:screen}
+.holo-k-gold > .holo-glare::after{background:linear-gradient(115deg,transparent 38%,rgba(255,214,120,.32) 47%,rgba(255,255,255,.12) 51%,transparent 62%)}
+.holo-k-gold > .holo-glare{background-image:radial-gradient(1.5px 1.5px at 18% 30%,#fff8,transparent),radial-gradient(1.5px 1.5px at 72% 22%,#fff9,transparent),radial-gradient(1px 1px at 40% 75%,#fff8,transparent),radial-gradient(1.5px 1.5px at 85% 68%,#fff7,transparent),radial-gradient(1px 1px at 58% 45%,#fff9,transparent);animation:holoTwinkle 2.4s ease-in-out infinite}
+@keyframes holoTwinkle{0%,100%{filter:brightness(1)}50%{filter:brightness(1.8)}}
+/* радужная голограмма: переливы, которые двигаются при наклоне */
+.holo-k-rainbow > .holo-glare::after,.holo-k-foil > .holo-glare::after{content:"";position:absolute;inset:-50%;background:repeating-linear-gradient(120deg,#ff6ad5 0%,#ffd166 6%,#76f0b6 12%,#67e8f9 18%,#a78bfa 24%,#ff6ad5 30%);background-size:200% 200%;background-position:calc(var(--mxn,.5) * 100%) calc(var(--myn,.5) * 100%);mix-blend-mode:screen;opacity:var(--ra,.24);filter:saturate(1.3);-webkit-mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%);mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%)}
+.holo-k-foil > .holo-glare::after{opacity:var(--ra,.12)}
+.holo-k-rainbow > .holo-glare{background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.035) 3px 4px)}
+/* статичный намёк на голограмму у алмазных достижений и постера, даже без наведения */
+.ach-card[data-tier="diamond"]:not(.locked){background-image:linear-gradient(125deg,transparent 30%,rgba(103,232,249,.07) 45%,rgba(167,139,250,.07) 55%,transparent 70%)}
+.holo-active{box-shadow:0 18px 40px -18px #000c,0 0 0 1px color-mix(in srgb,var(--holo-c,#fff) 30%,transparent)}
+@media (prefers-reduced-motion: reduce){.holo-on.holo-active{transform:none}.holo-k-gold > .holo-glare{animation:none}}
 .hub-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .hub-hero h2{margin:0;font-size:26px}.hub-hero .hint{margin:4px 0 0}
 .hub-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 6px}
@@ -1780,6 +1800,8 @@ body.filter-colors .filters .field[data-fcat] > label{background:color-mix(in sr
     <p class="hint">Все темы тёмные: тема задаёт цвет акцентов (кнопки, подсветка, ссылки), а «Фон» — оттенок тёмной основы. Меняет цвета всего сайта и таблиц, в том числе в скопированных картинках. Цвета графиков настраиваются отдельно через «⚙ Настройка».</p>
     <div class="quick-ranges" id="theme-bases" role="group" aria-label="Фон сайта" style="margin:0 0 10px"></div>
     <div class="theme-grid" id="theme-grid"></div>
+    <h2>Эффекты</h2>
+    <div class="filters"><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
     <h2>Шрифт</h2>
     <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label></div>
     <h2>Фильтры</h2>
@@ -11236,7 +11258,7 @@ function multiplesChart(){
   function cardHtml(x){
     const a = x.a, c = TIERS[x.tier], d = LAST.res.d, note = a.note(d);
     const bar = x.maxed ? "" : `<div class="ach-prog"><i style="width:${Math.round(x.pr * 100)}%"></i></div>`;
-    return `<div class="ach-card${x.level <= 0 ? " locked" : ""}${x.maxed ? " max" : ""}" style="--tc:${c}" title="${escH(a.desc)}">
+    return `<div class="ach-card${x.level <= 0 ? " locked" : ""}${x.maxed ? " max" : ""}" data-tier="${x.level <= 0 ? "none" : x.tier}" style="--tc:${c}" title="${escH(a.desc)}">
       <div class="ach-ico">${svgIcon(a.icon)}</div>
       <div><div class="ach-top"><h3>${a.name}</h3><span class="ach-lvl">${lvlLabel(x)}</span></div>
         <p class="ach-desc">${escH(a.desc)}</p>
@@ -12833,9 +12855,98 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== 3D-наклон и голографические блики на карточках ===================== */
+(function(){
+  const KEY = "chatstats.holo.v1";
+  // Где и как: max — наклон в градусах, kind — вид блика.
+  const TARGETS = [
+    {sel:'.ach-card:not(.locked)[data-tier="diamond"]', kind:"rainbow", max:12},
+    {sel:'.ach-card:not(.locked)[data-tier="gold"]', kind:"gold", max:11},
+    {sel:'.ach-card:not(.locked)[data-tier="silver"], .ach-card:not(.locked)[data-tier="bronze"]', kind:"metal", max:10},
+    {sel:".ach-hero", kind:"foil", max:5, persp:1400},
+    {sel:".p-hero", kind:"foil", max:5, persp:1400},
+    {sel:".yr-poster", kind:"rainbow", max:4, persp:1800, ra:.12, scale:1.005},
+    {sel:".cmp-side", kind:"metal", max:9},
+    {sel:".bd-banner", kind:"gold", max:4, persp:1400},
+    {sel:".yr-pod", kind:"metal", max:10},
+    {sel:".hub-kpi", kind:"foil", max:7},
+    {sel:".theme-card", kind:"metal", max:12},
+  ];
+  const ALL = TARGETS.map(t => t.sel).join(",");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let on = true;
+  try { on = localStorage.getItem(KEY) !== "0"; } catch (e) {}
+  let cur = null;
+  const cfgOf = el => TARGETS.find(t => el.matches(t.sel));
+  function prep(el, cfg){
+    if (!el.classList.contains("holo-on")) {
+      el.classList.add("holo-on", "holo-k-" + cfg.kind);
+      if (!el.querySelector(":scope > .holo-glare")) { const g = document.createElement("span"); g.className = "holo-glare"; g.setAttribute("aria-hidden", "true"); g.dataset.noExport = "1"; el.appendChild(g); }
+      if (cfg.persp) el.style.setProperty("--hp", cfg.persp + "px");
+      if (cfg.ra) el.style.setProperty("--ra", cfg.ra);
+      if (cfg.scale) el.style.setProperty("--hs", cfg.scale);
+      const c = getComputedStyle(el).getPropertyValue("--tc") || getComputedStyle(el).getPropertyValue("--p-color") || getComputedStyle(el).getPropertyValue("--c");
+      if (c.trim()) el.style.setProperty("--holo-c", c.trim());
+    }
+  }
+  function set(el, cfg, px, py){
+    el.style.setProperty("--rx", ((.5 - py) * cfg.max).toFixed(2) + "deg");
+    el.style.setProperty("--ry", ((px - .5) * cfg.max).toFixed(2) + "deg");
+    el.style.setProperty("--mx", (px * 100).toFixed(1) + "%"); el.style.setProperty("--my", (py * 100).toFixed(1) + "%");
+    el.style.setProperty("--mxn", px.toFixed(3)); el.style.setProperty("--myn", py.toFixed(3));
+  }
+  function release(el){ if (!el) return; el.classList.remove("holo-active"); el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg"); }
+  document.addEventListener("pointermove", e => {
+    if (!on || reduce.matches || e.pointerType === "touch") return;
+    const el = e.target.closest ? e.target.closest(ALL) : null;
+    if (el !== cur) { release(cur); cur = el; }
+    if (!el) return;
+    const cfg = cfgOf(el); if (!cfg) return;
+    prep(el, cfg);
+    const r = el.getBoundingClientRect();
+    set(el, cfg, Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)));
+    el.classList.add("holo-active");
+  }, {passive:true});
+  document.addEventListener("pointerleave", () => { release(cur); cur = null; });
+  document.addEventListener("scroll", () => { if (cur) { release(cur); cur = null; } }, {passive:true, capture:true});
+  // Телефон: наклон по гироскопу для карточек на экране.
+  let gyroAsked = false, gyroOn = false;
+  function onOrient(ev){
+    if (!on || reduce.matches || ev.gamma == null) return;
+    const px = Math.min(1, Math.max(0, .5 + ev.gamma / 50)), py = Math.min(1, Math.max(0, .5 + (ev.beta - 45) / 50));
+    const vh = innerHeight;
+    document.querySelectorAll(".tab.active " + TARGETS.map(t => t.sel).join(", .tab.active ")).forEach(el => {
+      const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > vh) return;
+      const cfg = cfgOf(el); if (!cfg) return; prep(el, cfg); set(el, {max:cfg.max * .7}, px, py); el.classList.add("holo-active");
+    });
+  }
+  function startGyro(){
+    if (gyroOn || !window.DeviceOrientationEvent || !matchMedia("(pointer:coarse)").matches) return;
+    const go = () => { gyroOn = true; addEventListener("deviceorientation", onOrient, {passive:true}); };
+    if (typeof DeviceOrientationEvent.requestPermission === "function") {
+      if (gyroAsked) return; gyroAsked = true;
+      DeviceOrientationEvent.requestPermission().then(r => { if (r === "granted") go(); }).catch(() => {});
+    } else go();
+  }
+  document.addEventListener("touchend", () => { if (on) startGyro(); }, {passive:true, once:false});
+  function apply(){
+    const c = document.getElementById("set-holo"); if (c) c.checked = on;
+    if (!on) { document.querySelectorAll(".holo-active").forEach(release); }
+  }
+  document.addEventListener("change", e => { if (e.target.id === "set-holo") { on = e.target.checked; try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (err) {} apply(); } });
+  apply();
+})();
+</script>
+<script>
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-1", date:"2026-10-23", title:"3D-наклон и голографические карточки", items:[
+    {tag:"new", area:"Достижения", text:"Карточки уровней наклоняются за курсором и бликуют по-своему: бронза и серебро — металлическая полоса, золото — тёплый блик с искрами, алмаз — радужная голограмма (лёгкий отлив виден и без наведения). Неполученные остаются матовыми."},
+    {tag:"new", area:"Профиль", text:"Шапка участника и шапка достижений — «карта игрока»: мягкий наклон и голографическая плёнка."},
+    {tag:"new", area:"Везде", text:"Тот же эффект на постере «Итогов года», карточках дуэли в «Сравнении», пьедестале, баннере именинника, плитках Хаба и карточках тем в Настройках. На телефоне карточки наклоняются по гироскопу."},
+    {tag:"new", area:"Настройки", text:"Раздел «Эффекты»: эффект можно выключить. При системной настройке «уменьшить движение» он не включается."},
+  ]},
   {v:"2026.10.22-11", date:"2026-10-22", title:"Прогноз на «По годам» в новом стиле", items:[
     {tag:"imp", area:"Графики", text:"На «По годам» прогноз текущего года нарисован как на «Динамике»: пунктир от сегодняшнего дня, полоса вероятного разброса и ожидаемый итог у конца линии (≈). В подсказке прогноз стоит в одном списке с прошлыми годами, на последний день — с диапазоном."},
     {tag:"fix", area:"Графики", text:"Прогноз больше не отдельная линия «Прогноз»: при «Выделить: 2026» он остаётся виден вместе с линией года, при выделении другого года — затемняется."},
