@@ -1254,6 +1254,11 @@ body.holo-text-on :is(
   .ach-card[data-tier="diamond"]:not(.locked) h3,
   .holo-text
 ){background-image:linear-gradient(100deg,#ffd166 0%,#ff9ecf 18%,#67e8f9 36%,#a78bfa 54%,#76f0b6 72%,#ffd166 90%);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:holoText 7s linear infinite;filter:drop-shadow(0 0 6px rgba(167,139,250,.25))}
+/* 2 и 3 место: тот же перелив, но скромнее — серебро и бронза, медленнее и без свечения */
+body.holo-text-on :is(tr:has(> td.medal-2) > td:nth-child(2),.dm-table tr:has(> td.medal-2) .dm-name .pname){background-image:linear-gradient(100deg,#9aa6bd 0%,#ffffff 16%,#7f8aa1 36%,#dfe6f2 56%,#8e99b0 78%,#9aa6bd 100%);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:holoText 10s linear infinite}
+body.holo-text-on :is(tr:has(> td.medal-3) > td:nth-child(2),.dm-table tr:has(> td.medal-3) .dm-name .pname){background-image:linear-gradient(100deg,#e3a36b 0%,#f3c79a 30%,#b8784a 55%,#e3a36b 80%,#e3a36b 100%);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:holoText 14s linear infinite}
+body.holo-text-on :is(tr:has(> td.medal-2),tr:has(> td.medal-3)) > td:nth-child(2) :is(.row-exclude-btn,.goal-mini){-webkit-text-fill-color:initial}
+@media (prefers-reduced-motion: reduce){body.holo-text-on :is(tr:has(> td.medal-2),tr:has(> td.medal-3)) > td:nth-child(2),body.holo-text-on .dm-table :is(tr:has(> td.medal-2),tr:has(> td.medal-3)) .dm-name .pname{animation:none}}
 body.holo-text-on tr:has(> td.medal-1) > td:nth-child(2) .row-exclude-btn,body.holo-text-on tr:has(> td.medal-1) > td:nth-child(2) .goal-mini{-webkit-text-fill-color:initial}
 @media (prefers-reduced-motion: reduce){body.holo-text-on :is(tr:has(> td.medal-1) > td:nth-child(2),.dm-table tr:has(> td.medal-1) .dm-name .pname,.cmp-side.win .cmp-name,.yr-award-name,.ach-card.max h3,.holo-text){animation:none}}
 /* ===================== Эффекты (каждый включается отдельно в Настройках → «Эффекты») ===================== */
@@ -1871,7 +1876,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
     <div class="quick-ranges" id="theme-bases" role="group" aria-label="Фон сайта" style="margin:0 0 10px"></div>
     <div class="theme-grid" id="theme-grid"></div>
     <h2>Эффекты</h2>
-    <div class="filters"><label class="checkline" title="Имя первого места в таблицах, победитель дуэли, номинанты «Итогов года» и максимальные достижения переливаются голографическим градиентом. В скопированных картинках — обычный текст"><input type="checkbox" id="set-holo-text">Переливающийся текст у победителей</label><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
+    <div class="filters"><label class="checkline" title="Призовые места в таблицах (1 — радужный перелив, 2 — серебряный, 3 — бронзовый), победитель дуэли, номинанты «Итогов года» и максимальные достижения переливаются голографическим градиентом. В скопированных картинках — обычный текст"><input type="checkbox" id="set-holo-text">Переливающийся текст у победителей</label><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
     <div class="filters" id="fx-list"></div>
     <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><button class="mini" type="button" id="fx-bg-toggle" title="Листопад и другие сезонные частицы, параллакс-фон, салют и конфетти">Выключить фоновые эффекты</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
     <h2>Шрифт</h2>
@@ -13274,6 +13279,9 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-6", date:"2026-10-23", title:"Перелив у всех призовых мест", items:[
+    {tag:"imp", area:"Везде", text:"В таблицах переливаются все три призовых места: 1-е — радужный голографический перелив со свечением, 2-е — серебряный, помедленнее и без свечения, 3-е — бронзовый, ещё спокойнее. В скопированных картинках — обычный текст."},
+  ]},
   {v:"2026.10.23-5", date:"2026-10-23", title:"Кнопка для фоновых эффектов", items:[
     {tag:"new", area:"Настройки", text:"В «Эффектах» кнопка «Выключить фоновые эффекты»: одним нажатием убирает листопад и другие сезонные частицы, параллакс-фон, салют и конфетти, остальные эффекты остаются. Повторное нажатие включает их обратно."},
   ]},
