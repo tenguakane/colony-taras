@@ -922,7 +922,7 @@ input[type=date]::-webkit-calendar-picker-indicator:hover,input[type=month]::-we
 .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
 .ach-card{--tc:#4a5060;position:relative;display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;padding:14px;border:1px solid color-mix(in srgb,var(--tc) 50%,var(--line));border-radius:16px;background:linear-gradient(160deg,color-mix(in srgb,var(--tc) 11%,var(--panel-2)),var(--panel));overflow:hidden;transition:transform .15s,border-color .15s}
 .ach-card:hover{transform:translateY(-2px)}
-.ach-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc);opacity:.9}
+.ach-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tc);opacity:.9;border-top-left-radius:inherit;border-bottom-left-radius:inherit}
 .ach-card.locked{filter:saturate(.35);opacity:.75}
 .ach-card.max{box-shadow:0 0 0 1px color-mix(in srgb,var(--tc) 60%,transparent),0 0 24px -6px var(--tc)}
 .ach-ico{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:var(--tc);background:radial-gradient(circle at 30% 25%,color-mix(in srgb,var(--tc) 38%,transparent),color-mix(in srgb,var(--tc) 8%,transparent));border:1px solid color-mix(in srgb,var(--tc) 55%,transparent)}
@@ -1224,24 +1224,24 @@ body.filter-colors .filters .field[data-fcat] > label{background:color-mix(in sr
 .fcat-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 0;font-size:12.5px;color:var(--muted)}
 .fcat-legend i{display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--fc);margin-right:6px;vertical-align:3px}
 /* ===================== 3D-наклон и голографические блики ===================== */
-.holo-on{position:relative;transform-style:preserve-3d;will-change:transform;transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.holo-on{position:relative;will-change:transform;backface-visibility:hidden;transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
 .holo-on.holo-active{transition:transform .08s linear,box-shadow .3s;transform:perspective(var(--hp,900px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0) scale(var(--hs,1.015))}
-.holo-glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;transition:opacity .35s;overflow:hidden}
+.holo-glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;transition:opacity .35s;overflow:hidden;clip-path:inset(0 round var(--holo-r,16px))}
 .holo-active > .holo-glare{opacity:1}
 /* блик, который бегает за курсором */
 .holo-glare::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,var(--ga,.22)) 0%,rgba(255,255,255,0) 55%);mix-blend-mode:overlay}
 /* металл: диагональная полоса */
-.holo-k-metal > .holo-glare::after,.holo-k-gold > .holo-glare::after{content:"";position:absolute;inset:-40%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.18) 48%,rgba(255,255,255,.04) 52%,transparent 60%);transform:translate(calc((var(--mxn,0.5) - .5) * 60%),calc((var(--myn,0.5) - .5) * 60%));mix-blend-mode:screen}
+.holo-k-metal > .holo-glare::after,.holo-k-gold > .holo-glare::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.18) 48%,rgba(255,255,255,.04) 52%,transparent 60%);background-size:260% 260%;background-position:calc(var(--mxn,0.5) * 100%) calc(var(--myn,0.5) * 100%);mix-blend-mode:screen}
 .holo-k-gold > .holo-glare::after{background:linear-gradient(115deg,transparent 38%,rgba(255,214,120,.32) 47%,rgba(255,255,255,.12) 51%,transparent 62%)}
 .holo-k-gold > .holo-glare{background-image:radial-gradient(1.5px 1.5px at 18% 30%,#fff8,transparent),radial-gradient(1.5px 1.5px at 72% 22%,#fff9,transparent),radial-gradient(1px 1px at 40% 75%,#fff8,transparent),radial-gradient(1.5px 1.5px at 85% 68%,#fff7,transparent),radial-gradient(1px 1px at 58% 45%,#fff9,transparent);animation:holoTwinkle 2.4s ease-in-out infinite}
 @keyframes holoTwinkle{0%,100%{filter:brightness(1)}50%{filter:brightness(1.8)}}
 /* радужная голограмма: переливы, которые двигаются при наклоне */
-.holo-k-rainbow > .holo-glare::after,.holo-k-foil > .holo-glare::after{content:"";position:absolute;inset:-50%;background:repeating-linear-gradient(120deg,#ff6ad5 0%,#ffd166 6%,#76f0b6 12%,#67e8f9 18%,#a78bfa 24%,#ff6ad5 30%);background-size:200% 200%;background-position:calc(var(--mxn,.5) * 100%) calc(var(--myn,.5) * 100%);mix-blend-mode:screen;opacity:var(--ra,.24);filter:saturate(1.3);-webkit-mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%);mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%)}
+.holo-k-rainbow > .holo-glare::after,.holo-k-foil > .holo-glare::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(120deg,#ff6ad5 0%,#ffd166 6%,#76f0b6 12%,#67e8f9 18%,#a78bfa 24%,#ff6ad5 30%);background-size:200% 200%;background-position:calc(var(--mxn,.5) * 100%) calc(var(--myn,.5) * 100%);mix-blend-mode:screen;opacity:var(--ra,.24);filter:saturate(1.3);-webkit-mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%);mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%)}
 .holo-k-foil > .holo-glare::after{opacity:var(--ra,.12)}
 .holo-k-rainbow > .holo-glare{background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.035) 3px 4px)}
 /* статичный намёк на голограмму у алмазных достижений и постера, даже без наведения */
 .ach-card[data-tier="diamond"]:not(.locked){background-image:linear-gradient(125deg,transparent 30%,rgba(103,232,249,.07) 45%,rgba(167,139,250,.07) 55%,transparent 70%)}
-.holo-active{box-shadow:0 18px 40px -18px #000c,0 0 0 1px color-mix(in srgb,var(--holo-c,#fff) 30%,transparent)}
+.holo-active{box-shadow:0 18px 40px -18px #000c}
 @media (prefers-reduced-motion: reduce){.holo-on.holo-active{transform:none}.holo-k-gold > .holo-glare{animation:none}}
 /* ===================== Голографический переливающийся текст у победителей ===================== */
 @keyframes holoText{to{background-position:300% 50%}}
@@ -1289,7 +1289,7 @@ body.fx-type .yr-facts li.fx-typing{animation:fxType var(--ty-dur,1.2s) steps(va
 /* Анимированная рамка у победителей */
 @keyframes fxSpin{to{--fx-ang:360deg}}
 body.fx-border :is(.cmp-side.win,.bd-banner,.ach-card.max,.ach-card[data-tier="diamond"]:not(.locked)){position:relative;isolation:isolate}
-body.fx-border :is(.cmp-side.win,.bd-banner,.ach-card.max,.ach-card[data-tier="diamond"]:not(.locked))::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--fx-ang),transparent 0 55%,var(--fx-bc,#ffd166) 70%,#ff9ecf 78%,#67e8f9 86%,transparent 92%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:fxSpin 4s linear infinite;pointer-events:none;z-index:2}
+body.fx-border :is(.cmp-side.win,.bd-banner,.ach-card.max,.ach-card[data-tier="diamond"]:not(.locked))::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--fx-ang),transparent 0 55%,var(--fx-bc,#ffd166) 70%,#ff9ecf 78%,#67e8f9 86%,transparent 92%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:fxSpin 4s linear infinite;pointer-events:none;z-index:2}
 body.fx-border .cmp-side.win{--fx-bc:var(--c)}
 /* Стекло для всплывающих панелей */
 body.fx-glass :is(.tip,.dm-pop,.opt-pop .opt-list,.pick .pop,.nav-sheet){background:color-mix(in srgb,var(--panel) 72%,transparent)!important;backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);border-color:#ffffff1f!important}
@@ -12960,6 +12960,7 @@ function multiplesChart(){
     if (!el.classList.contains("holo-on")) {
       el.classList.add("holo-on", "holo-k-" + cfg.kind);
       if (!el.querySelector(":scope > .holo-glare")) { const g = document.createElement("span"); g.className = "holo-glare"; g.setAttribute("aria-hidden", "true"); g.dataset.noExport = "1"; el.appendChild(g); }
+      el.style.setProperty("--holo-r", getComputedStyle(el).borderTopLeftRadius || "16px");
       if (cfg.persp) el.style.setProperty("--hp", cfg.persp + "px");
       if (cfg.ra) el.style.setProperty("--ra", cfg.ra);
       if (cfg.scale) el.style.setProperty("--hs", cfg.scale);
@@ -13279,6 +13280,9 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-7", date:"2026-10-23", title:"Аккуратные края карточек", items:[
+    {tag:"fix", area:"Достижения", text:"Эффекты больше не выступают за карточку: цветная полоса слева повторяет скругление углов, бегущая рамка идёт ровно по границе, а при наклоне не появляется лишняя внешняя обводка сверху и снизу."},
+  ]},
   {v:"2026.10.23-6", date:"2026-10-23", title:"Перелив у всех призовых мест", items:[
     {tag:"imp", area:"Везде", text:"В таблицах переливаются все три призовых места: 1-е — радужный голографический перелив со свечением, 2-е — серебряный, помедленнее и без свечения, 3-е — бронзовый, ещё спокойнее. В скопированных картинках — обычный текст."},
   ]},
