@@ -13889,6 +13889,10 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-16", date:"2026-10-23", title:"Скрытые столбцы без пустого места", items:[
+    {tag:"fix", area:"Таблицы", text:"После скрытия столбца остальные столбцы растягиваются на всю ширину таблицы — справа больше не остаётся пустое место, в том числе у таблиц с вручную заданной шириной столбцов."},
+    {tag:"fix", area:"Статистика", text:"Переключатель «Участники / Чаты»: кнопки снова помещаются в рамку и одной высоты с ней. То же исправлено у вкладок разделов в «Другом»."},
+  ]},
   {v:"2026.10.23-15", date:"2026-10-23", title:"Надёжное облако селфи, топ-25 и скрытие столбцов", items:[
     {tag:"fix", area:"Селфи", text:"Облако больше не теряет новые отметки после обновления или замены файла сайта: при открытии база всегда загружается из облака целиком, а встроенная база используется только при самом первом запуске."},
     {tag:"fix", area:"Селфи", text:"Защита от случайного удаления: если копия в браузере устарела, массовые удаления в облако не отправляются, а база обновляется из облака. Импорт из Excel и отмена по-прежнему заменяют базу."},
@@ -14981,7 +14985,9 @@ body:not(.fv3-off) .opt-pop .opt-n{background:color-mix(in srgb,var(--text) 12%,
 body:not(.fv3-off) .filters .field .pick summary{font-size:14.5px;padding:0 12px}
 /* цветные метки фильтров — тише */
 body.filter-colors:not(.fv3-off) .filters .field[data-fcat],body.filter-colors:not(.fv3-off) .filters .checkline[data-fcat]{box-shadow:inset 0 0 0 1px var(--fv4-line),inset 0 2px 0 color-mix(in srgb,var(--fc) 38%,transparent)}
-@media (min-width:721px){body:not(.fv3-off) .stat-subnav button,body:not(.fv3-off) .group-tabs button{height:40px;font-size:15px}}
+@media (min-width:721px){body:not(.fv3-off) .stat-subnav button,body:not(.fv3-off) .group-tabs button{height:40px;min-height:40px;font-size:15px}
+  /* рамка переключателя подстраивается под кнопки (иначе кнопки вылезают за неё) */
+  body:not(.fv3-off) .stat-subnav,body:not(.fv3-off) .group-tabs{height:auto;min-height:0;align-items:center}}
 body.filter-colors:not(.fv3-off) .filters .field[data-fcat] > label{background:transparent;color:color-mix(in srgb,var(--fc) 30%,var(--muted))}
 /* ---------- выпадающий список: просторнее и крупнее ---------- */
 .msel{gap:8px;max-width:320px;padding:0 36px 0 14px;font-size:15px}
@@ -15914,7 +15920,9 @@ body.tb-on .chart:has(svg.heatrows-svg){border:1.5px solid transparent;backgroun
       const hid = hiddenIdx(t, cols);
       if (hid.length) {
         const sel = hid.map(i => `table[data-hc="${t.dataset.hc}"] > :is(thead,tbody,tfoot) > tr:not(:has(> [colspan], > [data-hc-cs])) > :nth-child(${i + 1})`).join(",");
-        css += sel + "{display:none!important}\n";
+        // Вместе с ячейками прячем и <col> с сохранённой шириной — иначе справа остаётся пустой столбец.
+        const colSel = hid.map(i => `table[data-hc="${t.dataset.hc}"] > colgroup > col:nth-child(${i + 1})`).join(",");
+        css += sel + "," + colSel + "{display:none!important}\n";
       }
       if (hid.length || t.querySelector("[data-hc-cs]")) fixSpans(t, hid);
       const b = t.__hcBtn; if (b) { b.classList.toggle("has", hid.length > 0); b.querySelector("b").textContent = hid.length ? String(hid.length) : ""; b.querySelector("b").hidden = !hid.length; }
