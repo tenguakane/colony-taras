@@ -1256,6 +1256,63 @@ body.holo-text-on :is(
 ){background-image:linear-gradient(100deg,#ffd166 0%,#ff9ecf 18%,#67e8f9 36%,#a78bfa 54%,#76f0b6 72%,#ffd166 90%);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:holoText 7s linear infinite;filter:drop-shadow(0 0 6px rgba(167,139,250,.25))}
 body.holo-text-on tr:has(> td.medal-1) > td:nth-child(2) .row-exclude-btn,body.holo-text-on tr:has(> td.medal-1) > td:nth-child(2) .goal-mini{-webkit-text-fill-color:initial}
 @media (prefers-reduced-motion: reduce){body.holo-text-on :is(tr:has(> td.medal-1) > td:nth-child(2),.dm-table tr:has(> td.medal-1) .dm-name .pname,.cmp-side.win .cmp-name,.yr-award-name,.ach-card.max h3,.holo-text){animation:none}}
+/* ===================== Эффекты (каждый включается отдельно в Настройках → «Эффекты») ===================== */
+@property --fx-ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+/* Табло: цифры прокручиваются вертикально */
+fx-odo{display:inline-flex;align-items:flex-end;overflow:hidden;vertical-align:bottom;line-height:1.15;font:inherit;color:inherit}
+/* пока крутится табло, блеск выключен — иначе цифры прозрачны */
+.fx-odo-run,.fx-odo-run *{-webkit-text-fill-color:currentColor!important;background-image:none!important;animation-name:none!important}
+fx-t{display:inline-block;white-space:pre;height:1.15em;line-height:1.15em}
+fx-d{display:inline-block;height:1.15em;overflow:hidden;position:relative;font:inherit}
+fx-d > fx-s{display:flex;flex-direction:column;transition:transform var(--odo-dur,900ms) cubic-bezier(.2,.8,.2,1)}
+fx-d > fx-s > fx-i{display:block;font-style:normal;height:1.15em;line-height:1.15em}
+/* Золотой блеск: одна полоса раз в несколько секунд */
+@keyframes fxShimmer{0%,78%{background-position:-160% 0}100%{background-position:260% 0}}
+body.fx-shimmer :is(.tile .num,.hub-kpi .v,.cmp-total,.dm-grand){background-image:linear-gradient(100deg,transparent 35%,rgba(255,236,170,.95) 50%,transparent 65%),linear-gradient(currentColor,currentColor);background-size:220% 100%,100% 100%;background-repeat:no-repeat;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:fxShimmer 7s ease-in-out infinite;animation-delay:var(--sh-d,0s)}
+/* Неоновое свечение имени */
+body.fx-neon :is(.p-name,.cmp-name){text-shadow:0 0 10px color-mix(in srgb,var(--p-color,var(--c,var(--accent))) 70%,transparent),0 0 26px color-mix(in srgb,var(--p-color,var(--c,var(--accent))) 35%,transparent)}
+body.fx-neon .cmp-side .cmp-name{--p-color:var(--c)}
+/* Огонь у текущей серии */
+@keyframes fxFlicker{0%,100%{transform:translateY(0) scale(1) rotate(-3deg);filter:brightness(1)}25%{transform:translateY(-2px) scale(1.08) rotate(2deg);filter:brightness(1.25)}50%{transform:translateY(-1px) scale(.96) rotate(-1deg)}75%{transform:translateY(-3px) scale(1.06) rotate(3deg);filter:brightness(1.15)}}
+@keyframes fxHeat{0%,100%{text-shadow:0 0 8px #ff7a1a88,0 -2px 14px #ff3d0055}50%{text-shadow:0 0 14px #ffb347aa,0 -4px 22px #ff5a0077}}
+.fx-flame{display:none}
+body.fx-fire .streak-card.current:not(.off) .fx-flame{display:inline-block;margin-left:6px;font-size:.8em;animation:fxFlicker 1.1s ease-in-out infinite;transform-origin:50% 90%}
+body.fx-fire .streak-card.current:not(.off) .num{animation:fxHeat 1.6s ease-in-out infinite}
+/* Печатная машинка для фактов «Итогов года» */
+@keyframes fxType{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+body.fx-type .yr-facts li.fx-typing{animation:fxType var(--ty-dur,1.2s) steps(var(--ty-steps,40)) both;animation-delay:var(--ty-del,0s)}
+/* Анимированная рамка у победителей */
+@keyframes fxSpin{to{--fx-ang:360deg}}
+body.fx-border :is(.cmp-side.win,.bd-banner,.ach-card.max,.ach-card[data-tier="diamond"]:not(.locked)){position:relative;isolation:isolate}
+body.fx-border :is(.cmp-side.win,.bd-banner,.ach-card.max,.ach-card[data-tier="diamond"]:not(.locked))::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--fx-ang),transparent 0 55%,var(--fx-bc,#ffd166) 70%,#ff9ecf 78%,#67e8f9 86%,transparent 92%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:fxSpin 4s linear infinite;pointer-events:none;z-index:2}
+body.fx-border .cmp-side.win{--fx-bc:var(--c)}
+/* Стекло для всплывающих панелей */
+body.fx-glass :is(.tip,.dm-pop,.opt-pop .opt-list,.pick .pop,.nav-sheet){background:color-mix(in srgb,var(--panel) 72%,transparent)!important;backdrop-filter:blur(16px) saturate(1.5);-webkit-backdrop-filter:blur(16px) saturate(1.5);border-color:#ffffff1f!important}
+/* Мягкий параллакс-фон (Хаб и Итоги года) */
+#fx-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .6s}
+body.fx-parallax.fx-bg-on #fx-bg{opacity:1}
+#fx-bg i{position:absolute;width:46vmax;height:46vmax;border-radius:50%;filter:blur(70px);opacity:.16;transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+#fx-bg i:nth-child(1){left:-10vmax;top:-14vmax;background:var(--accent);transform:translate(calc(var(--fx-px,0) * 40px),calc(var(--fx-py,0) * 30px))}
+#fx-bg i:nth-child(2){right:-14vmax;top:10vmax;background:var(--accent-2);transform:translate(calc(var(--fx-px,0) * -55px),calc(var(--fx-py,0) * -40px))}
+#fx-bg i:nth-child(3){left:30vw;bottom:-22vmax;background:color-mix(in srgb,var(--accent) 50%,#ff9ecf);opacity:.1;transform:translate(calc(var(--fx-px,0) * 25px),calc(var(--fx-py,0) * -25px))}
+/* Появление блоков при прокрутке */
+body.fx-reveal .fx-pre{opacity:0;transform:translateY(18px)}
+body.fx-reveal .fx-in{opacity:1;transform:none;transition:opacity .55s ease-out,transform .55s cubic-bezier(.2,.8,.2,1)}
+/* Конфетти, салют и сезонные частицы рисуются на canvas поверх страницы */
+#fx-confetti,#fx-season{position:fixed;inset:0;pointer-events:none;width:100vw;height:100vh}
+#fx-confetti{z-index:200}
+#fx-season{z-index:-1;opacity:.8}
+/* Свечение выделенной линии на графиках */
+body.fx-glow #c-out svg.fx-has-focus [data-n]:not([style*="opacity"]):is(path,line,polygon,circle),body.fx-glow #c-out svg.dimming .hl:is(path,line,polygon,circle){filter:url(#fx-glow)}
+/* Пульсирующая точка «сейчас» на конце линий */
+@keyframes fxPulse{0%{r:4;opacity:.9}100%{r:16;opacity:0}}
+.fx-pulse-dot{display:none}
+body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infinite;transform-box:fill-box}
+@media (prefers-reduced-motion: reduce){
+  body[class*="fx-"] :is(.fx-pulse-dot,.fx-flame,.streak-card .num,.tile .num,.hub-kpi .v){animation:none!important}
+  body.fx-border :is(.cmp-side.win,.bd-banner,.ach-card.max)::after{animation:none}
+  body.fx-reveal .fx-pre{opacity:1;transform:none}
+}
 .hub-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 14px}
 .hub-hero h2{margin:0;font-size:26px}.hub-hero .hint{margin:4px 0 0}
 .hub-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 6px}
@@ -1815,6 +1872,8 @@ body.holo-text-on tr:has(> td.medal-1) > td:nth-child(2) .row-exclude-btn,body.h
     <div class="theme-grid" id="theme-grid"></div>
     <h2>Эффекты</h2>
     <div class="filters"><label class="checkline" title="Имя первого места в таблицах, победитель дуэли, номинанты «Итогов года» и максимальные достижения переливаются голографическим градиентом. В скопированных картинках — обычный текст"><input type="checkbox" id="set-holo-text">Переливающийся текст у победителей</label><label class="checkline" title="Карточки достижений, профиля, итогов года, сравнения, хаба и тем наклоняются за курсором, на них появляется блик; у алмазных достижений — радужная голограмма"><input type="checkbox" id="set-holo">3D-наклон и голографические блики на карточках</label></div>
+    <div class="filters" id="fx-list"></div>
+    <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
     <h2>Шрифт</h2>
     <div class="filters"><label class="checkline"><input type="checkbox" id="no-bold">Убрать жирный шрифт</label></div>
     <h2>Фильтры</h2>
@@ -4063,6 +4122,7 @@ function lineChart({title, st, series: allSeries, xMin, xMax, ticks, yMax: yMaxI
     o += `<path${dn}${s.dash ? "" : ' class="anim-line" pathLength="1"'} d="${hasArrow ? tr.d : smooth(P)}" fill="none" stroke="${pa.p}" stroke-opacity="${lineOpacity}" stroke-width="${lineWidth}" stroke-linecap="butt" stroke-linejoin="round"${s.dash ? ` stroke-dasharray="${s.dash}"` : ""}/>`;
     if (!s.dash) o += `<circle${dn} cx="${P[0][0].toFixed(1)}" cy="${P[0][1].toFixed(1)}" r="${many ? pointRadius * .6 : pointRadius}" fill="${pa.a}" fill-opacity="${lineOpacity}"/>`;
     if (many && P.length > 1 && !s.dash) { const tip = P[P.length - 1]; o += `<circle${dn} class="anim-fade-late" cx="${tip[0].toFixed(1)}" cy="${tip[1].toFixed(1)}" r="${Math.max(4, pointRadius * .75)}" fill="${pa.z}" fill-opacity="${lineOpacity}"/>`; }
+    if (s.live && P.length) { const lp = P[P.length - 1]; o += `<circle class="fx-pulse-dot" data-no-export="1" data-n="${escH(s.name)}" cx="${lp[0].toFixed(1)}" cy="${lp[1].toFixed(1)}" r="4" fill="none" stroke="${pa.z}" stroke-width="2" pointer-events="none"/>`; }
     if (s.fc) {
       // Прогноз: полоса вероятного диапазона, пунктир и точка на конце месяца.
       const f = s.fc, X0 = sx(f.x0), Y0 = sy(f.y0), X1 = sx(f.x1);
@@ -4282,6 +4342,7 @@ function trendChart(){
   if (NORM === "share") ranked.forEach(u => { for (let j = 1; j <= last; j++) totC[j] += u.c[j]; });
   const valAt = (u, j) => NORM === "share" ? (totC[j] ? u.c[j] / totC[j] * 100 : 0) : NORM === "day" ? (u.d[j] ? u.c[j] / u.d[j] : 0) : u.c[j];
   const series = top.map(u => ({name: u.n, ek: String(u.k), seriesKey: `${chartStyleKind()}:${String(u.k)}`, st: chartSeriesStyle(chartStyleKind(), u.k), pts: Array.from({length: last}, (_, j) => [j + 1, valAt(u, j + 1)]).filter(p => NORM !== "day" || u.d[p[0]] > 0), w: 4}));
+  if (last === idxOf(todayIso) || last === idxOf(addDaysIso(todayIso, -1))) series.forEach(s2 => { s2.live = true; });
   if (fcOn) {
     // Темп: 60% — последние 14 дней, 40% — весь период; разброс — по дневным значениям последних 28 дней.
     const rem = fcEnd - last, monthStartIdx = Math.max(1, idxOf(todayIso.slice(0, 8) + "01"));
@@ -4373,6 +4434,7 @@ function yearsChart(){
   });
   if (!series.length) return note("Нет данных за этот месяц");
   const cur = series.find(s => s.y === cy);
+  if (cur && isCur) cur.live = true;
   if (cur && isCur) {
     const n = cur.pts.length, lastV = n ? cur.pts[n - 1][1] : 0;
     // Прогноз использует тот же расчёт темпа и остатка периода, что и вкладка «Прогноз».
@@ -12959,9 +13021,264 @@ function multiplesChart(){
 })();
 </script>
 <script>
+/* ===================== Эффекты: переключатели и логика ===================== */
+(function(){
+  const KEY = "chatstats.fx.v1";
+  const LIST = [
+    ["odometer", "Счётчик-табло: цифры в плитках прокручиваются"],
+    ["shimmer", "Золотой блеск по большим цифрам"],
+    ["neon", "Неоновое свечение имени в профиле и сравнении"],
+    ["fire", "Огонь у текущей серии"],
+    ["type", "Печатная машинка для фактов «Итогов года»"],
+    ["border", "Бегущая рамка у победителей"],
+    ["glass", "Стеклянные подсказки и всплывающие меню"],
+    ["parallax", "Мягкий параллакс-фон в Хабе и Итогах года"],
+    ["reveal", "Плавное появление блоков при прокрутке"],
+    ["confetti", "Конфетти: день рождения, новое достижение, победа в дуэли"],
+    ["fireworks", "Салют в «Итогах года» (декабрь и январь)"],
+    ["season", "Сезонные частицы: снег, лепестки, листопад"],
+    ["glow", "Свечение выделенной линии на графиках"],
+    ["pulse", "Пульсирующая точка «сейчас» на линиях"],
+    ["morph", "Плавная перестройка столбцов при смене периода"],
+  ];
+  let FX = {}; LIST.forEach(([k]) => FX[k] = true);
+  try { Object.assign(FX, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+  const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.FX = FX;
+  const on = k => FX[k] && !RM;
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(FX)); } catch (e) {} };
+
+  // ---------- Настройки ----------
+  const box = document.getElementById("fx-list");
+  if (box) box.innerHTML = LIST.map(([k, t]) => `<label class="checkline"><input type="checkbox" data-fx="${k}">${t}</label>`).join("");
+  function syncBoxes(){ document.querySelectorAll("[data-fx]").forEach(c => { c.checked = !!FX[c.dataset.fx]; }); }
+  document.addEventListener("change", e => {
+    const k = e.target.dataset && e.target.dataset.fx; if (!k) return;
+    FX[k] = e.target.checked; save(); applyAll();
+  });
+  document.getElementById("fx-all-on")?.addEventListener("click", () => { LIST.forEach(([k]) => FX[k] = true); save(); applyAll(); });
+  document.getElementById("fx-all-off")?.addEventListener("click", () => { LIST.forEach(([k]) => FX[k] = false); save(); applyAll(); });
+
+  function applyAll(){
+    LIST.forEach(([k]) => document.body.classList.toggle("fx-" + k, !!FX[k] && !RM));
+    syncBoxes(); decorate(document); bgSync(); seasonSync();
+  }
+
+  // ---------- Огонь, печатная машинка, блеск: дорисовка элементов ----------
+  function decorate(root){
+    root.querySelectorAll?.(".streak-card.current .lbl").forEach(l => { if (!l.querySelector(".fx-flame")) l.insertAdjacentHTML("beforeend", `<span class="fx-flame" aria-hidden="true">🔥</span>`); });
+    if (on("type")) root.querySelectorAll?.(".yr-facts").forEach(ul => {
+      if (ul.dataset.fxTyped) return; ul.dataset.fxTyped = "1";
+      let del = .2; [...ul.children].forEach(li => { const n = li.textContent.length; li.style.setProperty("--ty-steps", Math.max(8, Math.min(90, n))); li.style.setProperty("--ty-dur", Math.min(2.2, .4 + n * .025).toFixed(2) + "s"); li.style.setProperty("--ty-del", del.toFixed(2) + "s"); del += Math.min(2.2, .4 + n * .025) * .7; li.classList.add("fx-typing"); });
+    });
+    root.querySelectorAll?.(".tile .num, .hub-kpi .v").forEach((el, i) => { if (!el.style.getPropertyValue("--sh-d")) el.style.setProperty("--sh-d", (i * .45 % 6).toFixed(2) + "s"); });
+    if (on("reveal")) revealScan(root);
+  }
+
+  // ---------- Табло: цифры прокручиваются ----------
+  // Встраиваемся в существующую анимацию чисел: для плиток рисуем «табло», в таблицах остаётся плавный счёт.
+  const ODO_SEL = ".tile .num, .p-stat b, .hub-kpi .v, .cmp-total, .dm-grand";
+  function odometer(el){
+    if (!on("odometer") || el.dataset.fxOdo || el.childNodes.length !== 1 || el.firstChild.nodeType !== 3) return false;
+    const txt = el.textContent; if (!/\d/.test(txt) || txt.length > 16) return false;
+    el.dataset.fxOdo = "1";
+    const wrap = document.createElement("fx-odo"); wrap.setAttribute("aria-label", txt);
+    const digits = [];
+    [...txt].forEach((ch, i) => {
+      if (/\d/.test(ch)) {
+        const d = document.createElement("fx-d");
+        const strip = document.createElement("fx-s"); strip.innerHTML = Array.from({length:20}, (_, k) => `<fx-i>${k % 10}</fx-i>`).join("");
+        d.appendChild(strip); wrap.appendChild(d); digits.push([strip, +ch, i]);
+      } else { const t = document.createElement("fx-t"); t.textContent = ch; wrap.appendChild(t); }
+    });
+    el.textContent = ""; el.appendChild(wrap); el.classList.add("fx-odo-run");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      digits.forEach(([s, v, i]) => { s.style.setProperty("--odo-dur", (700 + i * 90) + "ms"); s.style.transform = `translateY(-${(10 + v) * 1.15}em)`; });
+    }));
+    // После прокрутки возвращаем обычный текст — так работают копирование и другие функции сайта.
+    setTimeout(() => { if (el.isConnected) { el.textContent = txt; } el.classList.remove("fx-odo-run"); delete el.dataset.fxOdo; }, 900 + digits.length * 90 + 200);
+    return true;
+  }
+  if (typeof animateNumber === "function") {
+    const orig = animateNumber;
+    window.animateNumber = animateNumber = function(el, opt = {}){
+      if (opt.fromZero !== false && el.matches && el.matches(ODO_SEL) && odometer(el)) return;
+      return orig(el, opt);
+    };
+  }
+  new MutationObserver(recs => {
+    if (!on("odometer")) return;
+    recs.forEach(r => r.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.matches(".hub-kpi .v")) odometer(n); n.querySelectorAll?.(".hub-kpi .v").forEach(odometer); }));
+  }).observe(document.body, {childList:true, subtree:true});
+
+  // ---------- Появление при прокрутке ----------
+  const REVEAL_SEL = "#tab-profile .p-card, #tab-profile .tile, #tab-profile .p-grid2 > *, #tab-yearreview .yr-chart-card, #tab-yearreview .p-card, #tab-yearreview .yr-award, #tab-chronicle .ch-item, #tab-hub .hub-card";
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.remove("fx-pre"); e.target.classList.add("fx-in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -6% 0px"}) : null;
+  function revealScan(root){
+    if (!io) return;
+    root.querySelectorAll?.(REVEAL_SEL).forEach(el => {
+      if (el.dataset.fxRv) return; el.dataset.fxRv = "1";
+      const r = el.getBoundingClientRect();
+      if (r.top < innerHeight * .92) return; // уже на экране — показываем сразу
+      el.classList.add("fx-pre"); io.observe(el);
+    });
+  }
+  let decT = 0;
+  new MutationObserver(() => { clearTimeout(decT); decT = setTimeout(() => decorate(document), 80); }).observe(document.querySelector("main") || document.body, {childList:true, subtree:true});
+
+  // ---------- Параллакс-фон ----------
+  const bg = document.createElement("div"); bg.id = "fx-bg"; bg.setAttribute("aria-hidden", "true"); bg.innerHTML = "<i></i><i></i><i></i>"; document.body.prepend(bg);
+  function bgSync(){
+    const t = document.querySelector("main > .tab.active")?.id;
+    document.body.classList.toggle("fx-bg-on", on("parallax") && (t === "tab-hub" || t === "tab-yearreview"));
+  }
+  document.addEventListener("pointermove", e => {
+    if (!document.body.classList.contains("fx-bg-on")) return;
+    bg.style.setProperty("--fx-px", ((e.clientX / innerWidth) - .5).toFixed(3));
+    bg.style.setProperty("--fx-py", ((e.clientY / innerHeight) - .5).toFixed(3));
+  }, {passive:true});
+  document.addEventListener("click", e => { if (e.target.closest && e.target.closest("nav button,[data-gtab],[data-hub-go]")) setTimeout(() => { bgSync(); fireworksCheck(); }, 120); });
+
+  // ---------- Конфетти и салют ----------
+  const cv = document.createElement("canvas"); cv.id = "fx-confetti"; document.body.appendChild(cv);
+  const ctx = cv.getContext("2d"); let parts = [], raf = 0;
+  const COLORS = ["#ffd166", "#ff6ad5", "#67e8f9", "#a78bfa", "#76f0b6", "#ff9e64", "#7aa2f7"];
+  function sizeCv(c){ const d = Math.min(2, devicePixelRatio || 1); c.width = innerWidth * d; c.height = innerHeight * d; c.getContext("2d").setTransform(d, 0, 0, d, 0, 0); }
+  function loop(){
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    parts = parts.filter(p => p.life > 0);
+    parts.forEach(p => {
+      p.vy += p.g; p.vx *= p.drag; p.vy *= p.drag; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life--;
+      ctx.save(); ctx.globalAlpha = Math.min(1, p.life / 40); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.c;
+      if (p.spark) { ctx.beginPath(); ctx.arc(0, 0, p.s, 0, 7); ctx.fill(); } else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (parts.length) raf = requestAnimationFrame(loop); else { raf = 0; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+  function burst(x, y, n = 120, spread = 1){
+    if (!raf) sizeCv(cv);
+    for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * Math.PI * spread, v = 6 + Math.random() * 8;
+      parts.push({x, y, vx:Math.cos(a) * v, vy:Math.sin(a) * v, g:.22, drag:.985, rot:Math.random() * 6, vr:(Math.random() - .5) * .3, s:6 + Math.random() * 6, c:COLORS[i % COLORS.length], life:120 + Math.random() * 60}); }
+    if (!raf) raf = requestAnimationFrame(loop);
+  }
+  function firework(x, y){
+    if (!raf) sizeCv(cv);
+    const c = COLORS[Math.floor(Math.random() * COLORS.length)];
+    for (let i = 0; i < 70; i++) { const a = Math.random() * Math.PI * 2, v = 1.5 + Math.random() * 4.5;
+      parts.push({x, y, vx:Math.cos(a) * v, vy:Math.sin(a) * v, g:.05, drag:.975, rot:0, vr:0, s:1.6 + Math.random() * 1.6, c, life:70 + Math.random() * 40, spark:true}); }
+    if (!raf) raf = requestAnimationFrame(loop);
+  }
+  window.__fx = {burst, firework};
+  const once = k => { try { const s = JSON.parse(sessionStorage.getItem("chatstats.fxOnce") || "{}"); if (s[k]) return false; s[k] = 1; sessionStorage.setItem("chatstats.fxOnce", JSON.stringify(s)); return true; } catch (e) { return true; } };
+  function confettiCheck(){
+    if (!on("confetti")) return;
+    const t = document.querySelector("main > .tab.active")?.id, today = iso(new Date());
+    if (t === "tab-profile" || t === "tab-achievements") {
+      const pk = t === "tab-profile" ? (typeof person !== "undefined" ? person.value : "") : document.getElementById("ach-person")?.value;
+      if (!pk) return;
+      let bd = false, ach = false;
+      try { bd = (window.__bdApi?.upcoming(0) || []).some(b => String(b.pk) === String(pk) && b.days === 0); } catch (e) {}
+      try { ach = (window.__achApi?.recent(today) || []).some(e => String(e.pk) === String(pk) && e.date === today); } catch (e) {}
+      if ((bd || ach) && once(`${t}:${pk}:${today}`)) setTimeout(() => burst(innerWidth / 2, innerHeight * .35, bd ? 180 : 110, 1.1), 350);
+    }
+    if (t === "tab-compare") {
+      const w = document.querySelector("#cmp-out .cmp-side.win");
+      if (w && typeof cmpLast !== "undefined" && cmpLast && once(`cmp:${cmpLast.title}:${cmpLast.scope}`)) { const r = w.getBoundingClientRect(); if (r.width) setTimeout(() => burst(r.left + r.width / 2, r.top + 40, 70, .8), 300); }
+    }
+  }
+  function fireworksCheck(){
+    if (!on("fireworks")) return;
+    const t = document.querySelector("main > .tab.active")?.id, m = new Date().getMonth();
+    if (t !== "tab-yearreview" || (m !== 11 && m !== 0) || !once("fireworks:" + iso(new Date()).slice(0, 7))) return;
+    let k = 0; const shot = () => { firework(innerWidth * (.2 + Math.random() * .6), innerHeight * (.15 + Math.random() * .3)); if (++k < 7) setTimeout(shot, 380 + Math.random() * 300); };
+    setTimeout(shot, 500);
+  }
+  let cT = 0;
+  new MutationObserver(() => { clearTimeout(cT); cT = setTimeout(confettiCheck, 400); }).observe(document.querySelector("main") || document.body, {childList:true, subtree:true});
+
+  // ---------- Сезонные частицы ----------
+  const sc = document.createElement("canvas"); sc.id = "fx-season"; document.body.appendChild(sc);
+  const sctx = sc.getContext("2d"); let flakes = [], sraf = 0;
+  const season = () => { const m = new Date().getMonth(); return m === 11 || m <= 1 ? "snow" : m <= 4 ? "petals" : m <= 7 ? "fireflies" : "leaves"; };
+  function seasonSync(){
+    const want = on("season");
+    if (!want) { cancelAnimationFrame(sraf); sraf = 0; sctx.clearRect(0, 0, sc.width, sc.height); sc.hidden = true; return; }
+    sc.hidden = false; if (sraf) return;
+    sizeCv(sc);
+    const kind = season(), n = Math.round(Math.min(46, innerWidth / 36));
+    const col = {snow:["#ffffff"], petals:["#ffc2d9", "#ffd6e8", "#ffb3c6"], fireflies:["#fff3a0", "#d9ff8a"], leaves:["#e8a04b", "#d9712b", "#f2c14e", "#b5562a"]}[kind];
+    flakes = Array.from({length:n}, () => ({x:Math.random() * innerWidth, y:Math.random() * innerHeight, r:kind === "snow" ? 1 + Math.random() * 2.2 : kind === "fireflies" ? 1.2 + Math.random() * 1.6 : 3 + Math.random() * 3,
+      vy:kind === "fireflies" ? (Math.random() - .5) * .25 : .25 + Math.random() * .6, vx:(Math.random() - .5) * .4, ph:Math.random() * 6, rot:Math.random() * 6, c:col[Math.floor(Math.random() * col.length)]}));
+    const tick = () => {
+      if (document.hidden) { sraf = requestAnimationFrame(tick); return; }
+      sctx.clearRect(0, 0, innerWidth, innerHeight);
+      flakes.forEach(f => {
+        f.ph += .015; f.x += f.vx + Math.sin(f.ph) * .3; f.y += f.vy; f.rot += .01;
+        if (f.y > innerHeight + 10) { f.y = -10; f.x = Math.random() * innerWidth; } if (f.y < -12) f.y = innerHeight + 8;
+        if (f.x > innerWidth + 10) f.x = -10; if (f.x < -10) f.x = innerWidth + 10;
+        sctx.save(); sctx.translate(f.x, f.y); sctx.rotate(f.rot); sctx.fillStyle = f.c;
+        if (kind === "fireflies") { sctx.globalAlpha = .35 + .35 * Math.sin(f.ph * 3); sctx.shadowColor = f.c; sctx.shadowBlur = 8; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
+        else if (kind === "snow") { sctx.globalAlpha = .55; sctx.beginPath(); sctx.arc(0, 0, f.r, 0, 7); sctx.fill(); }
+        else { sctx.globalAlpha = .5; sctx.beginPath(); sctx.ellipse(0, 0, f.r, f.r * .55, 0, 0, 7); sctx.fill(); }
+        sctx.restore();
+      });
+      sraf = requestAnimationFrame(tick);
+    };
+    sraf = requestAnimationFrame(tick);
+  }
+  addEventListener("resize", () => { if (sraf) { cancelAnimationFrame(sraf); sraf = 0; seasonSync(); } });
+
+  // ---------- Свечение выделенной линии ----------
+  function glowDefs(svg){
+    if (!svg || svg.querySelector("#fx-glow")) return;
+    const d = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    d.setAttribute("data-no-export", "1");
+    d.innerHTML = `<filter id="fx-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+    svg.prepend(d);
+  }
+  new MutationObserver(() => {
+    const svg = document.querySelector("#c-out > svg"); if (!svg) return;
+    glowDefs(svg);
+    svg.classList.toggle("fx-has-focus", !!svg.querySelector('[data-n][style*="opacity"]'));
+  }).observe(document.getElementById("c-out"), {childList:true, subtree:true, attributes:true, attributeFilter:["style"]});
+
+  // ---------- Плавная перестройка столбцов ----------
+  let prevBars = null;
+  new MutationObserver(() => {
+    const svg = document.querySelector("#c-out > svg");
+    const bars = svg ? [...svg.querySelectorAll("rect.anim-bar-x[data-ek]")] : [];
+    if (!bars.length) { prevBars = null; return; }
+    const now = new Map(bars.map(b => [b.dataset.ek, Number(b.getAttribute("width"))]));
+    if (on("morph") && prevBars && prevBars.type === cType) {
+      bars.forEach(b => {
+        const w0 = prevBars.w.get(b.dataset.ek), w1 = now.get(b.dataset.ek);
+        if (w0 == null || !w1) return;
+        b.classList.remove("anim-bar-x");
+        b.animate([{transform:`scaleX(${(w0 / w1).toFixed(4)})`}, {transform:"scaleX(1)"}], {duration:650, easing:"cubic-bezier(.2,.8,.2,1)"});
+        b.style.transformBox = "fill-box"; b.style.transformOrigin = "0 50%";
+      });
+    }
+    prevBars = {type:cType, w:now};
+  }).observe(document.getElementById("c-out"), {childList:true});
+
+  applyAll();
+})();
+</script>
+<script>
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.23-4", date:"2026-10-23", title:"Большой набор эффектов", items:[
+    {tag:"new", area:"Эффекты", text:"Счётчик-табло: цифры в плитках профиля, Хаба, «Сравнения» и «Матрицы» прокручиваются, как на табло."},
+    {tag:"new", area:"Эффекты", text:"Золотой блеск раз в несколько секунд по большим цифрам; неоновое свечение имени цветом участника в профиле и «Сравнении»; огонёк 🔥 и тёплое мерцание у идущей серии."},
+    {tag:"new", area:"Эффекты", text:"Факты «Итогов года» появляются как напечатанные на машинке; блоки профиля, итогов, хроники и Хаба плавно выплывают при прокрутке."},
+    {tag:"new", area:"Эффекты", text:"Бегущая цветная рамка у победителя дуэли, баннера именинника, максимальных и алмазных достижений."},
+    {tag:"new", area:"Эффекты", text:"Стеклянные подсказки и всплывающие меню; мягкий параллакс-фон с цветными пятнами в Хабе и «Итогах года»."},
+    {tag:"new", area:"Эффекты", text:"Конфетти: в день рождения участника, при новом уровне достижения за сегодня и у победителя дуэли (по разу за сессию). Салют в «Итогах года» в декабре и январе."},
+    {tag:"new", area:"Эффекты", text:"Сезонные частицы на фоне: снег зимой, лепестки весной, светлячки летом, листопад осенью."},
+    {tag:"new", area:"Графики", text:"Свечение выделенной линии, пульсирующая точка «сейчас» на конце линий текущего дня и плавная перестройка столбцов при смене периода."},
+    {tag:"new", area:"Настройки", text:"В «Эффектах» каждый эффект выключается отдельно, есть кнопки «Включить все» и «Выключить все»."},
+  ]},
   {v:"2026.10.23-3", date:"2026-10-23", title:"Голографический текст у победителей", items:[
     {tag:"new", area:"Везде", text:"Имена победителей переливаются голографическим градиентом: первое место в таблицах (Участники, Чаты, Рекорды, Матрица, Марафоны и другие), победитель дуэли в «Сравнении», номинанты «Итогов года», названия максимальных и алмазных достижений."},
     {tag:"imp", area:"Статистика", text:"Первые три места в таблицах участников и чатов окрашены медальными цветами."},
