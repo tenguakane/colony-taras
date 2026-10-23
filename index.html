@@ -1174,7 +1174,7 @@ body.hide-statrows-toggle label:has(#stats-participants),body.hide-statrows-togg
 /* ===================== Экспериментально: фильтры в правой шторке (только ПК) ===================== */
 #filter-drawer{display:none}
 @media (min-width:721px){
-  body.filters-right{--fr-w:var(--fr-w-open,316px);padding-right:var(--fr-w)}
+  body.filters-right{--fr-w:var(--fr-w-open,360px);padding-right:var(--fr-w)}
   body.filters-right.fr-collapsed{--fr-w:52px}
   body.filters-right #filter-drawer{display:flex;flex-direction:column;position:fixed;right:0;top:0;bottom:0;width:var(--fr-w);z-index:55;background:var(--panel);border-left:1px solid var(--line);transition:width .2s}
   body.filters-right #filters-visibility-toggle,body.filters-right #filters-summary{display:none!important}
@@ -1223,26 +1223,36 @@ body.filter-colors .filters .field[data-fcat] > label{background:color-mix(in sr
 [data-fcat="period"]{--fc:#7aa2f7}[data-fcat="scope"]{--fc:#9ece6a}[data-fcat="what"]{--fc:#bb9af7}[data-fcat="amount"]{--fc:#e0af68}[data-fcat="look"]{--fc:#2ac3de}[data-fcat="export"]{--fc:#8a90a2}[data-fcat="opts"]{--fc:#f7768e}[data-fcat="data"]{--fc:#ff9e64}
 .fcat-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 0;font-size:12.5px;color:var(--muted)}
 .fcat-legend i{display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--fc);margin-right:6px;vertical-align:3px}
-/* ===================== 3D-наклон и голографические блики ===================== */
-.holo-on{position:relative;will-change:transform;backface-visibility:hidden;transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
-.holo-on.holo-active{transition:transform .08s linear,box-shadow .3s;transform:perspective(var(--hp,900px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0) scale(var(--hs,1.015))}
-.holo-glare{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;opacity:0;transition:opacity .35s;overflow:hidden;clip-path:inset(0 round var(--holo-r,16px))}
-.holo-active > .holo-glare{opacity:1}
-/* блик, который бегает за курсором */
-.holo-glare::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,var(--ga,.22)) 0%,rgba(255,255,255,0) 55%);mix-blend-mode:overlay}
-/* металл: диагональная полоса */
-.holo-k-metal > .holo-glare::after,.holo-k-gold > .holo-glare::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.18) 48%,rgba(255,255,255,.04) 52%,transparent 60%);background-size:260% 260%;background-position:calc(var(--mxn,0.5) * 100%) calc(var(--myn,0.5) * 100%);mix-blend-mode:screen}
-.holo-k-gold > .holo-glare::after{background:linear-gradient(115deg,transparent 38%,rgba(255,214,120,.32) 47%,rgba(255,255,255,.12) 51%,transparent 62%)}
-.holo-k-gold > .holo-glare{background-image:radial-gradient(1.5px 1.5px at 18% 30%,#fff8,transparent),radial-gradient(1.5px 1.5px at 72% 22%,#fff9,transparent),radial-gradient(1px 1px at 40% 75%,#fff8,transparent),radial-gradient(1.5px 1.5px at 85% 68%,#fff7,transparent),radial-gradient(1px 1px at 58% 45%,#fff9,transparent);animation:holoTwinkle 2.4s ease-in-out infinite}
-@keyframes holoTwinkle{0%,100%{filter:brightness(1)}50%{filter:brightness(1.8)}}
-/* радужная голограмма: переливы, которые двигаются при наклоне */
-.holo-k-rainbow > .holo-glare::after,.holo-k-foil > .holo-glare::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(120deg,#ff6ad5 0%,#ffd166 6%,#76f0b6 12%,#67e8f9 18%,#a78bfa 24%,#ff6ad5 30%);background-size:200% 200%;background-position:calc(var(--mxn,.5) * 100%) calc(var(--myn,.5) * 100%);mix-blend-mode:screen;opacity:var(--ra,.24);filter:saturate(1.3);-webkit-mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%);mask-image:radial-gradient(circle at var(--mx,50%) var(--my,50%),#000 0%,#0008 45%,#0002 80%)}
-.holo-k-foil > .holo-glare::after{opacity:var(--ra,.12)}
-.holo-k-rainbow > .holo-glare{background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.035) 3px 4px)}
-/* статичный намёк на голограмму у алмазных достижений и постера, даже без наведения */
+/* ===================== 3D-наклон и голографические блики (v2) =====================
+   Три слоя поверх карточки: мягкий свет за курсором (holo-glare), переливы материала (holo-fx: фольга, золото, металл)
+   и светящаяся кромка (holo-rim). Положение, наклон и яркость плавно догоняют курсор с инерцией (JS, requestAnimationFrame). */
+.holo-on{position:relative;backface-visibility:hidden}
+.holo-on.holo-active{will-change:transform;transform:perspective(var(--hp,900px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--hsc,1)) translateZ(0);box-shadow:calc(var(--sx,0) * -16px) calc(14px + var(--sy,0) * -10px) 42px -16px rgba(0,0,0,calc(.45 + var(--hi,0) * .35)),0 0 0 1px color-mix(in srgb,var(--holo-c,#ffffff) calc(var(--hi,0) * 16%),transparent)}
+.holo-on > :is(.holo-glare,.holo-fx,.holo-rim){position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0}
+.holo-on.holo-active > :is(.holo-glare,.holo-fx,.holo-rim){opacity:var(--hi,0)}
+/* свет: яркое пятно у курсора и лёгкое затенение дальнего края — как у глянцевой карточки под лампой */
+.holo-on > .holo-glare{z-index:4;background:radial-gradient(farthest-corner circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.62) 0%,rgba(255,255,255,.2) 16%,rgba(255,255,255,0) 46%),radial-gradient(farthest-corner circle at var(--mx,50%) var(--my,50%),transparent 45%,rgba(0,0,0,.32) 100%);mix-blend-mode:soft-light}
+/* кромка: тонкое кольцо, которое загорается со стороны курсора */
+.holo-on > .holo-rim{z-index:5;padding:1.5px;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.95) 0%,rgba(255,255,255,.35) 22%,rgba(255,255,255,0) 58%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.holo-k-rainbow > .holo-rim{background:radial-gradient(circle at var(--mx,50%) var(--my,50%),#fff 0%,rgba(255,255,255,0) 40%),conic-gradient(from var(--ang,0deg),#ff7ad9,#ffd36e,#7cf7c0,#6fe3ff,#b195ff,#ff7ad9)}
+.holo-k-gold > .holo-rim{background:radial-gradient(circle at var(--mx,50%) var(--my,50%),#fff6d8 0%,rgba(255,214,120,.55) 25%,rgba(255,214,120,0) 60%)}
+/* радужная фольга: полосы спектра сдвигаются при наклоне и видны сильнее рядом с курсором */
+.holo-k-rainbow > .holo-fx,.holo-k-foil > .holo-fx{z-index:3;overflow:hidden;background:repeating-linear-gradient(calc(115deg + var(--ang,0deg) * .15),#ff7ad9 0%,#ffd36e 4.5%,#7cf7c0 9%,#6fe3ff 13.5%,#b195ff 18%,#ff7ad9 22.5%),repeating-linear-gradient(-35deg,rgba(255,255,255,0) 0 5px,rgba(255,255,255,.07) 5px 6px);background-size:420% 420%,100% 100%;background-position:calc(var(--mxn,.5) * 100%) calc(var(--myn,.5) * 100%),0 0;mix-blend-mode:color-dodge;filter:saturate(1.15) brightness(.85);-webkit-mask-image:radial-gradient(farthest-corner circle at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,.6) 30%,rgba(0,0,0,.14) 70%,rgba(0,0,0,.06) 100%);mask-image:radial-gradient(farthest-corner circle at var(--mx,50%) var(--my,50%),#000 0%,rgba(0,0,0,.6) 30%,rgba(0,0,0,.14) 70%,rgba(0,0,0,.06) 100%)}
+.holo-k-rainbow.holo-active > .holo-fx{opacity:calc(var(--hi,0) * var(--ra,.55))}
+.holo-k-foil.holo-active > .holo-fx{opacity:calc(var(--hi,0) * var(--ra,.32))}
+/* блёстки: мелкие искры с параллаксом — двигаются медленнее карточки */
+.holo-k-rainbow > .holo-fx::after,.holo-k-gold > .holo-fx::after{content:"";position:absolute;inset:-20%;background-image:radial-gradient(1.6px 1.6px at 12% 18%,#fff,transparent),radial-gradient(1.2px 1.2px at 38% 72%,#fff,transparent),radial-gradient(1.8px 1.8px at 64% 28%,#fff,transparent),radial-gradient(1.1px 1.1px at 82% 64%,#fff,transparent),radial-gradient(1.4px 1.4px at 22% 88%,#fff,transparent),radial-gradient(1.2px 1.2px at 92% 12%,#fff,transparent),radial-gradient(1.5px 1.5px at 52% 52%,#fff,transparent);background-size:140px 120px;transform:translate(calc((var(--mxn,.5) - .5) * -18px),calc((var(--myn,.5) - .5) * -18px));mix-blend-mode:screen;animation:holoTwinkle 2.6s ease-in-out infinite}
+.holo-k-gold > .holo-fx::after{background-image:radial-gradient(1.6px 1.6px at 12% 18%,#fff3c4,transparent),radial-gradient(1.2px 1.2px at 38% 72%,#ffe08a,transparent),radial-gradient(1.8px 1.8px at 64% 28%,#fff,transparent),radial-gradient(1.1px 1.1px at 82% 64%,#ffd166,transparent),radial-gradient(1.4px 1.4px at 22% 88%,#fff3c4,transparent)}
+@keyframes holoTwinkle{0%,100%{opacity:.55}50%{opacity:1}}
+/* золото: тёплый блик, бегущий по диагонали вслед за наклоном */
+.holo-k-gold > .holo-fx{z-index:3;overflow:hidden;background:linear-gradient(115deg,rgba(255,200,90,0) 30%,rgba(255,200,90,.38) 43%,rgba(255,248,215,.75) 50%,rgba(255,190,80,.32) 57%,rgba(255,200,90,0) 70%);background-size:300% 300%;background-position:calc(var(--mxn,.5) * 100%) calc(var(--myn,.5) * 100%);mix-blend-mode:screen}
+.holo-k-gold.holo-active > .holo-fx{opacity:calc(var(--hi,0) * .85)}
+/* металл: шлифованная фактура и холодный отблеск */
+.holo-k-metal > .holo-fx{z-index:3;background:linear-gradient(105deg,rgba(255,255,255,0) 32%,rgba(220,230,255,.32) 46%,rgba(255,255,255,.5) 50%,rgba(200,215,255,.22) 54%,rgba(255,255,255,0) 68%),repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,rgba(255,255,255,0) 1px 3px);background-size:300% 300%,100% 100%;background-position:calc(var(--mxn,.5) * 100%) calc(var(--myn,.5) * 100%),0 0;mix-blend-mode:screen}
+.holo-k-metal.holo-active > .holo-fx{opacity:calc(var(--hi,0) * .7)}
+/* статичный намёк на голограмму у алмазных достижений, даже без наведения */
 .ach-card[data-tier="diamond"]:not(.locked){background-image:linear-gradient(125deg,transparent 30%,rgba(103,232,249,.07) 45%,rgba(167,139,250,.07) 55%,transparent 70%)}
-.holo-active{box-shadow:0 18px 40px -18px #000c}
-@media (prefers-reduced-motion: reduce){.holo-on.holo-active{transform:none}.holo-k-gold > .holo-glare{animation:none}}
+@media (prefers-reduced-motion: reduce){.holo-on.holo-active{transform:none}.holo-on > .holo-fx::after{animation:none}}
 /* ===================== Голографический переливающийся текст у победителей ===================== */
 @keyframes holoText{to{background-position:300% 50%}}
 body.holo-text-on :is(
@@ -1884,7 +1894,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
       <div class="field"><label for="fx-season-density">Сколько</label><select id="fx-season-density"><option value="low">Мало</option><option value="mid">Средне</option><option value="high">Много</option><option value="max">Ещё больше</option></select></div>
     </div>
     <div class="filters">
-      <div class="field"><label for="tb-style">Рамка таблиц</label><select id="tb-style"><option value="off">Выключено</option><option value="rainbow">🌈 Радуга</option><option value="aurora">🌌 Северное сияние</option><option value="sunset">🌅 Закат</option><option value="ocean">🌊 Океан</option><option value="neon">💜 Неон</option><option value="fire">🔥 Огонь</option><option value="gold">🥇 Золото</option><option value="silver">🥈 Серебро</option><option value="accent">🎨 Цвет темы</option><option value="comet">☄️ Бегущий блик</option></select></div>
+      <div class="field"><label for="tb-style">Рамка таблиц и графиков</label><select id="tb-style"><option value="off">Выключено</option><option value="rainbow">🌈 Радуга</option><option value="aurora">🌌 Северное сияние</option><option value="sunset">🌅 Закат</option><option value="ocean">🌊 Океан</option><option value="neon">💜 Неон</option><option value="fire">🔥 Огонь</option><option value="gold">🥇 Золото</option><option value="silver">🥈 Серебро</option><option value="accent">🎨 Цвет темы</option><option value="comet">☄️ Бегущий блик</option></select></div>
       <div class="field"><label for="tb-speed">Скорость</label><select id="tb-speed"><option value="slow">Медленно</option><option value="mid">Средне</option><option value="fast">Быстро</option></select></div>
     </div>
     <div class="pbtn" style="margin:-6px 0 14px"><button class="mini" type="button" id="fx-all-on">Включить все эффекты</button><button class="mini" type="button" id="fx-all-off">Выключить все</button><button class="mini" type="button" id="fx-bg-toggle" title="Листопад и другие сезонные частицы, параллакс-фон, салют и конфетти">Выключить фоновые эффекты</button><span class="hint" style="margin-left:8px">При системной настройке «уменьшить движение» анимации не запускаются. В картинки эффекты не попадают.</span></div>
@@ -12835,7 +12845,7 @@ function multiplesChart(){
 <script>
 /* «К разделу» — быстрые переходы на вкладках с несколькими блоками */
 (function(){
-  const TABS = ["profile","compare","usermap","marathons","time","forecast","selfie","yearreview","settings","records","achievements"];
+  const TABS = ["profile","compare","usermap","marathons","time","forecast","selfie","yearreview","records","achievements"];
   const MIN = 3;
   function build(tab){
     if (!tab.classList.contains("active") || tab.querySelector("#bd-nav")) return;
@@ -13027,7 +13037,9 @@ function multiplesChart(){
   }
   function mount(){
     restore();
-    if (!active()) return;
+    const onSettings = document.querySelector("main > .tab.active")?.id === "tab-settings";
+    document.body.classList.toggle("fr-settings", active() && onSettings);
+    if (!active() || onSettings) return;
     candidates().forEach(n => park(n, body));
     body.dataset.tab = typeof activeDataTab === "function" ? activeDataTab() : "";
     ["ult-toggle", "vk-toggle"].forEach(id => { const b = document.getElementById(id); if (b && b.parentNode !== top) park(b, top); });
@@ -13076,7 +13088,7 @@ function multiplesChart(){
   addEventListener("resize", syncH); syncH();
   const PANES = [
     {id:"side-resizer", v:"--side-w-open", key:"chatstats.sideW.v1", min:170, max:380, def:228, dir:1},
-    {id:"fr-resizer", v:"--fr-w-open", key:"chatstats.frW.v1", min:250, max:560, def:316, dir:-1},
+    {id:"fr-resizer", v:"--fr-w-open", key:"chatstats.frW.v1", min:250, max:560, def:360, dir:-1},
   ];
   PANES.forEach(P => {
     const el = document.createElement("div"); el.id = P.id; el.className = "pane-resizer"; el.title = "Потяни, чтобы изменить ширину · двойной клик — по умолчанию";
@@ -13139,56 +13151,91 @@ function multiplesChart(){
 })();
 </script>
 <script>
-/* ===================== 3D-наклон и голографические блики на карточках ===================== */
+/* ===================== 3D-наклон и голографические блики на карточках (v2) ===================== */
 (function(){
   const KEY = "chatstats.holo.v1";
-  // Где и как: max — наклон в градусах, kind — вид блика.
+  // Где и как: max — наклон в градусах, kind — материал (rainbow — радужная фольга, gold — золото, metal — металл, foil — лёгкая фольга).
   const TARGETS = [
-    {sel:'.ach-card:not(.locked)[data-tier="diamond"]', kind:"rainbow", max:12},
-    {sel:'.ach-card:not(.locked)[data-tier="gold"]', kind:"gold", max:11},
-    {sel:'.ach-card:not(.locked)[data-tier="silver"], .ach-card:not(.locked)[data-tier="bronze"]', kind:"metal", max:10},
-    {sel:".yr-poster", kind:"rainbow", max:4, persp:1800, ra:.12, scale:1.005},
-    {sel:".cmp-side", kind:"metal", max:9},
-    {sel:".bd-banner", kind:"gold", max:4, persp:1400},
+    {sel:'.ach-card:not(.locked)[data-tier="diamond"]', kind:"rainbow", max:14},
+    {sel:'.ach-card:not(.locked)[data-tier="gold"]', kind:"gold", max:12},
+    {sel:'.ach-card:not(.locked)[data-tier="silver"], .ach-card:not(.locked)[data-tier="bronze"]', kind:"metal", max:11},
+    {sel:".yr-poster", kind:"rainbow", max:4, persp:1800, ra:.22, scale:1.004},
+    {sel:".cmp-side", kind:"metal", max:8},
+    {sel:".bd-banner", kind:"gold", max:4, persp:1400, scale:1.006},
     {sel:".yr-pod", kind:"metal", max:10},
-    {sel:".hub-kpi", kind:"foil", max:7},
+    {sel:".hub-kpi", kind:"foil", max:8},
     {sel:".theme-card", kind:"metal", max:12},
   ];
   const ALL = TARGETS.map(t => t.sel).join(",");
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
   let on = true;
   try { on = localStorage.getItem(KEY) !== "0"; } catch (e) {}
-  let cur = null;
   const cfgOf = el => TARGETS.find(t => el.matches(t.sel));
+  const st = new Map(); // карточка → состояние {tx, ty, th — цель; x, y, h — текущее}
+  let cur = null, raf = 0;
   function prep(el, cfg){
-    if (!el.classList.contains("holo-on")) {
-      el.classList.add("holo-on", "holo-k-" + cfg.kind);
-      if (!el.querySelector(":scope > .holo-glare")) { const g = document.createElement("span"); g.className = "holo-glare"; g.setAttribute("aria-hidden", "true"); g.dataset.noExport = "1"; el.appendChild(g); }
-      el.style.setProperty("--holo-r", getComputedStyle(el).borderTopLeftRadius || "16px");
-      if (cfg.persp) el.style.setProperty("--hp", cfg.persp + "px");
-      if (cfg.ra) el.style.setProperty("--ra", cfg.ra);
-      if (cfg.scale) el.style.setProperty("--hs", cfg.scale);
-      const c = getComputedStyle(el).getPropertyValue("--tc") || getComputedStyle(el).getPropertyValue("--p-color") || getComputedStyle(el).getPropertyValue("--c");
-      if (c.trim()) el.style.setProperty("--holo-c", c.trim());
-    }
+    if (el.classList.contains("holo-on")) return;
+    el.classList.add("holo-on", "holo-k-" + cfg.kind);
+    ["holo-fx", "holo-glare", "holo-rim"].forEach(c => {
+      if (el.querySelector(":scope > ." + c)) return;
+      const s = document.createElement("span"); s.className = c; s.setAttribute("aria-hidden", "true"); s.dataset.noExport = "1"; el.appendChild(s);
+    });
+    if (cfg.persp) el.style.setProperty("--hp", cfg.persp + "px");
+    if (cfg.ra) el.style.setProperty("--ra", cfg.ra);
+    const cs = getComputedStyle(el), c = cs.getPropertyValue("--tc") || cs.getPropertyValue("--p-color") || cs.getPropertyValue("--c");
+    if (c.trim()) el.style.setProperty("--holo-c", c.trim());
   }
-  function set(el, cfg, px, py){
-    el.style.setProperty("--rx", ((.5 - py) * cfg.max).toFixed(2) + "deg");
-    el.style.setProperty("--ry", ((px - .5) * cfg.max).toFixed(2) + "deg");
-    el.style.setProperty("--mx", (px * 100).toFixed(1) + "%"); el.style.setProperty("--my", (py * 100).toFixed(1) + "%");
-    el.style.setProperty("--mxn", px.toFixed(3)); el.style.setProperty("--myn", py.toFixed(3));
+  function stateOf(el, cfg){
+    let s = st.get(el);
+    if (!s) { s = {cfg, tx:.5, ty:.5, th:0, x:.5, y:.5, h:0}; st.set(el, s); }
+    return s;
   }
-  function release(el){ if (!el) return; el.classList.remove("holo-active"); el.style.setProperty("--rx", "0deg"); el.style.setProperty("--ry", "0deg"); }
+  const VARS = ["--rx", "--ry", "--mx", "--my", "--mxn", "--myn", "--hi", "--sx", "--sy", "--ang", "--hsc"];
+  function write(el, s){
+    const m = s.cfg.max * (s.k || 1), h = s.h, dx = s.x - .5, dy = s.y - .5, sc = s.cfg.scale || 1.025;
+    const p = el.style;
+    p.setProperty("--rx", (-dy * m * h).toFixed(2) + "deg");
+    p.setProperty("--ry", (dx * m * h).toFixed(2) + "deg");
+    p.setProperty("--mx", (s.x * 100).toFixed(1) + "%"); p.setProperty("--my", (s.y * 100).toFixed(1) + "%");
+    p.setProperty("--mxn", s.x.toFixed(3)); p.setProperty("--myn", s.y.toFixed(3));
+    p.setProperty("--hi", h.toFixed(3));
+    p.setProperty("--sx", (dx * 2 * h).toFixed(3)); p.setProperty("--sy", (dy * 2 * h).toFixed(3));
+    p.setProperty("--ang", (Math.atan2(dy, dx) * 180 / Math.PI + 90).toFixed(1) + "deg");
+    p.setProperty("--hsc", (1 + (sc - 1) * h).toFixed(4));
+  }
+  function tick(){
+    raf = 0;
+    let live = false;
+    st.forEach((s, el) => {
+      if (!el.isConnected) { st.delete(el); return; }
+      const k = s.th > 0 ? .18 : .1;
+      s.x += (s.tx - s.x) * k; s.y += (s.ty - s.y) * k;
+      s.h += (s.th - s.h) * (s.th > s.h ? .16 : .1);
+      const still = Math.abs(s.tx - s.x) < .001 && Math.abs(s.ty - s.y) < .001 && Math.abs(s.th - s.h) < .004;
+      if (still) { s.x = s.tx; s.y = s.ty; s.h = s.th; }
+      if (still && s.th === 0) { el.classList.remove("holo-active"); VARS.forEach(v => el.style.removeProperty(v)); st.delete(el); return; }
+      write(el, s);
+      if (!still) live = true;
+    });
+    if (live) raf = requestAnimationFrame(tick);
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  function aim(el, px, py, power, k){
+    const cfg = cfgOf(el); if (!cfg) return;
+    prep(el, cfg);
+    const s = stateOf(el, cfg);
+    s.tx = px; s.ty = py; s.th = power; s.k = k || 1;
+    el.classList.add("holo-active");
+    kick();
+  }
+  function release(el){ const s = el && st.get(el); if (!s) return; s.tx = .5; s.ty = .5; s.th = 0; kick(); }
   document.addEventListener("pointermove", e => {
     if (!on || reduce.matches || e.pointerType === "touch") return;
     const el = e.target.closest ? e.target.closest(ALL) : null;
     if (el !== cur) { release(cur); cur = el; }
     if (!el) return;
-    const cfg = cfgOf(el); if (!cfg) return;
-    prep(el, cfg);
-    const r = el.getBoundingClientRect();
-    set(el, cfg, Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)));
-    el.classList.add("holo-active");
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+    aim(el, Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)), 1);
   }, {passive:true});
   document.addEventListener("pointerleave", () => { release(cur); cur = null; });
   document.addEventListener("scroll", () => { if (cur) { release(cur); cur = null; } }, {passive:true, capture:true});
@@ -13199,8 +13246,9 @@ function multiplesChart(){
     const px = Math.min(1, Math.max(0, .5 + ev.gamma / 50)), py = Math.min(1, Math.max(0, .5 + (ev.beta - 45) / 50));
     const vh = innerHeight;
     document.querySelectorAll(".tab.active " + TARGETS.map(t => t.sel).join(", .tab.active ")).forEach(el => {
-      const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > vh) return;
-      const cfg = cfgOf(el); if (!cfg) return; prep(el, cfg); set(el, {max:cfg.max * .7}, px, py); el.classList.add("holo-active");
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > vh) { release(el); return; }
+      aim(el, px, py, .8, .7);
     });
   }
   function startGyro(){
@@ -13214,7 +13262,7 @@ function multiplesChart(){
   document.addEventListener("touchend", () => { if (on) startGyro(); }, {passive:true, once:false});
   function apply(){
     const c = document.getElementById("set-holo"); if (c) c.checked = on;
-    if (!on) { document.querySelectorAll(".holo-active").forEach(release); }
+    if (!on) { st.forEach((s, el) => release(el)); cur = null; }
   }
   document.addEventListener("change", e => { if (e.target.id === "set-holo") { on = e.target.checked; try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (err) {} apply(); } });
   apply();
@@ -13247,7 +13295,8 @@ function multiplesChart(){
     ["confetti", "Конфетти: день рождения, новое достижение, победа в дуэли"],
     ["fireworks", "Салют в «Итогах года» (декабрь и январь)"],
     ["season", "Частицы на фоне (вид выбирается ниже)"],
-    ["misha", "🤡 Падающие клоуны в профиле «Миша А.»"],
+    ["misha", "🥚 Пасхалка в «Профиле»"],
+    ["yearchips", "Переливающиеся плашки годов в «Топ месяцев» и «Топ дней»"],
     ["glow", "Свечение выделенной линии на графиках"],
     ["pulse", "Пульсирующая точка «сейчас» на линиях"],
     ["morph", "Плавная перестройка столбцов при смене периода"],
@@ -13662,7 +13711,7 @@ function multiplesChart(){
     wing(1, c1); wing(-1, c2);
     sctx.fillStyle = "#2b2233"; sctx.globalAlpha = .8; sctx.beginPath(); sctx.ellipse(0, s * .05, s * .07, s * .42, 0, 0, 7); sctx.fill();
   }
-  // В профиле «Миша А.» на фоне падают клоуны (переключатель «Падающие клоуны…» в Эффектах).
+  // В профиле «Миша А.» на фоне падают клоуны (переключатель «Пасхалка в Профиле» в Эффектах).
   function mishaActive(){
     if (!on("misha") || document.querySelector("main > .tab.active")?.id !== "tab-profile") return false;
     const sel = document.getElementById("person"), o = sel && sel.options[sel.selectedIndex];
@@ -13806,8 +13855,15 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
-  {v:"2026.10.23-13", date:"2026-10-23", title:"Клоуны на фоне и крупные фильтры на ПК", items:[
-    {tag:"fix", area:"Профиль", text:"Клоуны в профиле «Миша А.» падают на фоне, как остальные частицы, а не поверх интерфейса."},
+  {v:"2026.10.23-14", date:"2026-10-23", title:"Настройки по вкладкам и живые голограммы", items:[
+    {tag:"new", area:"Настройки", text:"Настройки разбиты на разделы: Оформление, Эффекты, Фильтры и таблицы, Участники, Данные, Перенос и версия. На ПК это вкладки сверху, на телефоне — список разделов, как в настройках приложения."},
+    {tag:"fix", area:"Настройки", text:"Пункты настроек больше не уезжают в правую шторку фильтров: на вкладке «Настройки» шторка скрывается."},
+    {tag:"imp", area:"Везде", text:"Правая шторка фильтров на ПК стала шире, поля в ней выше, подписи и значения крупнее."},
+    {tag:"imp", area:"Карточки", text:"Голографические блики переделаны: плавный наклон с инерцией, мягкий свет за курсором, радужная фольга с блёстками, золото и металл с бегущим отблеском, светящаяся кромка и тень, которая смещается при наклоне."},
+    {tag:"new", area:"Топ месяцев", text:"Цветные плашки с годом в «Топ месяцев» и «Топ дней» переливаются бегущим бликом и мягко светятся. Отключается в «Настройки → Эффекты»."},
+    {tag:"new", area:"Графики", text:"Вокруг графиков — такая же переливающаяся рамка, как у таблиц. Цвет и скорость выбираются в «Настройки → Эффекты → Рамка таблиц и графиков»."},
+  ]},
+  {v:"2026.10.23-13", date:"2026-10-23", title:"Частицы без подвисаний и крупные фильтры на ПК", items:[
     {tag:"imp", area:"Эффекты", text:"Эмодзи и значки в частицах рисуются заранее и только копируются на экран — страница больше не подвисает."},
     {tag:"imp", area:"Везде", text:"На ПК поля и кнопки фильтров стали выше (46 px), шрифт в них крупнее; вкладки «Участники / Чаты» тоже выше."},
   ]},
@@ -13831,7 +13887,6 @@ window.CHANGELOG = [
     {tag:"imp", area:"Таблицы", text:"Первые три места в столбце «Место» переливаются так же, как имена призёров."},
     {tag:"new", area:"Настройки", text:"Новые частицы на фоне: дым, туман, северное сияние, полёт сквозь звёзды, салют, клоуны, Хэллоуин, призраки, денежный и вкусный дождь."},
     {tag:"imp", area:"Настройки", text:"Небесные фонарики стали крупнее и получили каркас, искры костра — вытянутые и мерцающие, сердечки — крупнее и разного размера."},
-    {tag:"new", area:"Профиль", text:"В профиле «Миша А.» сверху падают клоуны 🤡. Отключается в «Настройки → Эффекты»."},
   ]},
   {v:"2026.10.23-9", date:"2026-10-23", title:"Селфи в облаке, новые частицы и современные фильтры", items:[
     {tag:"new", area:"Селфи", text:"Общая база селфи в облаке: отметки видны всем участникам и обновляются сами каждые полминуты. Отмечать может редактор с ключом — кнопка «🔑 Ключ редактора». Если связи нет, отметки сохраняются в браузере и уходят в облако, как только она появится."},
@@ -15529,6 +15584,194 @@ body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(1
   document.addEventListener("change", e => { if (e.target.id === "set-m2") { on = e.target.checked; try { localStorage.setItem(KEY, on ? "1" : "0"); } catch (err) {} apply(); } });
   mq.addEventListener ? mq.addEventListener("change", apply) : mq.addListener(apply);
   apply();
+})();
+</script>
+<style id="v14-ui">
+/* ===================== Шторка фильтров справа: крупнее и просторнее ===================== */
+@media (min-width:721px){
+  body.filters-right{--fr-w:var(--fr-w-open,360px)}
+  body.filters-right.fr-collapsed{--fr-w:52px}
+  /* На вкладке «Настройки» шторка не нужна: у настроек свои вкладки */
+  body.filters-right.fr-settings{--fr-w:0px}
+  body.fr-settings #filter-drawer,body.fr-settings #fr-resizer{display:none!important}
+  .fd-head{font-size:16px}
+  #fd-body{padding:14px 14px 20px}
+  #fd-body .filters,#fd-body .quick-ranges{gap:10px}
+  #fd-body .filters .field{border-radius:14px}
+  #fd-body .filters .field > label{height:auto;padding:10px 16px 2px!important;border:0!important;background:transparent!important;font-size:14px!important;font-weight:500;line-height:1.3;color:var(--muted)}
+  #fd-body .filters .field > label::after{display:none!important}
+  #fd-body .filters .field select,#fd-body .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){height:46px!important;padding:0 38px 0 16px!important;font-size:16px!important;font-weight:500}
+  #fd-body .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]):not(select){padding-right:16px!important}
+  #fd-body .filters .field .msel{height:46px;width:100%;max-width:none;padding:0 38px 0 16px;font-size:16px}
+  #fd-body .filters .field > .seg button,#fd-body .filters .field > .pbtn > .mini{height:40px!important;font-size:15px!important}
+  #fd-body .filters .field > .seg,#fd-body .filters .field > .pbtn{padding:4px 6px 6px}
+  #fd-body .checkline{min-height:48px;font-size:15.5px}
+  #fd-body .filters > button.mini,#fd-body .table-export-actions .mini,#fd-body .opt-pop > summary{min-height:46px;font-size:15.5px}
+  #fd-body .quick-ranges button{min-height:38px;font-size:14.5px}
+  .fd-top .ult-btn{min-height:40px;font-size:14.5px}
+}
+
+/* ===================== Настройки: вкладки (ПК) и список разделов (телефон) ===================== */
+.set-tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 18px;padding:4px;border-radius:15px;background:color-mix(in srgb,var(--text) 4%,var(--ctrl));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 11%,transparent);position:sticky;top:calc(var(--hdr-h,57px) + 6px);z-index:20;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.set-tabs button{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px;border:0;border-radius:11px;background:transparent;color:var(--muted);font:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:background .15s,color .15s}
+.set-tabs button:hover{color:var(--text);background:color-mix(in srgb,var(--text) 6%,transparent)}
+.set-tabs button.active{color:var(--text);background:color-mix(in srgb,var(--text) 11%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--text) 11%,transparent),0 1px 2px #0003,inset 0 -2px 0 color-mix(in srgb,var(--accent) 45%,transparent)}
+.set-tabs button i{font-style:normal;font-size:16px;line-height:1}
+#tab-settings[data-scat] .set-pane{display:none}
+#tab-settings[data-scat="look"] .set-pane[data-cat="look"],#tab-settings[data-scat="fx"] .set-pane[data-cat="fx"],#tab-settings[data-scat="filters"] .set-pane[data-cat="filters"],#tab-settings[data-scat="people"] .set-pane[data-cat="people"],#tab-settings[data-scat="data"] .set-pane[data-cat="data"],#tab-settings[data-scat="site"] .set-pane[data-cat="site"]{display:block;animation:setIn .22s ease-out}
+@keyframes setIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.set-pane > h2:first-child,.set-pane > .set-back + h2{margin-top:0}
+.set-menu,.set-back{display:none}
+body:not(.fv3-off) #tab-settings .set-pane > .filters{padding:10px;border-radius:18px;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--fv4-line,var(--line));box-shadow:0 1px 0 #ffffff08 inset,0 14px 34px -26px #000}
+@media (max-width:720px){
+  .set-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;position:static}
+  .set-tabs::-webkit-scrollbar{display:none}
+  .set-tabs button{flex:0 0 auto}
+  /* приложение: сначала список разделов, внутри — настройки раздела и кнопка «назад» */
+  body.mapp .set-tabs{display:none}
+  body.mapp #tab-settings:not(.sm-in) .set-pane{display:none!important}
+  body.mapp #tab-settings:not(.sm-in) .set-menu{display:block}
+  body.mapp .set-menu{margin:4px 2px 18px;border-radius:14px;background:var(--ma-group,var(--panel));overflow:hidden}
+  body.mapp .set-menu .ma-txt{min-height:58px}
+  body.mapp .set-menu .ma-txt > span:first-child{display:flex;flex-direction:column;gap:2px;white-space:normal}
+  body.mapp .set-menu .ma-txt b{font-weight:500;font-size:16px}
+  body.mapp .set-menu .ma-txt em{font-style:normal;color:var(--muted);font-size:13px;line-height:1.3}
+  body.mapp .set-menu-title{margin:6px 16px 8px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  body.mapp #tab-settings.sm-in .set-back{display:flex;align-items:center;gap:4px;height:40px;margin:0 0 6px -6px;padding:0 8px;border:0;background:transparent;color:var(--accent);font:inherit;font-size:16px;font-weight:500;cursor:pointer}
+  body.mapp #tab-settings.sm-in .set-back::before{content:"‹";font-size:28px;line-height:1;margin-top:-3px}
+}
+
+/* ===================== Анимированные плашки годов («Топ месяцев», «Топ дней») ===================== */
+body.fx-yearchips .ychip{position:relative;overflow:hidden;isolation:isolate;vertical-align:1px}
+body.fx-yearchips .ychip.yc-live{animation:ycGlow 3.6s ease-in-out infinite;animation-delay:var(--yc-d,0s)}
+body.fx-yearchips .ychip.yc-live::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:60%;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.18) 35%,rgba(255,255,255,.7) 50%,rgba(255,255,255,.18) 65%,transparent 100%);transform:translateX(0) skewX(-18deg);animation:ycShine 3.6s cubic-bezier(.4,0,.2,1) infinite;animation-delay:var(--yc-d,0s);mix-blend-mode:overlay;pointer-events:none}
+@keyframes ycShine{0%,58%{transform:translateX(0) skewX(-18deg)}100%{transform:translateX(330%) skewX(-18deg)}}
+@keyframes ycGlow{0%,100%{box-shadow:0 0 0 0 transparent;filter:none}55%{box-shadow:0 0 0 0 transparent;filter:none}75%{box-shadow:0 0 12px -3px currentColor,inset 0 0 6px -3px currentColor;filter:brightness(1.18)}}
+/* кнопки-фильтры годов над таблицей: точка пульсирует, у выбранного бежит блик */
+body.fx-yearchips .ychip-btn i{position:relative;animation:ycDot 2.4s ease-out infinite}
+body.fx-yearchips .ychip-btn:nth-child(3n+2) i{animation-delay:.8s}
+body.fx-yearchips .ychip-btn:nth-child(3n) i{animation-delay:1.6s}
+@keyframes ycDot{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--yc) 70%,transparent)}70%,100%{box-shadow:0 0 0 7px color-mix(in srgb,var(--yc) 0%,transparent)}}
+body.fx-yearchips .ychip-btn.active{position:relative;overflow:hidden;background-image:linear-gradient(100deg,transparent 30%,color-mix(in srgb,var(--yc) 35%,transparent) 50%,transparent 70%);background-size:250% 100%;animation:ycBtn 3.2s linear infinite}
+@keyframes ycBtn{from{background-position:120% 0}to{background-position:-130% 0}}
+
+/* ===================== Переливающаяся рамка у графиков (как у таблиц) ===================== */
+body.tb-on .chart:not(:has(svg.heatrows-svg)){position:relative;border-color:transparent;box-shadow:var(--shadow),0 0 22px -10px var(--tb-glow,transparent)}
+body.tb-on .chart:not(:has(svg.heatrows-svg))::after{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--tb-ang),var(--tb-c));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);animation:tbSpin var(--tb-speed,6s) linear infinite;pointer-events:none;z-index:1}
+body.tb-on .chart:has(svg.heatrows-svg){border:1.5px solid transparent;background:linear-gradient(var(--panel),var(--panel)) padding-box,conic-gradient(from var(--tb-ang),var(--tb-c)) border-box;animation:tbSpin var(--tb-speed,6s) linear infinite}
+@media (prefers-reduced-motion:reduce){body.tb-on .chart::after,body.tb-on .chart{animation:none!important}body.fx-yearchips .ychip,body.fx-yearchips .ychip::after,body.fx-yearchips .ychip-btn,body.fx-yearchips .ychip-btn i{animation:none!important}}
+/* Настройки в приложении: разделы оформлены как сгруппированные списки, как в шторке фильтров */
+@media (max-width:720px){
+  body.mapp #tab-settings .set-pane .filters{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;gap:0!important;margin:0 0 14px!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:14px!important;background:var(--ma-group)!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;--control-height:46px}
+  body.mapp #tab-settings .set-pane .filters > *{width:100%!important;max-width:none!important;flex:0 0 auto!important;margin:0!important}
+  body.mapp #tab-settings .set-pane .filters > * + *{border-top:1px solid var(--ma-hair)!important}
+  body.mapp #tab-settings .set-pane .filters > [hidden],body.mapp #tab-settings .set-pane .filters .field[hidden]{display:none!important}
+  body.mapp #tab-settings .set-pane .filters .field{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between;height:auto!important;min-height:48px;padding:0 4px 0 0;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+  body.mapp #tab-settings .set-pane .filters .field > label{flex:1 1 0;min-width:0;display:flex;align-items:center;min-height:48px;padding:6px 10px 6px 14px!important;background:transparent!important;border:0!important;color:var(--text)!important;font-size:15.5px!important;line-height:1.25;white-space:normal}
+  body.mapp #tab-settings .set-pane .filters .field > label::after{display:none!important}
+  body.mapp #tab-settings .set-pane .filters .field select,body.mapp #tab-settings .set-pane .filters .field input:not([type=checkbox]):not([type=range]):not([type=color]){flex:0 1 auto!important;width:auto!important;min-width:0!important;max-width:64%!important;height:46px!important;padding:0 28px 0 8px!important;border:0!important;background-color:transparent!important;box-shadow:none!important;color:var(--muted)!important;font-size:15.5px!important;text-align:right;text-align-last:right}
+  body.mapp #tab-settings .set-pane .filters .field input[type=date],body.mapp #tab-settings .set-pane .filters .field input[type=month],body.mapp #tab-settings .set-pane .filters .field input[type=number]{padding-right:10px!important}
+  body.mapp #tab-settings .set-pane .filters .field > .seg,body.mapp #tab-settings .set-pane .filters .field > .pbtn{flex:1 1 100%!important;order:5;display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin:0 10px 10px 14px!important;padding:3px!important;height:auto!important;border-radius:11px!important;background:color-mix(in srgb,var(--text) 7%,transparent)!important;box-shadow:none!important;overflow:visible!important}
+  body.mapp #tab-settings .set-pane .filters > .seg{display:flex!important;flex-wrap:wrap!important;gap:4px!important;padding:10px 14px!important;height:auto!important;background:transparent!important;box-shadow:none!important;border-radius:0!important}
+  body.mapp #tab-settings .set-pane .filters .seg button,body.mapp #tab-settings .set-pane .filters .field > .pbtn > .mini{flex:1 1 auto!important;height:34px!important;min-height:0;padding:0 10px!important;border:0!important;border-radius:9px!important;background:transparent!important;color:var(--text)!important;font-size:14px!important;box-shadow:none!important}
+  body.mapp #tab-settings .set-pane .filters > .seg button{background:color-mix(in srgb,var(--text) 7%,transparent)!important}
+  body.mapp #tab-settings .set-pane .filters .seg button.active{background:var(--panel-2,var(--panel))!important;color:var(--text)!important;font-weight:600;box-shadow:0 1px 3px #0004!important}
+  body.mapp #tab-settings .set-pane .filters .field > .pbtn .hint{flex:1 1 100%;padding:2px 4px}
+  body.mapp #tab-settings .set-pane .checkline{display:flex!important;flex-direction:row-reverse!important;justify-content:space-between!important;align-items:center!important;min-height:48px;height:auto!important;padding:0 14px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:var(--text)!important;font-size:15.5px!important}
+  body.mapp #tab-settings .set-pane .checkline input[type=checkbox]{flex:0 0 46px!important;width:46px!important;height:28px!important;background:radial-gradient(circle at 14px 50%,#fff 0 11px,transparent 11.6px),color-mix(in srgb,var(--text) 18%,transparent)!important}
+  body.mapp #tab-settings .set-pane .checkline input[type=checkbox]:checked{background:radial-gradient(circle at 32px 50%,#fff 0 11px,transparent 11.6px),#34c759!important}
+  body.mapp #tab-settings .set-pane .opt-pop>summary{display:none!important}
+  body.mapp #tab-settings .set-pane .opt-pop .opt-list{position:static!important;display:flex!important;flex-direction:column;gap:0;min-width:0;padding:0;border:0;border-radius:0;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+  body.mapp #tab-settings .set-pane .opt-pop .opt-list > * + *{border-top:1px solid var(--ma-hair)!important}
+  body.mapp #tab-settings .set-pane .table-export-actions{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:0!important}
+  body.mapp #tab-settings .set-pane .table-export-actions > * + *{border-top:1px solid var(--ma-hair)}
+  body.mapp #tab-settings .set-pane .filters > button.mini,body.mapp #tab-settings .set-pane .table-export-actions .mini{display:flex!important;align-items:center;justify-content:flex-start!important;height:48px!important;width:100%;padding:0 14px!important;border:0!important;border-radius:0!important;background:transparent!important;color:var(--accent)!important;font-size:15.5px!important;box-shadow:none!important}
+  body.mapp #tab-settings .set-pane .table-export-actions .hint{padding:8px 14px;font-size:13px}
+  body.mapp #tab-settings .set-pane .pick .pop{position:static!important;box-shadow:none}
+  body.mapp #tab-settings .set-pane [data-fcat]{box-shadow:none!important}
+  body.mapp #tab-settings .set-pane .filters{margin:0 0 16px!important}
+  body.mapp #tab-settings .set-pane .checkline{white-space:normal!important;text-align:left!important;line-height:1.3;padding:8px 14px!important;gap:14px!important;overflow:visible!important;text-overflow:clip!important}
+  body.mapp #tab-settings .set-pane .filters .field > label{white-space:normal!important}
+  body.mapp #tab-settings .set-pane .filters > .hint,body.mapp #tab-settings .set-pane .filters > span.hint{padding:8px 14px;font-size:13px}
+  body.mapp #tab-settings .set-pane > .pbtn{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px!important}
+}
+</style>
+<script id="v14-js">
+/* ===================== Настройки: вкладки по категориям ===================== */
+(function(){
+  const tab = document.getElementById("tab-settings"); if (!tab || tab.querySelector(".set-panes")) return;
+  const KEY = "chatstats.settingsCat.v1";
+  const CATS = [
+    {k:"look", ic:"🎨", c:"#5e8bff", t:"Оформление", d:"Тема, цвет фона, шрифт и мобильная версия", h:["Тема оформления", "Шрифт"]},
+    {k:"fx", ic:"✨", c:"#bf5af2", t:"Эффекты", d:"Анимации, частицы на фоне, рамка таблиц и графиков", h:["Эффекты"]},
+    {k:"filters", ic:"🎛️", c:"#34c759", t:"Фильтры и таблицы", d:"Вид фильтров и дополнения к таблицам", h:["Фильтры", "Экспериментально"]},
+    {k:"people", ic:"👥", c:"#ff9f0a", t:"Участники", d:"Имена, цвета, дни рождения, города и аватарки", h:["Участники", "Дни рождения", "Аватарки"]},
+    {k:"data", ic:"🗄️", c:"#30b0c7", t:"Данные", d:"Ultimate, кэш, автообновление и сервер", h:["Colony Ultimate", "Кэш истории", "Автообновление", "Адрес сервера", "Поля API"]},
+    {k:"site", ic:"ℹ️", c:"#8e8e93", t:"Перенос и версия", d:"Экспорт и импорт настроек, версия сайта, история обновлений", h:["Перенос настроек", "О сайте"]},
+  ];
+  const catOfH2 = txt => { txt = txt.trim(); const c = CATS.find(c => c.h.some(p => txt.startsWith(p))); return c ? c.k : null; };
+  // Раскладываем содержимое вкладки по разделам: всё после заголовка относится к его разделу.
+  const panes = {};
+  const box = document.createElement("div"); box.className = "set-panes";
+  CATS.forEach(c => {
+    const p = document.createElement("div"); p.className = "set-pane"; p.dataset.cat = c.k;
+    p.innerHTML = `<button type="button" class="set-back">Настройки</button>`;
+    panes[c.k] = p; box.appendChild(p);
+  });
+  let curCat = CATS[0].k;
+  [...tab.children].forEach(n => {
+    if (n.tagName === "H2") curCat = catOfH2(n.textContent) || curCat;
+    panes[curCat].appendChild(n);
+  });
+  const bar = document.createElement("div"); bar.className = "set-tabs"; bar.setAttribute("role", "tablist"); bar.setAttribute("aria-label", "Разделы настроек");
+  bar.innerHTML = CATS.map(c => `<button type="button" role="tab" data-scat="${c.k}"><i aria-hidden="true">${c.ic}</i>${c.t}</button>`).join("");
+  const menu = document.createElement("div"); menu.className = "set-menu-wrap";
+  menu.innerHTML = `<div class="set-menu">${CATS.map(c => `<button type="button" class="ma-row" data-scat="${c.k}"><span class="ma-ico" style="--c:${c.c}">${c.ic}</span><span class="ma-txt"><span><b>${c.t}</b><em>${c.d}</em></span><span class="ma-chev">›</span></span></button>`).join("")}</div>`;
+  tab.append(bar, menu.firstElementChild, box);
+  // На вкладке настроек «К разделу» больше не нужен — у неё свои вкладки.
+  tab.querySelectorAll(":scope > .sec-nav, .set-pane > .sec-nav").forEach(n => n.remove());
+  let cat = CATS[0].k;
+  try { const s = localStorage.getItem(KEY); if (s && panes[s]) cat = s; } catch (e) {}
+  function show(k, enter){
+    if (!panes[k]) return;
+    cat = k; tab.dataset.scat = k;
+    bar.querySelectorAll("button").forEach(b => { const a = b.dataset.scat === k; b.classList.toggle("active", a); b.setAttribute("aria-selected", a ? "true" : "false"); });
+    if (enter) tab.classList.add("sm-in");
+    try { localStorage.setItem(KEY, k); } catch (e) {}
+    try { window.dispatchEvent(new Event("resize")); } catch (e) {}
+  }
+  tab.addEventListener("click", e => {
+    const b = e.target.closest("[data-scat]");
+    if (b && (b.closest(".set-tabs") || b.closest(".set-menu"))) {
+      const fromMenu = !!b.closest(".set-menu");
+      show(b.dataset.scat, fromMenu);
+      if (fromMenu || document.body.classList.contains("mapp")) scrollTo({top:0});
+      return;
+    }
+    if (e.target.closest(".set-back")) { tab.classList.remove("sm-in"); scrollTo({top:0}); }
+  });
+  // Если что-то из сайта ведёт к элементу настроек (например, по id), открываем нужный раздел.
+  document.addEventListener("focusin", e => { const p = e.target.closest && e.target.closest(".set-pane"); if (p && p.dataset.cat !== cat) show(p.dataset.cat, true); });
+  window.__settingsCats = {show:(k) => show(k, true), list:CATS.map(c => c.k)};
+  show(cat, false);
+})();
+
+/* ===================== Анимированные плашки годов: анимируются только те, что на экране ===================== */
+(function(){
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle("yc-live", e.isIntersecting)), {rootMargin:"80px 0px"}) : null;
+  let n = 0;
+  function scan(root){
+    if (!root.querySelectorAll) return;
+    const list = root.classList && root.classList.contains("ychip") ? [root] : root.querySelectorAll(".ychip");
+    list.forEach(el => {
+      if (el.dataset.yc) return; el.dataset.yc = "1";
+      el.style.setProperty("--yc-d", ((n++ * .23) % 3.6).toFixed(2) + "s");
+      if (io) io.observe(el); else el.classList.add("yc-live");
+    });
+  }
+  const host = document.querySelector("main") || document.body;
+  scan(host);
+  new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(nd => { if (nd.nodeType === 1) scan(nd); }))).observe(host, {childList:true, subtree:true});
 })();
 </script>
 </body>
