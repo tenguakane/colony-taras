@@ -1561,7 +1561,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
         <select id="heat-scale"><option value="all">Общая</option><option value="row">По каждой строке</option></select>
       </div>
       <div class="field" id="bump-mode-field" hidden><label for="bump-mode" title="Место в каждом отрезке времени или место по сумме с начала периода">Места</label>
-        <select id="bump-mode"><option value="period">За каждый отрезок</option><option value="cum">Накопительно</option></select>
+        <select id="bump-mode"><option value="cum">Накопительно (как в рейтинге)</option><option value="each">За каждый отрезок</option></select>
       </div>
       <div class="field" id="spread-zero-field" hidden><label for="spread-zero" title="Учитывать ли дни, когда участник ничего не написал">Дни</label>
         <select id="spread-zero"><option value="active">Только активные</option><option value="all">Все, включая нулевые</option></select>
@@ -10810,11 +10810,11 @@ function chartEventsSvg(evs, xOf, T, B, R, opts = {}){
 
 /* ---------- График мест (bump chart) ---------- */
 function bumpChart(){
-  const D = chartDaily(); if (D.err) return note(D.err);
+  // Места считаются среди всех участников (как в подсказке и таблицах), выбор влияет только на то, кого показывать.
+  const D = chartDaily(true); if (D.err) return note(D.err);
   const B = chartBuckets(D.from, D.n, 30);
   if (B.count < 2) return note("Для графика мест нужен период хотя бы из двух дней");
-  const cum = $("bump-mode").value === "cum", kindKey = chartStyleKind();
-  // Значение каждого в каждом отрезке (сумма или накопленное; в режиме «на активный день» — среднее за активный день).
+  const cum = $("bump-mode").value !== "each", kindKey = chartStyleKind();
   const vals = D.list.map(e => {
     const {s, act} = bucketSums(e.a, B), v = new Float64Array(B.count), raw = new Float64Array(B.count);
     let cs = 0, ca = 0;
@@ -10823,26 +10823,30 @@ function bumpChart(){
       const sum = cum ? cs : s[b], days = cum ? ca : act[b];
       raw[b] = sum; v[b] = NORM === "day" ? (days ? sum / days : 0) : sum;
     }
-    return {e, v, raw};
+    return {e, v, raw, rk:new Array(B.count).fill(null), fr:null};
   });
-  // Места — среди всех, у кого было значение в отрезке; одинаковые значения делят место.
-  const ranks = vals.map(() => new Array(B.count).fill(null)), totals = new Float64Array(B.count);
+  const totals = new Float64Array(B.count);
   for (let b = 0; b < B.count; b++) {
-    const order = vals.map((x, i) => [i, x.v[b]]).filter(q => q[1] > 0).sort((p, q) => q[1] - p[1]);
-    order.forEach(([i, v], k) => { ranks[i][b] = k > 0 && v === order[k - 1][1] ? ranks[order[k - 1][0]][b] : k + 1; });
+    const order = vals.filter(x => x.v[b] > 0).sort((p, q) => q.v[b] - p.v[b]);
+    order.forEach((x, k) => { x.rk[b] = k > 0 && x.v[b] === order[k - 1].v[b] ? order[k - 1].rk[b] : k + 1; });
     vals.forEach(x => totals[b] += x.raw[b]);
   }
-  const shownAll = vals.slice(0, trendTop());
+  vals.forEach(x => { let act = 0; for (const v of x.e.a) if (v > 0) act++; x.fv = NORM === "day" ? (act ? x.e.tot / act : 0) : x.e.tot; });
+  const fo = vals.filter(x => x.fv > 0).sort((p, q) => q.fv - p.fv);
+  fo.forEach((x, k) => { x.fr = k > 0 && x.fv === fo[k - 1].fv ? fo[k - 1].fr : k + 1; });
+  const pool = (!D.chats && SEL_ACTIVE) ? vals.filter(x => SEL.has(String(x.e.k))) : vals;
+  const shownAll = pool.slice().sort((p, q) => (p.fr ?? 1e9) - (q.fr ?? 1e9)).slice(0, trendTop());
+  if (!shownAll.length) return note("Нет данных за выбранный период");
   const shown = shownAll.filter(x => !hiddenSeries.has(x.e.n));
   lineSeriesInfo = shownAll.map(x => ({name:x.e.n, color:chartSeriesStyle(kindKey, x.e.k).c[0]}));
   const nShown = shownAll.length;
-  let maxSeen = 1; shownAll.forEach(x => ranks[vals.indexOf(x)].forEach(r => { if (r && r > maxSeen) maxSeen = r; }));
-  const maxRank = Math.max(nShown, Math.min(maxSeen, nShown + 8, 40));
+  let maxSeen = 1; shownAll.forEach(x => x.rk.forEach(r => { if (r && r > maxSeen) maxSeen = r; }));
+  const need = Math.max(nShown, ...shownAll.map(x => x.fr || 0));
+  const maxRank = Math.min(40, Math.max(need, Math.min(maxSeen, need + 8)));
   const W = 1100, L = 70, Rr = W - 210, T = 104, rowH = Math.max(22, Math.min(44, Math.floor(560 / maxRank))), Bt = T + (maxRank - 1) * rowH;
   const xs = b => L + (B.count === 1 ? 0 : b / (B.count - 1) * (Rr - L)), ys = r => T + (r - 1) * rowH;
-  const modeWord = cum ? "накопительно" : `за каждый отрезок`;
+  const modeWord = cum ? "накопительно с начала периода" : `за каждый отрезок`;
   let o = head(cPeriodLabel(), `${sub()} · места по ${B.word}, ${modeWord}${NORM === "day" ? ", по среднему за активный день" : ""}`, W);
-  // Сетка мест
   for (let r = 1; r <= maxRank; r++) {
     const y = ys(r), medal = ["#ffd166", "#c0c6d4", "#e3a36b"][r - 1];
     o += `<line x1="${L}" y1="${y}" x2="${Rr}" y2="${y}" stroke="#ffffff" stroke-opacity="${r <= 3 ? .09 : .05}" stroke-width="1"/>`;
@@ -10856,14 +10860,13 @@ function bumpChart(){
   const evs = chartEventsFor(D.from, D.to, shownAll.map(x => x.e.k));
   if (evs) {
     const xOfDate = d => { const i = Math.max(0, Math.min(D.n - 1, dayIdx(d) - D.d0)), b = B.idx[i]; return xs(b) - (B.count > 1 ? (Rr - L) / (B.count - 1) / 2 : 0); };
-    const ev = chartEventsSvg({bands:evs.bands, flags:evs.flags}, xOfDate, T - 18, Bt + 14, Rr, {dayW:B.count > 1 ? (Rr - L) / (B.count - 1) : 10});
-    o += ev.svg;
+    o += chartEventsSvg({bands:evs.bands, flags:evs.flags}, xOfDate, T - 18, Bt + 14, Rr, {dayW:B.count > 1 ? (Rr - L) / (B.count - 1) : 10}).svg;
   }
   const many = B.count > 36, pr = many ? 3.5 : 6;
   const vfmt = v => NORM === "day" ? fmtR(v) : fmt(Math.round(v));
-  // Линии — снизу вверх, чтобы лидеры были поверх.
+  const placeWord = cum ? "с начала периода" : (B.kind === "d" ? "за этот день" : B.kind === "w" ? "за эту неделю" : "за этот месяц");
   [...shown].reverse().forEach(x => {
-    const i = vals.indexOf(x), rk = ranks[i], c = chartSeriesStyle(kindKey, x.e.k).c[0];
+    const rk = x.rk, c = chartSeriesStyle(kindKey, x.e.k).c[0];
     let d = "", prev = null;
     for (let b = 0; b < B.count; b++) {
       const r = rk[b]; if (!r || r > maxRank) { prev = null; continue; }
@@ -10876,26 +10879,25 @@ function bumpChart(){
     for (let b = 0; b < B.count; b++) {
       const r = rk[b]; if (!r || r > maxRank) continue;
       const share = totals[b] ? x.raw[b] / totals[b] : 0;
-      const tip = `${x.e.n} · ${B.full(b)}|${r} место · ${vfmt(x.v[b])}${NORM === "day" ? " в активный день" : ""} · ${pctStr(share)} всех`;
+      const tip = `${x.e.n} · ${B.full(b)}|${r} место ${placeWord} · ${vfmt(x.v[b])}${NORM === "day" ? " в активный день" : ""} · ${pctStr(share)} всех`;
       o += `<circle data-n="${escH(x.e.n)}" cx="${xs(b).toFixed(1)}" cy="${ys(r).toFixed(1)}" r="${pr}" fill="${c}" stroke="#12141b" stroke-width="2" data-tip="${escH(tip)}"/>`;
     }
   });
-  // Подписи справа: последнее место (или «вне топ-N»), клик скрывает линию.
   const ends = shownAll.map(x => {
-    const i = vals.indexOf(x), rk = ranks[i]; let lb = B.count - 1; while (lb >= 0 && (!rk[lb] || rk[lb] > maxRank)) lb--;
-    return {x, r: lb >= 0 ? rk[lb] : null, last: rk[B.count - 1], y: lb >= 0 ? ys(rk[lb]) : Bt + rowH, lb};
+    let lb = B.count - 1; while (lb >= 0 && (!x.rk[lb] || x.rk[lb] > maxRank)) lb--;
+    return {x, y: lb >= 0 ? ys(x.rk[lb]) : Bt + rowH, lb};
   }).sort((a, b) => a.y - b.y);
   const gap = Math.max(15, Math.min(rowH, 24)); let prevY = -1e9;
   ends.forEach(e => { e.ly = Math.max(e.y, prevY + gap); prevY = e.ly; });
   ends.forEach(e => {
     const c = chartSeriesStyle(kindKey, e.x.e.k).c[0], off = hiddenSeries.has(e.x.e.n);
-    const place = e.last ? `${e.last}-е` : "—";
+    const place = e.x.fr ? `${e.x.fr}-е` : "—";
     o += `<g class="lg-item" data-name="${escH(e.x.e.n)}" data-ek="${escH(e.x.e.k)}" opacity="${off ? .35 : 1}" style="cursor:pointer"><rect x="${Rr + 14}" y="${(e.ly - gap / 2).toFixed(1)}" width="190" height="${gap}" fill="transparent"/>`
       + (e.lb >= 0 && !off ? `<path d="M${(xs(e.lb) + pr + 2).toFixed(1)},${e.y.toFixed(1)} L${(Rr + 20).toFixed(1)},${e.ly.toFixed(1)}" stroke="${c}" stroke-opacity=".35" stroke-width="1.2" fill="none"/>` : "")
       + `<circle cx="${Rr + 26}" cy="${e.ly.toFixed(1)}" r="5" fill="${c}"/><text class="chart-legend" x="${Rr + 38}" y="${(e.ly + 5).toFixed(1)}" font-size="15" fill="#f2f3f7">${escH(shortName(e.x.e.n, 15))}<tspan class="chart-value" font-size="13" fill="#9aa0b0"> ${place}</tspan></text></g>`;
   });
   const H = Bt + 70;
-  o += `<text class="chart-legend" x="${L - 34}" y="${H - 8}" font-size="13" fill="#7d8190">Место — среди всех ${D.chats ? "чатов" : "участников"} ${cum ? "по сумме с начала периода" : "с активностью в этом отрезке"}.<tspan data-no-export="1"> Наведи на точку, чтобы увидеть значение; клик по имени скрывает линию.</tspan></text>`;
+  o += `<text class="chart-legend" x="${L - 34}" y="${H - 8}" font-size="13" fill="#7d8190">Справа — место за весь период среди всех ${D.chats ? "чатов" : "участников"}; точки — место ${cum ? "по сумме с начала периода" : "в каждом отрезке"}.<tspan data-no-export="1"> Клик по имени скрывает линию.</tspan></text>`;
   return `<svg class="wide-svg" viewBox="0 0 ${W} ${H}" role="img">${o}</svg>`;
 }
 
@@ -13894,6 +13896,7 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.24-5", date:"2026-10-24", title:"График мест показывает реальные места", items:[{tag:"fix", area:"Графики", text:"«График мест» по умолчанию считает места накопительно — как в рейтинге и подсказке. Справа у имени — место за весь период, а места считаются среди всех участников, даже если выбраны только некоторые."}]},
   {v:"2026.10.24-4", date:"2026-10-24", title:"Карточки в две строки", items:[{tag:"fix", area:"Телефон", text:"Строки «Всего» и другие итоги в карточках снова показывают суммы по каждому столбцу с подписями, числа больше не съезжают."},{tag:"imp", area:"Телефон", text:"Карточки таблиц перестроены: сверху место и имя, снизу все столбцы в один ряд с равными промежутками. Изменение (±) стоит рядом с числом, длинные подписи сокращены — карточки стали заметно ниже."}]},
   {v:"2026.10.24-3", date:"2026-10-24", title:"Стрелка «это ты», компактные карточки", items:[{tag:"imp", area:"Везде", text:"Твоя строка в таблицах отмечается аккуратной стрелкой › слева. На картинке при копировании таблицы её нет."},{tag:"fix", area:"Везде", text:"Голографический эффект на карточках остался, а белое пятно за курсором убрано."},{tag:"imp", area:"Телефон", text:"Карточки таблиц стали компактными: место, имя и значения в одну строку, подписи мелко над числами — на экран помещается в 2–3 раза больше участников."},{tag:"imp", area:"Телефон", text:"Приложение называется Colony Stats."}]},
   {v:"2026.10.24-2", date:"2026-10-24", title:"Ненавязчивая подсветка себя", items:[{tag:"imp", area:"Везде", text:"Подсветка себя в таблицах стала аккуратнее: тонкая полоска слева у строки и маленькая точка у имени вместо заливки и метки «ты»."},{tag:"fix", area:"Таблицы", text:"В картинках, скопированных или скачанных из таблиц, ты больше не выделен(а)."},{tag:"imp", area:"Приложение", text:"Приложение на домашнем экране и вкладка браузера теперь называются «Colony Stats»."}]},
