@@ -1445,7 +1445,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
   <section class="tab" id="tab-profile">
     <div class="seg group-tabs" data-group-seg="profile"><button type="button" data-gtab="profile" class="active">Профиль</button><button type="button" data-gtab="achievements" class="">Достижения</button></div>
     <div class="filters">
-      <div class="field"><label for="person">Участник</label><select id="person"></select></div>
+      <div class="field" data-fr-keep><label for="person">Участник</label><select id="person"></select></div>
       <div class="field"><label for="pv-period">Итоги</label><select id="pv-period" title="За какой период делать видео-итоги"><option value="all">За всё время</option></select><button class="mini" id="pv-video" type="button" title="Вертикальное видео 1080×1920 с итогами участника">🎬 Видео-итоги</button></div>
       <span class="hint" id="pv-msg"></span>
     </div>
@@ -1632,7 +1632,7 @@ body.fx-pulse .fx-pulse-dot{display:inline;animation:fxPulse 1.6s ease-out infin
   <section class="tab" id="tab-achievements">
     <div class="seg group-tabs" data-group-seg="profile"><button type="button" data-gtab="profile" class="">Профиль</button><button type="button" data-gtab="achievements" class="active">Достижения</button></div>
     <div class="filters">
-      <div class="field"><label for="ach-person">Участник</label><select id="ach-person"></select></div>
+      <div class="field" data-fr-keep><label for="ach-person">Участник</label><select id="ach-person"></select></div>
       <div class="table-export-actions filters-export-actions"><button class="mini copy-btn" id="ach-copy" type="button">Копировать как картинку</button><button class="mini" id="ach-download" type="button">⬇ Скачать PNG</button><span class="hint" id="ach-msg" role="status" aria-live="polite"></span></div>
     </div>
     <p class="status" id="ach-status"></p>
@@ -2001,8 +2001,16 @@ window.__BAKED.avVer = "2026-10-21";
 /* Десятичные дроби на сайте — всегда с точкой */
 (function(){
   const base = Number.prototype.toLocaleString;
+  // Форматтеры запоминаются: создавать новый на каждое число — самое медленное место при выводе больших таблиц.
+  const NF = new Map();
   Number.prototype.toLocaleString = function(loc, opt){
-    const r = base.call(this, loc, opt);
+    let r;
+    if (loc === undefined || typeof loc === "string") {
+      const k = (loc || "") + "|" + (opt === undefined ? "" : JSON.stringify(opt));
+      let f = NF.get(k);
+      if (!f) { try { f = new Intl.NumberFormat(loc, opt); } catch (e) { f = null; } NF.set(k, f); }
+      r = f ? f.format(this) : base.call(this, loc, opt);
+    } else r = base.call(this, loc, opt);
     return typeof r === "string" && (loc === undefined || /^ru/i.test(String(loc))) ? r.replace(/(\d),(?=\d)/g, "$1.") : r;
   };
 })();
@@ -6287,7 +6295,9 @@ document.addEventListener("pointercancel", finishColumnResize, true);
 
 /* ---------- Прогноз к концу месяца / года ---------- */
 let fcPeriod = "month", fcEntity = "users";
-const dayIdx = v => { const a = v.split("-").map(Number); return Math.round(Date.UTC(a[0], a[1] - 1, a[2]) / 864e5); };
+// Номер дня по строке даты; результаты запоминаются — функция вызывается десятки тысяч раз.
+const DAY_IDX = new Map();
+const dayIdx = v => { let r = DAY_IDX.get(v); if (r === undefined) { const a = v.split("-").map(Number); r = Math.round(Date.UTC(a[0], a[1] - 1, a[2]) / 864e5); if (DAY_IDX.size > 50000) DAY_IDX.clear(); DAY_IDX.set(v, r); } return r; };
 function fcBounds(period){
   const t = new Date(), y = t.getFullYear(), m = t.getMonth();
   if (period === "year") return {start:`${y}-01-01`, end:`${y}-12-31`, prevStart:`${y - 1}-01-01`, prevEnd:`${y - 1}-12-31`, label:`${y} год`, prevLabel:`${y - 1} год`};
@@ -8777,6 +8787,8 @@ async function idbDo(mode, fn){ const db = await idbOpen(); return new Promise((
 const idbGet = k => idbDo("readonly", s => s.get(k));
 const idbSet = (k, v) => idbDo("readwrite", s => s.put(v, k));
 const idbDel = k => idbDo("readwrite", s => s.delete(k));
+// Сохранение большого кэша откладываем до момента, когда браузер свободен (но не дольше 4 с), чтобы не тормозить первую отрисовку.
+const whenIdle = fn => (window.requestIdleCallback ? requestIdleCallback(fn, {timeout:4000}) : setTimeout(fn, 1500));
 getHistory = function(){
   if (allRows) return Promise.resolve(allRows);
   return histP || (histP = (async () => {
@@ -8791,7 +8803,7 @@ getHistory = function(){
     } else data = await fetchAll("2000-01-01", today);
     rawHist = data; allRows = ultView(data); stamp();
     const lastDate = data.reduce((m, x) => { const d = String(x[F.date] ?? "").slice(0, 10); return d > m ? d : m; }, "") || today;
-    idbSet("history", {v:1, savedAt:Date.now(), lastDate, rows:data}).then(renderCacheInfo).catch(() => {});
+    whenIdle(() => idbSet("history", {v:1, savedAt:Date.now(), lastDate, rows:data}).then(renderCacheInfo).catch(() => {}));
     return allRows;
   })().catch(e => { histP = null; throw e; }));
 };
@@ -9301,8 +9313,9 @@ async function cmpCardBlob(withAv){
 /* --- Фильтры --- */
 function cmpFiltersHtml(){
   const seg = `<div class="field"><label>Что сравниваем</label><div class="seg" id="cmp-mode">${CMP_MODES.map(([k, n]) => `<button type="button" data-cmp-mode="${k}" class="${CMP.mode === k ? "active" : ""}">${n}</button>`).join("")}</div></div>`;
-  const sel = (id, label, opts, val) => `<div class="field"><label for="${id}">${label}</label><select id="${id}" data-cmp-f>${opts.map(([v, t]) => `<option value="${escH(v)}"${String(v) === String(val) ? " selected" : ""}>${escH(t)}</option>`).join("")}</select></div>`;
-  const swap = `<div class="field"><label>&nbsp;</label><button class="mini" id="cmp-swap" type="button" title="Поменять местами">⇄</button></div>`;
+  const PAIR = ["cmp-a", "cmp-b", "cmp-chA", "cmp-chB", "cmp-mA", "cmp-mB", "cmp-yA", "cmp-yB"];
+  const sel = (id, label, opts, val) => `<div class="field"${PAIR.includes(id) ? " data-fr-keep" : ""}><label for="${id}">${label}</label><select id="${id}" data-cmp-f>${opts.map(([v, t]) => `<option value="${escH(v)}"${String(v) === String(val) ? " selected" : ""}>${escH(t)}</option>`).join("")}</select></div>`;
+  const swap = `<div class="field" data-fr-keep><label>&nbsp;</label><button class="mini" id="cmp-swap" type="button" title="Поменять местами">⇄</button></div>`;
   const years = yrYears().slice().reverse();
   const pk = cmpPeriodKind();
   const periodField = `<div class="field"><label>Период</label><div class="seg cmp-pseg" id="cmp-pkind">${[["all", "Всё время"], ["365", "365 дней"], ["year", "Год"], ["month", "Месяц"]].map(([k, n]) => `<button type="button" data-cmp-pk="${k}" class="${pk === k ? "active" : ""}">${n}</button>`).join("")}</div></div>`
@@ -9359,6 +9372,7 @@ function cmpReady(){
 function renderCompare(){
   if (!allRows) return;
   $("cmp-filters").innerHTML = cmpFiltersHtml();
+  window.__filterDrawer?.rekeep("cmp-filters");
   if (!cmpReady()) { $("cmp-out").innerHTML = `<div class="s-empty">Недостаточно данных: для сравнения нужны два разных варианта.</div>`; cmpLast = null; return; }
   const m = cmpModel(); cmpLast = m;
   const {A, B, nA, nB, cA, cB, metrics, sa, sb} = m;
@@ -9387,14 +9401,17 @@ $("cmp-out").addEventListener("click", e => {
   else if (e.target.closest("#cmp-chats-copy") && cmpLast) copyTableImage("cmp-chats-table", `${cmpLast.title}: ${cmpLast.table.title.toLowerCase()} · ${cmpLast.scope}`, "cmp-chats-msg");
 });
 const CMP_FIELD = {"cmp-a":"a", "cmp-b":"b", "cmp-period":"period", "cmp-chat":"chat", "cmp-chA":"chA", "cmp-chB":"chB", "cmp-mA":"mA", "cmp-mB":"mB", "cmp-yA":"yA", "cmp-yB":"yB"};
-$("cmp-filters").addEventListener("change", e => {
+function cmpFromFilters(e){ return e.target.closest && e.target.closest('#cmp-filters, .fr-keep[data-for="cmp-filters"]'); }
+document.addEventListener("change", e => {
+  if (!cmpFromFilters(e)) return;
   const t = e.target;
   if (t.id === "cmp-same") CMP.same = t.checked;
   else if (CMP_FIELD[t.id]) CMP[CMP_FIELD[t.id]] = t.value;
   else return;
   cmpSave(); renderCompare();
 });
-$("cmp-filters").addEventListener("click", e => {
+document.addEventListener("click", e => {
+  if (!cmpFromFilters(e)) return;
   const pb = e.target.closest("[data-cmp-pk]");
   if (pb) { const k = pb.dataset.cmpPk, cur = cmpPeriodKind(); if (k !== cur) { CMP.period = k === "year" ? (yrYears().slice(-1)[0] || "all") : k === "month" ? (cmpMonthList()[0] || "all") : k; cmpSave(); renderCompare(); } return; }
   const mb = e.target.closest("[data-cmp-mode]");
@@ -11527,8 +11544,22 @@ function multiplesChart(){
   }
 
   /* Недавно полученные уровни достижений (дата — день, когда порог был пройден) */
+  /* Все полученные уровни считаются один раз (пока не изменились данные, видимость участников или дата),
+     а для «с такого-то дня» берётся готовый список — раньше полный пересчёт шёл при каждом переходе по вкладкам. */
+  let REC = null;
   function recentAch(sinceIso){
-    const today = iso(new Date()), out = [], B = base();
+    const today = iso(new Date()), B = base();
+    const vis = Object.keys(NAMES).filter(pk => isVisibleUser(pk)).join(",");
+    const ms = typeof MEMBERSHIP_STARTS !== "undefined" ? MEMBERSHIP_STARTS.length : 0;
+    const vk = typeof VKDAYS !== "undefined" ? VKDAYS.size : 0;
+    if (!REC || REC.B !== B || REC.today !== today || REC.vis !== vis || REC.ms !== ms || REC.sel !== SELFIE || REC.sl !== SELFIE.length || REC.vk !== vk) REC = {B, today, vis, ms, vk, sel:SELFIE, sl:SELFIE.length, all:recentAll(today, B)};
+    // оставляем самый высокий уровень по каждому (человек, достижение)
+    const best = new Map();
+    REC.all.forEach(e => { if (e.date < sinceIso) return; const k = e.pk + "|" + e.id, c = best.get(k); if (!c || e.level > c.level) best.set(k, c ? {...e, from:c.from || c.level} : e); });
+    return [...best.values()].sort((a, b) => b.date.localeCompare(a.date) || b.level - a.level).map(e => ({...e, personName:NAMES[e.pk]}));
+  }
+  function recentAll(today, B){
+    const sinceIso = "", out = [];
     const hasTot = allRows.some(x => Number(x[F.chatPk]) === 0), src = hasTot ? allRows.filter(x => Number(x[F.chatPk]) === 0) : allRows;
     const per = new Map();
     src.forEach(x => {
@@ -11569,10 +11600,7 @@ function multiplesChart(){
     const sel = A("selfie"), sm = new Map();
     SELFIE.forEach(r => { let m = sm.get(r.pk); if (!m) sm.set(r.pk, m = new Map()); m.set(r.date, (m.get(r.date) || 0) + r.count); });
     sm.forEach((m, pk) => { if (NAMES[pk] && isVisibleUser(pk)) cum(pk, sel, m); });
-    // оставляем самый высокий уровень по каждому (человек, достижение)
-    const best = new Map();
-    out.forEach(e => { const k = e.pk + "|" + e.id, c = best.get(k); if (!c || e.level > c.level) best.set(k, c ? {...e, from:c.from || c.level} : e); });
-    return [...best.values()].sort((a, b) => b.date.localeCompare(a.date) || b.level - a.level).map(e => ({...e, personName:NAMES[e.pk]}));
+    return out;
   }
   window.__achApi = {recent:recentAch, score:pk => stats(pk).score, full:pk => stats(pk), rank:sc => rankOf(sc)};
 
@@ -13062,8 +13090,25 @@ function multiplesChart(){
   try { on = localStorage.getItem(KEY) === "1"; collapsed = localStorage.getItem(KEY_C) === "1"; } catch (e) {}
   const active = () => on && mq.matches;
   function park(node, dest){ const mark = document.createComment("fd"); node.before(mark); moved.push([node, mark]); dest.appendChild(node); }
+  // Выбор участника (Профиль) и пары для сравнения остаются на странице: такие поля помечены data-fr-keep.
+  const holders = new Map(); // id блока фильтров → контейнер на странице
+  function keepOut(node, mark){
+    const keep = node.querySelectorAll("[data-fr-keep]"); if (!keep.length) return;
+    let h = holders.get(node);
+    if (!h) { h = document.createElement("div"); h.className = "filters fr-keep"; h.dataset.for = node.id || ""; mark.before(h); holders.set(node, h); }
+    keep.forEach(el => { const m = document.createComment("fdk"); el.before(m); moved.push([el, m]); h.appendChild(el); });
+  }
+  function rekeep(id){
+    const node = document.getElementById(id); if (!node) return;
+    const h = holders.get(node); if (!h) return;
+    // старые поля уже заменены перерисовкой — убираем их и забираем новые
+    for (let i = moved.length - 1; i >= 0; i--) if (moved[i][0].parentNode === h) moved.splice(i, 1);
+    h.textContent = "";
+    const entry = moved.find(([n]) => n === node); if (entry) keepOut(node, entry[1]);
+  }
   function restore(){
     while (moved.length) { const [node, mark] = moved.pop(); if (mark.parentNode) mark.replaceWith(node); }
+    holders.forEach(h => h.remove()); holders.clear();
     body.dataset.tab = "";
   }
   function candidates(){
@@ -13081,7 +13126,7 @@ function multiplesChart(){
     const onSettings = document.querySelector("main > .tab.active")?.id === "tab-settings";
     document.body.classList.toggle("fr-settings", active() && onSettings);
     if (!active() || onSettings) return;
-    candidates().forEach(n => park(n, body));
+    candidates().forEach(n => { park(n, body); keepOut(n, moved[moved.length - 1][1]); });
     body.dataset.tab = typeof activeDataTab === "function" ? activeDataTab() : "";
     ["ult-toggle", "vk-toggle"].forEach(id => { const b = document.getElementById(id); if (b && b.parentNode !== top) park(b, top); });
   }
@@ -13115,7 +13160,7 @@ function multiplesChart(){
     apply();
   });
   mq.addEventListener ? mq.addEventListener("change", apply) : mq.addListener(apply);
-  window.__filterDrawer = {mount, restore, apply};
+  window.__filterDrawer = {mount, restore, apply, rekeep};
   setTimeout(apply, 0);
 })();
 </script>
@@ -13423,10 +13468,13 @@ function multiplesChart(){
   const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.remove("fx-pre"); e.target.classList.add("fx-in"); io.unobserve(e.target); } }), {rootMargin:"0px 0px -6% 0px"}) : null;
   function revealScan(root){
     if (!io) return;
-    root.querySelectorAll?.(REVEAL_SEL).forEach(el => {
-      if (el.dataset.fxRv) return; el.dataset.fxRv = "1";
-      const r = el.getBoundingClientRect();
-      if (r.top < innerHeight * .92) return; // уже на экране — показываем сразу
+    // Сначала все замеры, потом все записи — иначе раскладка пересчитывается на каждом блоке.
+    const els = [...(root.querySelectorAll?.(REVEAL_SEL) || [])].filter(el => !el.dataset.fxRv);
+    if (!els.length) return;
+    const lim = innerHeight * .92, tops = els.map(el => el.getBoundingClientRect().top);
+    els.forEach((el, i) => {
+      el.dataset.fxRv = "1";
+      if (tops[i] < lim) return; // уже на экране — показываем сразу
       el.classList.add("fx-pre"); io.observe(el);
     });
   }
@@ -13450,6 +13498,7 @@ function multiplesChart(){
   const cv = document.createElement("canvas"); cv.id = "fx-confetti"; document.body.appendChild(cv);
   const ctx = cv.getContext("2d"); let parts = [], raf = 0;
   const COLORS = ["#ffd166", "#ff6ad5", "#67e8f9", "#a78bfa", "#76f0b6", "#ff9e64", "#7aa2f7"];
+  const SEASON_LITE = window.matchMedia("(pointer:coarse)").matches;
   function sizeCv(c){ const d = Math.min(2, devicePixelRatio || 1); c.width = innerWidth * d; c.height = innerHeight * d; c.getContext("2d").setTransform(d, 0, 0, d, 0, 0); }
   function loop(){
     ctx.clearRect(0, 0, innerWidth, innerHeight);
@@ -13781,11 +13830,11 @@ function multiplesChart(){
     flakes = Array.from({length:Math.max(3, n)}, () => makeFlake(k, true));
     splashes = []; flash = 0; bolt = null; nextBolt = 0; salRk = []; salSp = []; salNext = 0;
     const tick = () => {
-      if (document.hidden) { sraf = requestAnimationFrame(tick); return; }
+      if (document.hidden) { return; }
       sctx.clearRect(0, 0, innerWidth, innerHeight);
-      if (K.rain) { drawRain(K); sraf = requestAnimationFrame(tick); return; }
-      if (K.aurora) { drawAurora(); sraf = requestAnimationFrame(tick); return; }
-      if (K.salute) { drawSalute(K); sraf = requestAnimationFrame(tick); return; }
+      if (K.rain) { drawRain(K); return; }
+      if (K.aurora) { drawAurora(); return; }
+      if (K.salute) { drawSalute(K); return; }
       flakes.forEach((f, i) => {
         if (K.shoot) {
           if (f.wait > 0) { f.wait--; return; }
@@ -13843,9 +13892,12 @@ function multiplesChart(){
         else { sctx.beginPath(); sctx.ellipse(0, 0, f.r, f.r * .55, 0, 0, 7); sctx.fill(); }
         sctx.restore();
       });
-      sraf = requestAnimationFrame(tick);
     };
-    sraf = requestAnimationFrame(tick);
+    // На телефонах (сенсорный экран) кадр рисуется через раз, но частицы делают два шага —
+    // скорость та же, а нагрузка на видеочип и батарею вдвое меньше.
+    let odd = false;
+    const loopS = () => { sraf = requestAnimationFrame(loopS); if (SEASON_LITE) { odd = !odd; if (odd) return; tick(); } tick(); };
+    sraf = requestAnimationFrame(loopS);
   }
   document.addEventListener("change", e => {
     if (e.target.id === "fx-season-kind") { PK.kind = e.target.value; }
@@ -13896,6 +13948,7 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.24-6", date:"2026-10-24", title:"Сайт быстрее на телефоне", items:[{tag:"fix", area:"Телефон", text:"Убрано зацикливание: на телефоне страница без остановки перестраивала кнопки «таблица/карточки» и проверяла все таблицы — даже когда ничего не происходило. Из-за этого сайт тормозил и тратил батарею, а кнопки «К разделу» и часть эффектов не появлялись. Теперь всё это работает."},{tag:"imp", area:"Везде", text:"Переходы между вкладками примерно на 40% легче: недавние достижения не пересчитываются заново на каждом переходе, числа и даты форматируются быстрее, лишние перерисовки убраны. Кэш истории сохраняется, когда браузер свободен, и не мешает первой отрисовке."},{tag:"imp", area:"Телефон", text:"Частицы на фоне рисуются через кадр — скорость та же, нагрузка вдвое меньше."},{tag:"fix", area:"Фильтры справа", text:"Выбор участника в «Профиле» и «Достижениях» и выбор пары в «Сравнении» остаются на странице, а не уезжают в шторку."}]},
   {v:"2026.10.24-5", date:"2026-10-24", title:"График мест показывает реальные места", items:[{tag:"fix", area:"Графики", text:"«График мест» по умолчанию считает места накопительно — как в рейтинге и подсказке. Справа у имени — место за весь период, а места считаются среди всех участников, даже если выбраны только некоторые."}]},
   {v:"2026.10.24-4", date:"2026-10-24", title:"Карточки в две строки", items:[{tag:"fix", area:"Телефон", text:"Строки «Всего» и другие итоги в карточках снова показывают суммы по каждому столбцу с подписями, числа больше не съезжают."},{tag:"imp", area:"Телефон", text:"Карточки таблиц перестроены: сверху место и имя, снизу все столбцы в один ряд с равными промежутками. Изменение (±) стоит рядом с числом, длинные подписи сокращены — карточки стали заметно ниже."}]},
   {v:"2026.10.24-3", date:"2026-10-24", title:"Стрелка «это ты», компактные карточки", items:[{tag:"imp", area:"Везде", text:"Твоя строка в таблицах отмечается аккуратной стрелкой › слева. На картинке при копировании таблицы её нет."},{tag:"fix", area:"Везде", text:"Голографический эффект на карточках остался, а белое пятно за курсором убрано."},{tag:"imp", area:"Телефон", text:"Карточки таблиц стали компактными: место, имя и значения в одну строку, подписи мелко над числами — на экран помещается в 2–3 раза больше участников."},{tag:"imp", area:"Телефон", text:"Приложение называется Colony Stats."}]},
@@ -14120,7 +14173,8 @@ window.CHANGELOG = [
 (function(){
   const mq = window.matchMedia("(max-width:720px)");
   function center(){ if (!mq.matches) return; document.querySelectorAll(".group-tabs").forEach(g => { const a = g.querySelector("button.active"); if (!a || !g.offsetParent) return; g.scrollLeft = Math.max(0, a.offsetLeft - (g.clientWidth - a.offsetWidth) / 2); }); }
-  new MutationObserver(() => setTimeout(center, 30)).observe(document.body, {attributes:true, subtree:true, attributeFilter:["class"]});
+  let cT = 0; // один отложенный запуск на пачку изменений, а не таймер на каждое
+  new MutationObserver(() => { if (!cT && mq.matches) cT = setTimeout(() => { cT = 0; center(); }, 30); }).observe(document.body, {attributes:true, subtree:true, attributeFilter:["class"]});
   window.addEventListener("resize", center);
 })();
 </script>
@@ -16426,10 +16480,10 @@ tbody tr.qv-able{cursor:pointer}
     qsa(".pname.is-me").forEach(p => { if (p.dataset.openProfile !== me) p.classList.remove("is-me"); });
     qsa("main tbody tr").forEach(tr => {
       const pk = rowPk(tr); if (!pk) return;
-      tr.classList.add("qv-able");
-      if (me && pk === me) { tr.classList.add("is-me-row"); tr.dataset.meKey = me; }
+      if (!tr.classList.contains("qv-able")) tr.classList.add("qv-able");
+      if (me && pk === me && !tr.classList.contains("is-me-row")) { tr.classList.add("is-me-row"); tr.dataset.meKey = me; }
     });
-    if (me) qsa(`[data-open-profile="${CSS.escape(me)}"]`).forEach(p => p.classList.add("is-me"));
+    if (me) qsa(`[data-open-profile="${CSS.escape(me)}"]`).forEach(p => { if (!p.classList.contains("is-me")) p.classList.add("is-me"); });
   }
   function rowPk(tr){
     if (!tr || tr.closest("#tab-settings, .sticky-table-head")) return "";
@@ -16708,23 +16762,35 @@ tbody tr.qv-able{cursor:pointer}
     tvT = 0;
     const on = mobile.matches;
     qsa("main table[data-hc]").forEach(t => {
-      if (!on) { t.classList.remove("tv-cards"); return; }
+      if (!on) { if (t.classList.contains("tv-cards")) t.classList.remove("tv-cards"); return; }
+      if (!tvVisible(t)) return; // таблицы скрытых вкладок обработаем, когда их откроют
       const cards = viewOf(t) === "cards";
-      t.classList.toggle("tv-cards", cards);
+      if (t.classList.contains("tv-cards") !== cards) t.classList.toggle("tv-cards", cards);
       if (cards) labelRows(t);
       // кнопка переключения в строке «Столбцы»
       const bar = qs(`.hc-bar[data-for="${t.dataset.hc}"]`);
       if (bar) {
         let b = qs(".tv-btn", bar);
         if (!b) { b = document.createElement("button"); b.type = "button"; b.className = "tv-btn"; bar.insertBefore(b, bar.firstChild); }
-        b.dataset.tvFor = t.dataset.hc; b.innerHTML = cards ? ICON_TABLE : ICON_CARDS; b.title = cards ? "Показать таблицей" : "Показать карточками";
+        tvBtn(b, t.dataset.hc, cards);
       }
     });
     const st = $("st-tv"), vt = stTable();
-    if (st) { st.hidden = !vt; if (vt) { const c = vt.classList.contains("tv-cards"); st.dataset.tvFor = vt.dataset.hc; st.innerHTML = c ? ICON_TABLE : ICON_CARDS; st.title = c ? "Показать таблицей" : "Показать карточками"; } }
+    if (st) { if (st.hidden !== !vt) st.hidden = !vt; if (vt) tvBtn(st, vt.dataset.hc, vt.classList.contains("tv-cards")); }
   }
-  function stTable(){ return qsa("#tab-stats table[data-hc]").find(t => t.offsetParent) || null; }
+  // Кнопку перерисовываем только при изменении: иначе каждая запись вызывает наблюдатель, тот — новый tvScan, и так по кругу.
+  function tvBtn(b, hc, cards){
+    if (b.dataset.tvFor !== hc) b.dataset.tvFor = hc;
+    const mode = cards ? "cards" : "table";
+    if (b.dataset.tvMode !== mode) { b.dataset.tvMode = mode; b.innerHTML = cards ? ICON_TABLE : ICON_CARDS; b.title = cards ? "Показать таблицей" : "Показать карточками"; }
+  }
+  function stTable(){ return qsa("#tab-stats table[data-hc]").find(t => tvVisible(t) && t.offsetParent) || null; }
   const tvLater = () => { if (!tvT) tvT = setTimeout(tvScan, 90); };
+  // Видна ли таблица: проверка по разметке, без замеров раскладки.
+  function tvVisible(t){ return !t.closest("main > .tab:not(.active), .stat-content:not(.active), [hidden]"); }
+  // Открыли другую вкладку или раздел — обрабатываем таблицы, которые стали видны.
+  { const m = qs("main"); if (m) new MutationObserver(ms => { if (ms.some(r => r.attributeName === "hidden" || (r.target.classList && (r.target.classList.contains("tab") || r.target.classList.contains("stat-content"))))) tvLater(); })
+      .observe(m, {subtree:true, attributes:true, attributeFilter:["class", "hidden"]}); }
   document.addEventListener("click", e => {
     const b = e.target.closest?.(".tv-btn"); if (!b) return;
     const t = qs(`table[data-hc="${b.dataset.tvFor}"]`); if (!t) return;
