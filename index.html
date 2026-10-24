@@ -13894,6 +13894,7 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.24-4", date:"2026-10-24", title:"Карточки в две строки", items:[{tag:"imp", area:"Телефон", text:"Карточки таблиц перестроены: сверху место и имя, снизу все столбцы в один ряд с равными промежутками. Изменение (±) стоит рядом с числом, длинные подписи сокращены — карточки стали заметно ниже."}]},
   {v:"2026.10.24-3", date:"2026-10-24", title:"Стрелка «это ты», компактные карточки", items:[{tag:"imp", area:"Везде", text:"Твоя строка в таблицах отмечается аккуратной стрелкой › слева. На картинке при копировании таблицы её нет."},{tag:"fix", area:"Везде", text:"Голографический эффект на карточках остался, а белое пятно за курсором убрано."},{tag:"imp", area:"Телефон", text:"Карточки таблиц стали компактными: место, имя и значения в одну строку, подписи мелко над числами — на экран помещается в 2–3 раза больше участников."},{tag:"imp", area:"Телефон", text:"Приложение называется Colony Stats."}]},
   {v:"2026.10.24-2", date:"2026-10-24", title:"Ненавязчивая подсветка себя", items:[{tag:"imp", area:"Везде", text:"Подсветка себя в таблицах стала аккуратнее: тонкая полоска слева у строки и маленькая точка у имени вместо заливки и метки «ты»."},{tag:"fix", area:"Таблицы", text:"В картинках, скопированных или скачанных из таблиц, ты больше не выделен(а)."},{tag:"imp", area:"Приложение", text:"Приложение на домашнем экране и вкладка браузера теперь называются «Colony Stats»."}]},
   {v:"2026.10.24-1", date:"2026-10-24", title:"«Я» в Хабе, быстрый просмотр, карточки и приложение", items:[
@@ -16320,17 +16321,18 @@ tbody tr.qv-able{cursor:pointer}
   table.tv-cards{display:block!important;width:100%!important;min-width:0!important;max-width:none!important;border:0!important;background:none!important;table-layout:auto!important}
   table.tv-cards > :is(thead,colgroup){display:none!important}
   table.tv-cards > :is(tbody,tfoot){display:grid!important;gap:6px;margin-bottom:6px}
-  table.tv-cards > :is(tbody,tfoot) > tr{position:relative;display:flex!important;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:8px 12px;border-radius:12px;background:var(--panel)!important;border:1px solid var(--line)}
-  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th){display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:0;min-width:0;padding:0!important;border:0!important;background-color:transparent!important;box-shadow:none!important;position:static!important;text-align:right!important;white-space:nowrap!important;font-size:14px;line-height:1.25;font-variant-numeric:tabular-nums;width:auto!important;max-width:none!important}
-  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th)::before{content:attr(data-label);font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px;line-height:1.2}
-  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(1){flex:0 0 auto;min-width:22px;align-items:center;font-weight:700;font-size:14px;color:var(--muted)}
+  table.tv-cards > :is(tbody,tfoot) > tr{position:relative;display:flex!important;flex-wrap:wrap;align-items:flex-start;gap:6px 8px;padding:8px 12px 9px;border-radius:12px;background:var(--panel)!important;border:1px solid var(--line)}
+  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th){display:block;flex:1 1 0;min-width:58px;padding:0!important;border:0!important;background-color:transparent!important;box-shadow:none!important;position:static!important;text-align:center!important;white-space:normal!important;font-size:14px;line-height:1.25;font-variant-numeric:tabular-nums;width:auto!important;max-width:none!important;overflow-wrap:anywhere}
+  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th)::before{content:attr(data-label);display:block;margin-bottom:1px;font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th) .compare-diff{font-size:11.5px;white-space:nowrap}
+  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(1){flex:0 0 24px;min-width:0;align-self:center;font-weight:700;font-size:14px;color:var(--muted);position:relative!important}
   table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(1)::before{display:none}
-  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(2){flex:1 1 120px;align-items:flex-start;text-align:left!important;white-space:normal!important;font-weight:600;font-size:15px;overflow:hidden}
+  table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(2){flex:0 0 calc(100% - 32px);min-width:0;align-self:center;text-align:left!important;font-weight:600;font-size:15px;overflow:hidden}
   table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(2)::before{display:none}
-  table.tv-cards > :is(tbody,tfoot) > tr > [colspan]{flex:1 1 100%!important;align-items:flex-start;text-align:left!important;white-space:normal!important}
+  table.tv-cards > :is(tbody,tfoot) > tr > [colspan]{flex:1 1 100%!important;text-align:left!important}
   table.tv-cards > :is(tbody,tfoot) > tr > [colspan]::before{display:none}
   table.tv-cards > :is(tbody,tfoot) > tr:has(> [colspan]:only-child){padding:8px 12px}
-  table.tv-cards > :is(tbody,tfoot) > tr.is-me-row > :first-child::after{content:"";position:absolute;left:3px;top:50%;width:5px;height:5px;border-right:2px solid var(--accent);border-top:2px solid var(--accent);transform:translateY(-50%) rotate(45deg);pointer-events:none}
+  table.tv-cards > :is(tbody,tfoot) > tr.is-me-row > :first-child::after{content:"";position:absolute;left:-10px;top:50%;width:5px;height:5px;border-right:2px solid var(--accent);border-top:2px solid var(--accent);transform:translateY(-50%) rotate(45deg);pointer-events:none}
   table.tv-cards .row-name-with-action{width:100%;max-width:none!important;justify-content:space-between}
   table.tv-cards :is(.spark-cell,.cell-hist,.mini-spark){max-width:100%}
 }
@@ -16690,9 +16692,10 @@ tbody tr.qv-able{cursor:pointer}
     return AUTO[k];
   }
   function cols(t){ const r = t.tHead && t.tHead.rows[t.tHead.rows.length - 1]; return r ? [...r.cells].map(c => String(c.dataset.hcName || c.textContent).replace(/[▲▼△▽↑↓⇅⬍↕]/g, "").replace(/\s+/g, " ").trim()) : []; }
+  const SHORT = {"Видеосообщения":"Кружки","Видеосообщений":"Кружки","Голосовые сообщения":"Голосовые","Пересланные":"Пересл.","Пересланных":"Пересл.","Активных дней":"Дней"};
   function labelRows(t){
     const names = cols(t);
-    qsa(":scope > :is(tbody,tfoot) > tr", t).forEach(tr => { if ([...tr.cells].some(c => c.colSpan > 1)) return; [...tr.cells].forEach((c, i) => { if (names[i] && c.dataset.label !== names[i]) c.dataset.label = names[i]; }); });
+    qsa(":scope > :is(tbody,tfoot) > tr", t).forEach(tr => { if ([...tr.cells].some(c => c.colSpan > 1)) return; [...tr.cells].forEach((c, i) => { const n = names[i] && (SHORT[names[i]] || names[i]); if (n && c.dataset.label !== n) c.dataset.label = n; }); });
   }
   let tvT = 0;
   function tvScan(){
