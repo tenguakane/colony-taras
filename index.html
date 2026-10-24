@@ -353,6 +353,9 @@ h2::before{content:"";flex:0 0 4px;height:16px;border-radius:2px;background:line
 .ychip{display:inline-block;margin-left:8px;padding:0 7px;border:1px solid;border-radius:999px;font-size:13.5px;line-height:18px;vertical-align:1px}
 .now-chip{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;font-size:12.5px;line-height:18px;color:var(--accent);border:1px solid #7aa2f777}
 .wd-mute{color:var(--muted);font-size:13.5px;margin-left:6px}
+/* Название месяца/дня и плашки (год, «сейчас», «сегодня») — на одной средней линии при любом размере шрифта */
+.yname{display:inline-flex;align-items:center;flex-wrap:wrap;row-gap:4px;vertical-align:middle;max-width:100%}
+.yname > :is(.ychip,.now-chip,.wd-mute){vertical-align:0;line-height:18px}
 tr.year-sep td{font-size:13.5px!important;letter-spacing:.05em;color:var(--muted);padding:7px 14px!important;text-align:left!important}
 tbody tr.ytint:hover td{filter:brightness(1.18)}
 /* Профиль */
@@ -3001,7 +3004,7 @@ let ROW_BASE = "#171a22";
 function yearRowCells(y, place, label, nums, pct, extraRowClass = ""){
   const yc = yearHue(y);
   return `<tr class="${extraRowClass.trim()}"><td style="text-align:center;border-left:4px solid ${yc}">${place}</td>`
-    + `<td style="text-align:left">${label}<span class="ychip" style="color:${yc};border-color:${hexA(yc, .55)};background-color:${hexA(yc, .12)}">${y}</span></td>`
+    + `<td style="text-align:left"><span class="yname">${label}<span class="ychip" style="color:${yc};border-color:${hexA(yc, .55)};background-color:${hexA(yc, .12)}">${y}</span></span></td>`
     + nums.map(v => `<td class="${v ? "" : "zero"}">${fmt(v)}</td>`).join("") + `</tr>`;
 }
 function renderYearLegend(hostId, yearTotals, active, onPick){
@@ -13976,6 +13979,7 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.24-8", date:"2026-10-24", title:"Ровные плашки в топах", items:[{tag:"fix", area:"Топ месяцев и дней", text:"Плашки года, «сейчас» и «сегодня» стоят ровно по центру строки рядом с названием месяца или дня — и в таблице, и в карточках на телефоне."}]},
   {v:"2026.10.24-7", date:"2026-10-24", title:"Один месяц или день недели в топах", items:[{tag:"new", area:"Топ месяцев", text:"Фильтр «Месяц»: можно оставить, например, только октябри за все годы. Место у каждого остаётся из общего топа всех месяцев, а итоги по годам считаются по выбранному месяцу."},{tag:"new", area:"Топ дней", text:"Фильтр «День недели»: например, только понедельники. Место — из общего топа всех дней."}]},
   {v:"2026.10.24-6", date:"2026-10-24", title:"Сайт быстрее на телефоне", items:[{tag:"fix", area:"Телефон", text:"Убрано зацикливание: на телефоне страница без остановки перестраивала кнопки «таблица/карточки» и проверяла все таблицы — даже когда ничего не происходило. Из-за этого сайт тормозил и тратил батарею, а кнопки «К разделу» и часть эффектов не появлялись. Теперь всё это работает."},{tag:"imp", area:"Везде", text:"Переходы между вкладками примерно на 40% легче: недавние достижения не пересчитываются заново на каждом переходе, числа и даты форматируются быстрее, лишние перерисовки убраны. Кэш истории сохраняется, когда браузер свободен, и не мешает первой отрисовке."},{tag:"imp", area:"Телефон", text:"Частицы на фоне рисуются через кадр — скорость та же, нагрузка вдвое меньше."},{tag:"fix", area:"Фильтры справа", text:"Выбор участника в «Профиле» и «Достижениях» и выбор пары в «Сравнении» остаются на странице, а не уезжают в шторку."}]},
   {v:"2026.10.24-5", date:"2026-10-24", title:"График мест показывает реальные места", items:[{tag:"fix", area:"Графики", text:"«График мест» по умолчанию считает места накопительно — как в рейтинге и подсказке. Справа у имени — место за весь период, а места считаются среди всех участников, даже если выбраны только некоторые."}]},
