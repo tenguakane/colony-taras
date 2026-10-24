@@ -11161,7 +11161,7 @@ function multiplesChart(){
   const SKIP_TABS = ["profile", "compare", "settings", "yearreview", "marathons"];
   const SKIP_IDS = new Set(["s-date", "s-name"]);
   const SPECIAL = new Set([...HIDE_LEFT_CONTROLS, ...COMPARISON_CONTROLS, "mode", "day", "month", "year", "chat", "norm-seg"]);
-  let applying = false, saveTimer = 0;
+  let applying = false, saveTimer = 0, frozen = false;
   const persist = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(STORE)); } catch (e) {} }, 150); };
   const tabEl = key => document.getElementById("tab-" + key);
   // В режиме «Фильтры справа» фильтры вкладки живут в правой шторке.
@@ -11187,7 +11187,7 @@ function multiplesChart(){
     return out;
   }
   function capture(key){
-    if (!key) return;
+    if (!key || frozen) return;
     const st = STORE[key] || (STORE[key] = {});
     if (hasHL(key)) st.hl = hideLeft;
     if (CMP_ID[key]) st.cmp = comparisonEnabled;
@@ -11295,6 +11295,15 @@ function multiplesChart(){
   const onUserChange = () => { if (applying) return; const key = activeDataTab(); setTimeout(() => { if (!applying) capture(key); }, 0); };
   document.addEventListener("change", e => { if (e.target.closest && e.target.closest(".filters,#shared")) onUserChange(); });
   document.addEventListener("click", e => { if (e.target.closest && e.target.closest(".filters .seg button,#shared .seg button")) onUserChange(); });
+  // Сброс фильтров вкладки (кнопка в шапке телефона): записываем исходные значения и больше ничего не запоминаем до перезагрузки.
+  window.__tabFilters = {
+    reset(key){
+      frozen = true; clearTimeout(saveTimer);
+      STORE[key] = {mode:"day", norm:"abs", hl:false, cmp:false};
+      try { localStorage.setItem(KEY, JSON.stringify(STORE)); } catch (e) {}
+    },
+    skip: key => SKIP_TABS.includes(key)
+  };
   // Первая вкладка после перезагрузки страницы.
   (function init(){
     const key = activeDataTab();
@@ -13979,6 +13988,7 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
+  {v:"2026.10.24-9", date:"2026-10-24", title:"Сброс фильтров и выход в шапке", items:[{tag:"new", area:"Телефон", text:"В шапке приложения появилась кнопка «Сбросить фильтры»: фильтры открытой вкладки возвращаются к исходным, остальные вкладки не меняются. В «Сравнении» пара участников сохраняется."},{tag:"new", area:"Телефон", text:"Кнопка «Выйти из приложения». Если телефон не даёт приложению закрыться самому, появится подсказка, как выйти."}]},
   {v:"2026.10.24-8", date:"2026-10-24", title:"Ровные плашки в топах", items:[{tag:"fix", area:"Топ месяцев и дней", text:"Плашки года, «сейчас» и «сегодня» стоят ровно по центру строки рядом с названием месяца или дня — и в таблице, и в карточках на телефоне."}]},
   {v:"2026.10.24-7", date:"2026-10-24", title:"Один месяц или день недели в топах", items:[{tag:"new", area:"Топ месяцев", text:"Фильтр «Месяц»: можно оставить, например, только октябри за все годы. Место у каждого остаётся из общего топа всех месяцев, а итоги по годам считаются по выбранному месяцу."},{tag:"new", area:"Топ дней", text:"Фильтр «День недели»: например, только понедельники. Место — из общего топа всех дней."}]},
   {v:"2026.10.24-6", date:"2026-10-24", title:"Сайт быстрее на телефоне", items:[{tag:"fix", area:"Телефон", text:"Убрано зацикливание: на телефоне страница без остановки перестраивала кнопки «таблица/карточки» и проверяла все таблицы — даже когда ничего не происходило. Из-за этого сайт тормозил и тратил батарею, а кнопки «К разделу» и часть эффектов не появлялись. Теперь всё это работает."},{tag:"imp", area:"Везде", text:"Переходы между вкладками примерно на 40% легче: недавние достижения не пересчитываются заново на каждом переходе, числа и даты форматируются быстрее, лишние перерисовки убраны. Кэш истории сохраняется, когда браузер свободен, и не мешает первой отрисовке."},{tag:"imp", area:"Телефон", text:"Частицы на фоне рисуются через кадр — скорость та же, нагрузка вдвое меньше."},{tag:"fix", area:"Фильтры справа", text:"Выбор участника в «Профиле» и «Достижениях» и выбор пары в «Сравнении» остаются на странице, а не уезжают в шторку."}]},
@@ -15565,6 +15575,8 @@ body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(1
     menu:svg('<rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/>'),
     filter:svg('<path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/>'),
     refresh:svg('<path d="M20 11.5A8 8 0 1 0 17.7 17"/><path d="M20 5v6.5h-6.5"/>'),
+    freset:svg('<path d="M4 6h10"/><path d="M7 12h6"/><path d="M10 18h3"/><path d="m16 9.5 5 5"/><path d="m21 9.5-5 5"/>'),
+    exit:svg('<path d="M12 3.5v8"/><path d="M6.6 6.6a7.6 7.6 0 1 0 10.8 0"/>'),
     search:svg('<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>'),
     logo:svg('<path d="M5 19V11"/><path d="M12 19V5"/><path d="M19 19v-6"/>'),
   };
@@ -15578,7 +15590,7 @@ body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(1
 
   // ---------- разметка ----------
   const bar = document.createElement("div"); bar.id = "ma-bar";
-  bar.innerHTML = `<div class="ma-top"><div class="ma-title" id="ma-title"></div><button type="button" class="ma-ic" id="ma-filter" aria-label="Фильтры">${I.filter}<i class="ma-dot" hidden></i></button><button type="button" class="ma-ic" id="ma-refresh" aria-label="Обновить данные">${I.refresh}</button></div><div class="ma-sum" id="ma-sum" hidden></div>`;
+  bar.innerHTML = `<div class="ma-top"><div class="ma-title" id="ma-title"></div><button type="button" class="ma-ic" id="ma-filter" aria-label="Фильтры">${I.filter}<i class="ma-dot" hidden></i></button><button type="button" class="ma-ic" id="ma-freset" aria-label="Сбросить фильтры" title="Сбросить фильтры этой вкладки" hidden>${I.freset}</button><button type="button" class="ma-ic" id="ma-refresh" aria-label="Обновить данные">${I.refresh}</button><button type="button" class="ma-ic" id="ma-exit" aria-label="Выйти из приложения" title="Выйти из приложения">${I.exit}</button></div><div class="ma-sum" id="ma-sum" hidden></div>`;
   document.body.prepend(bar);
   const tabs = document.createElement("div"); tabs.id = "ma-tabs"; tabs.setAttribute("role", "tablist");
   tabs.innerHTML = TABS.map(([k, l]) => `<button type="button" data-ma="${k}" role="tab">${I[k]}<span>${l}</span></button>`).join("");
@@ -15721,6 +15733,45 @@ body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(1
   function refresh(){ const r = $("refresh"); if (!r) return; const b = $("ma-refresh"); b.classList.add("spin"); r.click(); setTimeout(() => b.classList.remove("spin"), 1200); }
   $("ma-refresh").addEventListener("click", refresh);
 
+  // ---------- сброс фильтров ----------
+  // Где сбрасывать нечего (или фильтр — это выбор участника), кнопку не показываем.
+  const NO_RESET = ["hub", "profile", "achievements", "marathons", "settings"];
+  const canReset = () => !NO_RESET.includes(curTab()) && panels().length > 0;
+  const lsGetJ = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
+  const lsSetJ = (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  function resetFilters(){
+    if (!canReset()) return;
+    const tab = curTab(), key = typeof activeDataTab === "function" ? activeDataTab() : tab;
+    closeFilters();
+    window.__tabFilters?.reset(key);
+    // Общий период, тип и показатель графика хранятся отдельно — убираем их, адрес вкладки оставляем.
+    if (["stats", "charts"].includes(tab)) { const u = lsGetJ(UI_KEY); if (u) lsSetJ(UI_KEY, tab === "charts" ? {hash:u.hash} : {cType:u.cType, metric:u.metric, entity:u.entity, hash:u.hash}); }
+    if (tab === "charts") { lsSetJ(CHART_QUICK_KEY, null); lsSetJ("chatstats.chartFocus.v1", null); }
+    // Сравнение: оставляем, кого с кем сравниваем; период, чат и «по сегодняшнее число» — по умолчанию.
+    if (tab === "compare") { const c = lsGetJ(CMP_KEY) || {}; ["period", "chat", "same"].forEach(k => delete c[k]); lsSetJ(CMP_KEY, c); }
+    if (tab === "yearreview") { lsSetJ(YR_KEY, null); try { history.replaceState(null, "", "#yearreview"); } catch (e) {} }
+    if (tab === "daymatrix") { const d = lsGetJ(DM_KEY); lsSetJ(DM_KEY, d && d.sort ? {sort:d.sort} : null); }
+    if (tab === "selfie") lsSetJ("chatstats.selfieRange.v1", null);
+    try { sessionStorage.setItem("chatstats.fresetDone", "1"); } catch (e) {}
+    $("ma-freset").classList.add("spin");
+    setTimeout(() => location.reload(), 120);
+  }
+  $("ma-freset").addEventListener("click", resetFilters);
+  try { if (sessionStorage.getItem("chatstats.fresetDone")) { sessionStorage.removeItem("chatstats.fresetDone"); setTimeout(() => { try { toastMsg("Фильтры вкладки сброшены"); } catch (e) {} }, 900); } } catch (e) {}
+
+  // ---------- выход из приложения ----------
+  // Закрыть себя страница может не всегда: браузер разрешает это только окну без истории переходов.
+  // Если закрыться не вышло — подсказываем, как выйти.
+  function exitApp(){
+    const app = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+    try { window.close(); } catch (e) {}
+    setTimeout(() => {
+      if (document.hidden || window.closed) return;
+      try { toastMsg(app ? "Телефон не даёт приложению закрыться самому — смахни его в списке открытых приложений или нажми «Назад» несколько раз" : "Браузер не даёт сайту закрыть вкладку — закрой её вручную"); } catch (e) {}
+    }, 350);
+  }
+  $("ma-exit").addEventListener("click", exitApp);
+
   // ---------- синхронизация ----------
   function sync(){
     if (!active()) return;
@@ -15728,6 +15779,7 @@ body.holo-text-on tr > td.medal-3:first-child{background-image:linear-gradient(1
     const key = menuOpen ? "menu" : MAIN.includes(cur) ? cur : cur === "achievements" ? "profile" : "menu";
     tabs.querySelectorAll("[data-ma]").forEach(b => { const o = b.dataset.ma === key; b.classList.toggle("on", o); b.setAttribute("aria-selected", String(o)); });
     $("ma-title").textContent = labelFor(cur === "achievements" ? "achievements" : cur) || "Colony Stats";
+    $("ma-freset").hidden = !canReset();
     if (!fs.classList.contains("open")) renderSummary();
   }
   let t = 0; const later = () => { clearTimeout(t); t = setTimeout(sync, 120); };
