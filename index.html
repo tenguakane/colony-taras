@@ -13894,7 +13894,7 @@ function multiplesChart(){
 /* ===================== История обновлений (новые версии — сверху) ===================== */
 // tag: new — новое, imp — улучшено, fix — исправлено, del — убрано. area — раздел сайта.
 window.CHANGELOG = [
-  {v:"2026.10.24-4", date:"2026-10-24", title:"Карточки в две строки", items:[{tag:"imp", area:"Телефон", text:"Карточки таблиц перестроены: сверху место и имя, снизу все столбцы в один ряд с равными промежутками. Изменение (±) стоит рядом с числом, длинные подписи сокращены — карточки стали заметно ниже."}]},
+  {v:"2026.10.24-4", date:"2026-10-24", title:"Карточки в две строки", items:[{tag:"fix", area:"Телефон", text:"Строки «Всего» и другие итоги в карточках снова показывают суммы по каждому столбцу с подписями, числа больше не съезжают."},{tag:"imp", area:"Телефон", text:"Карточки таблиц перестроены: сверху место и имя, снизу все столбцы в один ряд с равными промежутками. Изменение (±) стоит рядом с числом, длинные подписи сокращены — карточки стали заметно ниже."}]},
   {v:"2026.10.24-3", date:"2026-10-24", title:"Стрелка «это ты», компактные карточки", items:[{tag:"imp", area:"Везде", text:"Твоя строка в таблицах отмечается аккуратной стрелкой › слева. На картинке при копировании таблицы её нет."},{tag:"fix", area:"Везде", text:"Голографический эффект на карточках остался, а белое пятно за курсором убрано."},{tag:"imp", area:"Телефон", text:"Карточки таблиц стали компактными: место, имя и значения в одну строку, подписи мелко над числами — на экран помещается в 2–3 раза больше участников."},{tag:"imp", area:"Телефон", text:"Приложение называется Colony Stats."}]},
   {v:"2026.10.24-2", date:"2026-10-24", title:"Ненавязчивая подсветка себя", items:[{tag:"imp", area:"Везде", text:"Подсветка себя в таблицах стала аккуратнее: тонкая полоска слева у строки и маленькая точка у имени вместо заливки и метки «ты»."},{tag:"fix", area:"Таблицы", text:"В картинках, скопированных или скачанных из таблиц, ты больше не выделен(а)."},{tag:"imp", area:"Приложение", text:"Приложение на домашнем экране и вкладка браузера теперь называются «Colony Stats»."}]},
   {v:"2026.10.24-1", date:"2026-10-24", title:"«Я» в Хабе, быстрый просмотр, карточки и приложение", items:[
@@ -16329,9 +16329,12 @@ tbody tr.qv-able{cursor:pointer}
   table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(1)::before{display:none}
   table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(2){flex:0 0 calc(100% - 32px);min-width:0;align-self:center;text-align:left!important;font-weight:600;font-size:15px;overflow:hidden}
   table.tv-cards > :is(tbody,tfoot) > tr > :is(td,th):nth-child(2)::before{display:none}
-  table.tv-cards > :is(tbody,tfoot) > tr > [colspan]{flex:1 1 100%!important;text-align:left!important}
-  table.tv-cards > :is(tbody,tfoot) > tr > [colspan]::before{display:none}
-  table.tv-cards > :is(tbody,tfoot) > tr:has(> [colspan]:only-child){padding:8px 12px}
+  table.tv-cards > :is(tbody,tfoot) > tr > :is([colspan],[data-hc-cs]){flex:1 1 100%!important;min-width:0;align-self:auto;text-align:left!important;font-weight:600;font-size:14px;color:var(--text)}
+  table.tv-cards > :is(tbody,tfoot) > tr > :is([colspan],[data-hc-cs])::before{display:none}
+  table.tv-cards > :is(tbody,tfoot) > tr:has(> :is([colspan],[data-hc-cs])) > :is(td,th):not([colspan],[data-hc-cs]){flex:1 1 0;min-width:58px;align-self:auto;text-align:center!important;font-weight:600;font-size:14px;color:inherit;overflow:visible;position:static!important}
+  table.tv-cards > :is(tbody,tfoot) > tr:has(> :is([colspan],[data-hc-cs])) > :is(td,th):not([colspan],[data-hc-cs])::before{display:block}
+  table.tv-cards > tfoot > tr{background:color-mix(in srgb,var(--accent) 5%,var(--panel))!important}
+  table.tv-cards > :is(tbody,tfoot) > tr:has(> [colspan]:only-child){padding:8px 12px;background:var(--panel)!important}
   table.tv-cards > :is(tbody,tfoot) > tr.is-me-row > :first-child::after{content:"";position:absolute;left:-10px;top:50%;width:5px;height:5px;border-right:2px solid var(--accent);border-top:2px solid var(--accent);transform:translateY(-50%) rotate(45deg);pointer-events:none}
   table.tv-cards .row-name-with-action{width:100%;max-width:none!important;justify-content:space-between}
   table.tv-cards :is(.spark-cell,.cell-hist,.mini-spark){max-width:100%}
@@ -16695,7 +16698,7 @@ tbody tr.qv-able{cursor:pointer}
   const SHORT = {"Видеосообщения":"Кружки","Видеосообщений":"Кружки","Голосовые сообщения":"Голосовые","Пересланные":"Пересл.","Пересланных":"Пересл.","Активных дней":"Дней"};
   function labelRows(t){
     const names = cols(t);
-    qsa(":scope > :is(tbody,tfoot) > tr", t).forEach(tr => { if ([...tr.cells].some(c => c.colSpan > 1)) return; [...tr.cells].forEach((c, i) => { const n = names[i] && (SHORT[names[i]] || names[i]); if (n && c.dataset.label !== n) c.dataset.label = n; }); });
+    qsa(":scope > :is(tbody,tfoot) > tr", t).forEach(tr => { let col = 0; [...tr.cells].forEach(c => { const span = Number(c.dataset.hcCs || c.colSpan) || 1; if (span === 1 && !c.dataset.hcCs) { const n = names[col] && (SHORT[names[col]] || names[col]); if (n && c.dataset.label !== n) c.dataset.label = n; } col += span; }); });
   }
   let tvT = 0;
   function tvScan(){
